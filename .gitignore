@@ -43,6 +43,7 @@ Thumbs.db
 .beads.gate.lock
 
 # Sandcastle worktrees and logs
+.sandcastle/.baseline/
 .sandcastle/worktrees/
 .sandcastle/logs/
 

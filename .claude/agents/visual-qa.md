@@ -24,6 +24,8 @@ Run `npm run ui:qa`. It runs the whole e2e suite across all projects, creates mi
 
 If it can't run (server won't start, browsers missing), return FAIL with the first 20 lines of the error under "Not checked". Don't fix the environment.
 
+If the gate reports zero tests found (no spec files exist), return PASS. An infra-only ticket with no e2e specs is a valid state — the gate passing with zero tests is correct.
+
 ## Step 2: Triage each failure
 
 - **Regression**: the check forbids what the UI now does. Open the diff image or read the error to name what changed.

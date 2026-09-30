@@ -4,8 +4,8 @@
 // compact summary sized for an agent's context. Writes .ui-qa/report.json,
 // which the Stop hook reads. Agents must never write that file themselves.
 import { spawnSync } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { relative } from 'node:path';
+import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { join, relative } from 'node:path';
 import { fingerprint, repoRoot, resolveBase, sh } from './fingerprint.mjs';
 
 const root = repoRoot();
@@ -15,6 +15,34 @@ mkdirSync('.ui-qa', { recursive: true });
 const JSON_OUT = '.ui-qa/playwright.json';
 const MAX_LISTED = 20;
 const base = resolveBase();
+
+// Check if any spec files exist under e2e/. Playwright errors when there are none.
+function hasSpecs(dir) {
+  try {
+    for (const entry of readdirSync(dir, { withFileTypes: true, recursive: true })) {
+      if (entry.isFile() && /\.(spec|test)\.[jt]sx?$/.test(entry.name)) return true;
+    }
+  } catch { /* dir missing is fine */ }
+  return false;
+}
+
+if (!hasSpecs(join(root, 'e2e'))) {
+  const report = {
+    version: 1,
+    base,
+    fingerprint: fingerprint(base),
+    status: 'PASS',
+    counts: { passed: 0, failed: 0, flaky: 0, newBaselines: 0 },
+    failures: [],
+    flaky: [],
+    newBaselines: [],
+    topErrors: [],
+    ranAt: new Date().toISOString(),
+  };
+  writeFileSync('.ui-qa/report.json', JSON.stringify(report, null, 2));
+  console.log('UI QA: PASS  passed=0 failed=0 flaky=0 new-baselines=0 (no specs found)');
+  process.exit(0);
+}
 
 const untrackedScreens = () =>
   sh('git ls-files -o --exclude-standard').split('\n').filter((f) => f.includes('__screenshots__/'));

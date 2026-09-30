@@ -63,6 +63,8 @@ After all tests pass and you have committed, delegate to the **visual-qa** agent
 
 If visual-qa reports regressions (under "Fix now"), fix them in your code, commit, and delegate to visual-qa again.
 
+If visual-qa fails due to a tooling or environment issue (not a code regression), file a bug for the tooling issue using `bd create --type=bug --label=ready-for-human` with reproduction steps, link it in your ticket comment via `bd update <ID> --notes "..."`, and continue with escalation.
+
 The finish hook will block you from stopping if:
 - UI files changed but no QA report exists
 - The QA report fingerprint does not match the current code

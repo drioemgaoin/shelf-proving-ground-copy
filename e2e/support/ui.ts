@@ -132,7 +132,7 @@ export async function captureFilmstrip(
  * A long frame is a gap over 50 ms between two frames. Budget: ui-base.md.
  */
 export async function measureFrames(page: Page, trigger: () => Promise<void>, durationMs: number) {
-  await page.evaluate(() => {
+  await page.addInitScript(() => {
     const w = window as unknown as { __frames: number[]; __stopFrames?: boolean };
     w.__frames = [];
     w.__stopFrames = false;
@@ -269,7 +269,8 @@ export async function expectFocusVisibleOnTab(page: Page, opts: { maxTabs?: numb
 
 /** Fails with a compact list of violations (one line each), to protect agent context. */
 export async function expectNoA11yViolations(page: Page, include?: string) {
-  let builder = new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']);
+  // Cast: @axe-core/playwright resolved a newer playwright-core than @playwright/test.
+  let builder = new AxeBuilder({ page } as never).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']);
   if (include) builder = builder.include(include);
   const { violations } = await builder.analyze();
   expect(violations.map((v) => `${v.id}: ${v.help} (${v.nodes.length} nodes)`)).toEqual([]);

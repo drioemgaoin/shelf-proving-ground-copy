@@ -33,6 +33,7 @@ function cards(page: import('@playwright/test').Page) {
 function liveRegion(page: import('@playwright/test').Page) {
   return page.locator('[aria-live="polite"]');
 }
+void liveRegion; // used by Drawer tests (future ticket)
 
 async function loadShelf(page: import('@playwright/test').Page, fixture?: string) {
   const qs = fixture ? `?fixture=${fixture}` : '';

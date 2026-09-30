@@ -18,6 +18,7 @@
 
 import * as sandcastle from "@ai-hero/sandcastle";
 import { docker } from "@ai-hero/sandcastle/sandboxes/docker";
+import { execSync } from "child_process";
 import { z } from "zod";
 
 // The planner emits its plan as JSON inside <plan> tags; Output.object extracts
@@ -38,20 +39,28 @@ const planSchema = z.object({
 // Raise this if your backlog is large; lower it for a quick smoke-test run.
 const MAX_ITERATIONS = 10;
 
-// Hooks run inside the sandbox before the agent starts each iteration.
-// npm install ensures the sandbox always has fresh dependencies.
+// ── Warm image: pre-baked deps so containers start in 2-3s ───
+// build-warm.sh is idempotent — rebuilds only when deps/beads change.
+const warmImage = execSync("bash .sandcastle/build-warm.sh")
+  .toString()
+  .trim()
+  .split("\n")
+  .pop()!;
+
+// Lightweight hooks — node_modules and .beads are already in the image.
+// Symlink keeps heavy reads off the bind-mount (fast on macOS VirtioFS).
 const hooks = {
-  sandbox: { onSandboxReady: [
-      { command: "chmod 700 .beads" },
-      { command: "bd bootstrap --yes -q" },
-      { command: "npm install" },
-    ] },
+  sandbox: {
+    onSandboxReady: [
+      { command: "ln -s /warm/node_modules ./node_modules" },
+      { command: "cp -a /warm/.beads ./.beads && chmod 700 .beads" },
+      { command: "node .claude/hooks/backpressure.mjs --baseline" },
+    ],
+  },
 };
 
-// Copy node_modules from the host into the worktree before each sandbox
-// starts. Avoids a full npm install from scratch; the hook above handles
-// platform-specific binaries and any packages added since the last copy.
-const copyToWorktree = ["node_modules", ".beads/embeddeddolt"];
+// Nothing to copy — everything is baked into the warm image.
+const copyToWorktree: string[] = [];
 
 // ---------------------------------------------------------------------------
 // Main loop
@@ -71,7 +80,7 @@ for (let iteration = 1; iteration <= MAX_ITERATIONS; iteration++) {
   // -------------------------------------------------------------------------
   const plan = await sandcastle.run({
     hooks,
-    sandbox: docker(),
+    sandbox: docker({ imageName: warmImage }),
     name: "planner",
     // One iteration is enough: the planner just needs to read and reason,
     // not write code. (Structured output requires maxIterations: 1.)
@@ -113,7 +122,7 @@ for (let iteration = 1; iteration <= MAX_ITERATIONS; iteration++) {
     issues.map(async (issue) => {
       const sandbox = await sandcastle.createSandbox({
         branch: issue.branch,
-        sandbox: docker(),
+        sandbox: docker({ imageName: warmImage }),
         hooks,
         copyToWorktree,
       });
@@ -205,7 +214,7 @@ for (let iteration = 1; iteration <= MAX_ITERATIONS; iteration++) {
   // -------------------------------------------------------------------------
   await sandcastle.run({
     hooks,
-    sandbox: docker(),
+    sandbox: docker({ imageName: warmImage }),
     name: "merger",
     maxIterations: 1,
     // Sonnet is sufficient for merge conflict resolution.

@@ -68,10 +68,13 @@ node .sandcastle-overlay/apply-main-patch.mjs
 cp .sandcastle-overlay/implement-prompt.md .sandcastle/implement-prompt.md
 cp .sandcastle-overlay/review-prompt.md .sandcastle/review-prompt.md
 cp .sandcastle-overlay/CODING_STANDARDS.md .sandcastle/CODING_STANDARDS.md
+cp .sandcastle-overlay/Dockerfile.warm .sandcastle/Dockerfile.warm
+cp .sandcastle-overlay/build-warm.sh .sandcastle/build-warm.sh
+chmod +x .sandcastle/build-warm.sh
 node .sandcastle-overlay/patch-dockerfile.mjs 1.52.0
 ```
 
-`apply-main-patch.mjs` does five things: adds `.beads/embeddeddolt` to `copyToWorktree`, adds `chmod 700 .beads` + `bd bootstrap` to `onSandboxReady` hooks, wraps each issue's execute phase in a `createSandbox()` so the implementer and reviewer share a branch, and passes `UI_GUARD=afk` env to implementer and reviewer agents so the guard and backpressure hooks activate inside the sandbox. All scripts are idempotent.
+`apply-main-patch.mjs` patches `main.mts` for the warm-image pattern, review phase, and UI guard. It replaces the stock `copyToWorktree` + `onSandboxReady` hooks with a pre-warmed Docker image (`Dockerfile.warm` + `build-warm.sh`) that bakes `node_modules` and `.beads/` into the image layer — cutting container cold start from ~20s to 2-3s. It also wraps each issue's execute phase in a `createSandbox()` so the implementer and reviewer share a branch, and passes `UI_GUARD=afk` env so the guard and backpressure hooks activate inside the sandbox. All scripts are idempotent.
 
 ### 7. Set up authentication
 

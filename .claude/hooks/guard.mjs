@@ -42,10 +42,28 @@ if (tool === 'Bash') {
   }
   if (/\.ui-qa\/report/.test(cmd)) block('.ui-qa/report.json is written only by `npm run ui:qa`.');
   if (afk) {
-    const touches = /__screenshots__|e2e\/acceptance|e2e\/support|playwright\.config|scripts\/ui-qa|\.claude\//.test(cmd);
-    const writes = /(\brm\b|\bmv\b|\bcp\b|\bsed\s+-i|\btee\b|>|git\s+(rm|checkout|restore|mv|stash))/.test(cmd);
+    // Strip text content so quoted arguments and heredoc bodies don't
+    // trigger false positives. Only the structural command is checked.
+    // Works for any CLI: bd, gh, git commit -m, jira, custom trackers.
+    const structural = cmd
+      .replace(/"(?:[^"\\]|\\.)*"/g, '""')
+      .replace(/'[^']*'/g, "''")
+      .replace(/<<-?\s*['"]?(\w+)['"]?[\s\S]*?\1/g, '');
+    const touches = /__screenshots__|e2e\/acceptance|e2e\/support|playwright\.config|scripts\/ui-qa|\.claude\//.test(structural);
+    // Match file-write operations. The > for redirects excludes:
+    //   2>&1, >&2  (fd redirects — not file writes)
+    //   ->         (arrows in structural text)
+    const writes = /(\brm\b|\bmv\b|\bcp\b|\bsed\s+-i|\btee\b|(?<![2&-])>\s*[^>&]|git\s+(rm|checkout|restore|mv|stash))/.test(structural);
     if (touches && writes) {
       block('Locked in the sandbox: acceptance tests, baselines, test helpers, Playwright config, .claude/. If a check looks wrong, comment on the ticket, apply ready-for-human, and stop.');
+    }
+    // Block throwaway scripts — redirect to test framework.
+    // Catches: cat > ./probe.mjs, tee probe.js, echo > check.mjs, etc.
+    // Does NOT catch: npm install > log.js (redirect, not script creation)
+    const createsScript = /\b(cat|echo)\b.*>\s*\S+\.(mjs|js)\b/.test(cmd)
+      || /\btee\b\s+\S+\.(mjs|js)\b/.test(cmd);
+    if (createsScript && !/e2e\/agent\//.test(cmd)) {
+      block('Standalone scripts are not allowed. Add your experiment as a test in e2e/agent/ (e.g. e2e/agent/pw-facts.spec.ts) and run it with Playwright. The result persists for future agents.');
     }
   }
   process.exit(0);
@@ -56,6 +74,11 @@ if (['Edit', 'Write', 'MultiEdit', 'NotebookEdit'].includes(tool)) {
   const p = relative(projectDir, abs).replace(/\\/g, '/');
 
   if (p.startsWith('.ui-qa/')) block('.ui-qa/ is written only by `npm run ui:qa`.');
+
+  // Block standalone scripts outside e2e/agent/ and src/.
+  if (afk && /\.(mjs|js)$/.test(p) && !p.startsWith('e2e/agent/') && !p.startsWith('src/') && !p.startsWith('.sandcastle/') && !p.startsWith('scripts/')) {
+    block(`Standalone scripts are not allowed: ${p}. Add your experiment as a test in e2e/agent/ (e.g. e2e/agent/pw-facts.spec.ts) and run it with Playwright. The result persists for future agents.`);
+  }
 
   if (afk && CONTRACT.some((r) => r.test(p))) {
     block(`Locked in the sandbox: ${p}. The UI contract can't be changed by the builder. If it looks wrong, comment on the ticket, apply ready-for-human, and stop. Extra tests go in e2e/agent/.`);
