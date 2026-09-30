@@ -2,6 +2,5 @@ repos:
     primary: "."
     additional:
         - "/Users/romaindiegoni/.beads-planning"
-        - "/Users/romaindiegoni/Documents/projects/shelf-proving-ground/.beads"
 export:
     auto: true
