@@ -1,0 +1,7 @@
+{
+  "database": "dolt",
+  "backend": "dolt",
+  "dolt_mode": "embedded",
+  "dolt_database": "shelf_proving_ground",
+  "project_id": "980e836a-1c3f-4dfb-8767-42e75180a38e"
+}
