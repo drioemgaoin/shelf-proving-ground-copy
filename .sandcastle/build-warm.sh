@@ -11,7 +11,11 @@ set -euo pipefail
 cd "$(git -C "$(dirname "$0")" rev-parse --show-toplevel)"
 
 # ── Resolve base image name ───────────────────────────────────
-BASE_IMAGE=$(npx -q sandcastle docker image-name 2>/dev/null || echo "sandcastle:shelf-proving-ground")
+BASE_IMAGE=$(npx -q sandcastle docker image-name 2>/dev/null) && : || BASE_IMAGE=""
+# Validate: a docker image name is lowercase alnum with colons/hyphens/dots — reject error text
+if ! echo "$BASE_IMAGE" | grep -qE '^[a-z0-9][a-z0-9._:/-]*$'; then
+  BASE_IMAGE="sandcastle:shelf-proving-ground"
+fi
 
 # ── Fingerprint: hash the inputs that affect the warm layer ───
 HASH=$(cat package-lock.json .beads/issues.jsonl 2>/dev/null | shasum -a 256 | cut -c1-12)
