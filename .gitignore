@@ -55,3 +55,6 @@ coverage/
 # Playwright output
 test-results/
 playwright-report/
+
+# UI QA gate output (written by `npm run ui:qa`, read by the Stop hook)
+.ui-qa/
