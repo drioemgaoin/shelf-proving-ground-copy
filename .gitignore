@@ -1,11 +1,57 @@
+# Dependencies
+node_modules/
+.pnpm-store/
 
-# Beads / Dolt files (added by bd init)
-.dolt/
-*.db
-.beads-credential-key
-.beads/proxieddb/
-*.gate.lock*
-# bd worktree
-test-wt/
-skip/
-*skip*
+# Build output
+/bin/
+dist/
+
+# Environment & secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+
+# Claude Code local state (settings, plugins, skills, cache)
+.claude/
+rules/.registry
+
+# DeepEval
+.deepeval/
+
+# Skip files
+/skip/
+*.skip*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor / IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+
+# Beads runtime artifacts
+.beads.gate.lock
+
+# Sandcastle worktrees and logs
+.sandcastle/worktrees/
+.sandcastle/logs/
+
+# TypeScript incremental
+*.tsbuildinfo
+
+# Test coverage
+coverage/
+
+# Playwright output
+test-results/
+playwright-report/
