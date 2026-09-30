@@ -1,0 +1,62 @@
+/* Shape only. Replace <ns> and every value. Follow the css-patterns skill.
+   All color values must be derived from the interview — never copy a value from here. */
+@layer tokens {
+  /* ---------- Primitive tier: raw values, no roles, no modes ---------- */
+  :root {
+    /* Neutrals: pick from the interview personality (warm gray, cool gray, true gray) */
+    --<ns>-base-neutral-0: /* lightest neutral — derive from personality */;
+    --<ns>-base-neutral-9: /* darkest neutral — derive from personality */;
+    /* Accent: derive from the interview accent-family decision, NOT a default */
+    --<ns>-base-accent-5: /* accent — derive from interview */;
+
+    --<ns>-base-space-1: 0.25rem;
+    --<ns>-base-space-2: 0.5rem;
+    --<ns>-base-space-4: 1rem;
+
+    --<ns>-base-duration-150: 150ms;
+    --<ns>-base-duration-250: 250ms;
+    --<ns>-base-duration-400: 400ms;
+  }
+
+  /* ---------- Semantic tier: roles. Base (light) mode ---------- */
+  :root {
+    --<ns>-fgColor-default: var(--<ns>-base-neutral-9);
+    --<ns>-bgColor-default: var(--<ns>-base-neutral-0);
+    --<ns>-bgColor-accent: var(--<ns>-base-accent-5);
+
+    --<ns>-space-sm: var(--<ns>-base-space-2);
+    --<ns>-space-md: var(--<ns>-base-space-4);
+
+    --<ns>-motion-duration-fast: var(--<ns>-base-duration-150);
+    --<ns>-motion-duration-base: var(--<ns>-base-duration-250);
+    --<ns>-motion-duration-slow: var(--<ns>-base-duration-400);
+    --<ns>-motion-easing-enter: cubic-bezier(0, 0, 0.2, 1);
+    --<ns>-motion-easing-exit: cubic-bezier(0.4, 0, 1, 1);
+  }
+
+  /* Dark mode: a diff against base. Only overrides. */
+  :root[data-theme='dark'] {
+    --<ns>-fgColor-default: var(--<ns>-base-neutral-0);
+    --<ns>-bgColor-default: var(--<ns>-base-neutral-9);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme='light']) {
+      --<ns>-fgColor-default: var(--<ns>-base-neutral-0);
+      --<ns>-bgColor-default: var(--<ns>-base-neutral-9);
+    }
+  }
+
+  /* Reduced motion: no movement. */
+  @media (prefers-reduced-motion: reduce) {
+    :root {
+      --<ns>-motion-duration-fast: 0ms;
+      --<ns>-motion-duration-base: 0ms;
+      --<ns>-motion-duration-slow: 0ms;
+    }
+  }
+
+  /* ---------- Component tier: bind roles to places ---------- */
+  :root {
+    --<ns>-button-primary-bgColor-rest: var(--<ns>-bgColor-accent);
+  }
+}

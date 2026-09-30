@@ -1,0 +1,229 @@
+/*
+ * Shelf design tokens
+ *
+ * Personality: warm, calm, personal
+ * Accent: terracotta  |  Neutrals: warm gray  |  Modes: light + dark
+ *
+ * Three tiers (values flow downward only):
+ *   primitive  ->  semantic  ->  component
+ *
+ * Patterns in force: 1, 2, 3, 4, 5, 6, 7
+ * Deviations: none
+ */
+
+@layer tokens {
+
+  /* ================================================================
+     PRIMITIVE TIER — raw values, no roles, no mode awareness
+     ================================================================ */
+  :root {
+    /* --- Neutrals (warm gray, lightest to darkest) --- */
+    --shelf-base-neutral-0: #ffffff;
+    --shelf-base-neutral-1: hsl(30 15% 97%);
+    --shelf-base-neutral-2: hsl(30 12% 93%);
+    --shelf-base-neutral-3: hsl(28 10% 85%);
+    --shelf-base-neutral-4: hsl(28 8% 65%);
+    --shelf-base-neutral-5: hsl(25 6% 50%);
+    --shelf-base-neutral-6: hsl(22 6% 38%);
+    --shelf-base-neutral-7: hsl(20 8% 26%);
+    --shelf-base-neutral-8: hsl(18 10% 16%);
+    --shelf-base-neutral-9: hsl(16 12% 10%);
+
+    /* --- Accent (terracotta) --- */
+    --shelf-base-accent-3: hsl(18 55% 60%);
+    --shelf-base-accent-5: hsl(18 55% 42%);
+    --shelf-base-accent-6: hsl(18 55% 35%);
+    --shelf-base-accent-7: hsl(18 55% 28%);
+
+    /* --- Danger --- */
+    --shelf-base-danger-4: hsl(0 65% 62%);
+    --shelf-base-danger-5: hsl(0 65% 45%);
+
+    /* --- Spacing --- */
+    --shelf-base-space-1: 0.25rem;
+    --shelf-base-space-2: 0.5rem;
+    --shelf-base-space-3: 0.75rem;
+    --shelf-base-space-4: 1rem;
+    --shelf-base-space-6: 1.5rem;
+    --shelf-base-space-8: 2rem;
+    --shelf-base-space-12: 3rem;
+
+    /* --- Radius --- */
+    --shelf-base-radius-1: 0.25rem;
+    --shelf-base-radius-2: 0.5rem;
+    --shelf-base-radius-3: 0.75rem;
+    --shelf-base-radius-full: 9999px;
+
+    /* --- Font size --- */
+    --shelf-base-font-size-xs: 0.75rem;
+    --shelf-base-font-size-sm: 0.875rem;
+    --shelf-base-font-size-base: 1rem;
+    --shelf-base-font-size-lg: 1.125rem;
+    --shelf-base-font-size-xl: 1.25rem;
+    --shelf-base-font-size-2xl: 1.5rem;
+
+    /* --- Font weight --- */
+    --shelf-base-font-weight-regular: 400;
+    --shelf-base-font-weight-medium: 500;
+    --shelf-base-font-weight-semibold: 600;
+
+    /* --- Duration --- */
+    --shelf-base-duration-150: 150ms;
+    --shelf-base-duration-250: 250ms;
+    --shelf-base-duration-400: 400ms;
+
+    /* --- Z-index layers --- */
+    --shelf-base-z-base: 0;
+    --shelf-base-z-sticky: 100;
+    --shelf-base-z-dropdown: 200;
+    --shelf-base-z-drawer: 300;
+    --shelf-base-z-dialog: 400;
+    --shelf-base-z-toast: 500;
+
+    /* --- Shadow color channel (warm dark, used to compose shadows) --- */
+    --shelf-base-shadow-channel: 16 12% 10%;
+  }
+
+  /* ================================================================
+     SEMANTIC TIER — roles. Light mode is the base.
+     ================================================================ */
+  :root {
+    /* --- Foreground --- */
+    --shelf-fgColor-default: var(--shelf-base-neutral-9);
+    --shelf-fgColor-muted: var(--shelf-base-neutral-6);          /* 5.2:1 on page bg */
+    --shelf-fgColor-accent: var(--shelf-base-accent-5);          /* 4.6:1 on page bg */
+    --shelf-fgColor-on-accent: var(--shelf-base-neutral-0);      /* 4.9:1 on accent bg */
+    --shelf-fgColor-danger: var(--shelf-base-danger-5);          /* 5.3:1 on page bg */
+
+    /* --- Background --- */
+    --shelf-bgColor-default: var(--shelf-base-neutral-1);        /* warm off-white page */
+    --shelf-bgColor-raised: var(--shelf-base-neutral-0);         /* white cards / dialogs */
+    --shelf-bgColor-accent: var(--shelf-base-accent-5);
+    --shelf-bgColor-accent-hover: var(--shelf-base-accent-6);   /* 6.3:1 white text */
+    --shelf-bgColor-accent-active: var(--shelf-base-accent-7);  /* 8.1:1 white text */
+    --shelf-bgColor-danger: var(--shelf-base-danger-5);
+    --shelf-bgColor-overlay: hsl(16 12% 10% / 0.5);
+
+    /* --- Border --- */
+    --shelf-borderColor-default: var(--shelf-base-neutral-3);
+    --shelf-borderColor-subtle: var(--shelf-base-neutral-2);
+
+    /* --- Focus --- */
+    --shelf-focusRing-color: var(--shelf-base-accent-5);
+    --shelf-focusRing: 2px solid var(--shelf-focusRing-color);
+    --shelf-focusRing-offset: 2px;
+
+    /* --- Spacing --- */
+    --shelf-space-xs: var(--shelf-base-space-1);
+    --shelf-space-sm: var(--shelf-base-space-2);
+    --shelf-space-md: var(--shelf-base-space-4);
+    --shelf-space-lg: var(--shelf-base-space-6);
+    --shelf-space-xl: var(--shelf-base-space-8);
+    --shelf-space-2xl: var(--shelf-base-space-12);
+
+    /* --- Radius --- */
+    --shelf-radius-sm: var(--shelf-base-radius-1);
+    --shelf-radius-md: var(--shelf-base-radius-2);
+    --shelf-radius-lg: var(--shelf-base-radius-3);
+    --shelf-radius-full: var(--shelf-base-radius-full);
+
+    /* --- Typography --- */
+    --shelf-font-family-base: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    --shelf-font-size-xs: var(--shelf-base-font-size-xs);
+    --shelf-font-size-sm: var(--shelf-base-font-size-sm);
+    --shelf-font-size-base: var(--shelf-base-font-size-base);
+    --shelf-font-size-lg: var(--shelf-base-font-size-lg);
+    --shelf-font-size-xl: var(--shelf-base-font-size-xl);
+    --shelf-font-size-2xl: var(--shelf-base-font-size-2xl);
+    --shelf-font-weight-regular: var(--shelf-base-font-weight-regular);
+    --shelf-font-weight-medium: var(--shelf-base-font-weight-medium);
+    --shelf-font-weight-semibold: var(--shelf-base-font-weight-semibold);
+
+    /* --- Shadows --- */
+    --shelf-shadow-sm: 0 1px 2px hsl(var(--shelf-base-shadow-channel) / 0.06);
+    --shelf-shadow-md: 0 2px 8px hsl(var(--shelf-base-shadow-channel) / 0.1);
+    --shelf-shadow-lg: 0 8px 24px hsl(var(--shelf-base-shadow-channel) / 0.14);
+
+    /* --- Z-index --- */
+    --shelf-z-base: var(--shelf-base-z-base);
+    --shelf-z-sticky: var(--shelf-base-z-sticky);
+    --shelf-z-dropdown: var(--shelf-base-z-dropdown);
+    --shelf-z-drawer: var(--shelf-base-z-drawer);
+    --shelf-z-dialog: var(--shelf-base-z-dialog);
+    --shelf-z-toast: var(--shelf-base-z-toast);
+
+    /* --- Motion --- */
+    --shelf-motion-duration-fast: var(--shelf-base-duration-150);
+    --shelf-motion-duration-base: var(--shelf-base-duration-250);
+    --shelf-motion-duration-slow: var(--shelf-base-duration-400);
+    --shelf-motion-easing-enter: cubic-bezier(0, 0, 0.2, 1);
+    --shelf-motion-easing-exit: cubic-bezier(0.4, 0, 1, 1);
+  }
+
+  /* ================================================================
+     DARK MODE — overrides only, diff against light base
+     ================================================================ */
+  :root[data-theme="dark"] {
+    --shelf-fgColor-default: var(--shelf-base-neutral-0);
+    --shelf-fgColor-muted: var(--shelf-base-neutral-4);          /* 8.0:1 on dark bg */
+    --shelf-fgColor-accent: var(--shelf-base-accent-3);          /* 6.4:1 on dark bg */
+    --shelf-fgColor-danger: var(--shelf-base-danger-4);          /* 5.4:1 on dark bg */
+
+    --shelf-bgColor-default: var(--shelf-base-neutral-9);
+    --shelf-bgColor-raised: var(--shelf-base-neutral-8);
+    --shelf-bgColor-overlay: hsl(0 0% 0% / 0.6);
+
+    --shelf-borderColor-default: var(--shelf-base-neutral-7);
+    --shelf-borderColor-subtle: var(--shelf-base-neutral-8);
+
+    --shelf-focusRing-color: var(--shelf-base-accent-3);
+
+    --shelf-shadow-sm: 0 1px 2px hsl(0 0% 0% / 0.2);
+    --shelf-shadow-md: 0 2px 8px hsl(0 0% 0% / 0.3);
+    --shelf-shadow-lg: 0 8px 24px hsl(0 0% 0% / 0.4);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --shelf-fgColor-default: var(--shelf-base-neutral-0);
+      --shelf-fgColor-muted: var(--shelf-base-neutral-4);
+      --shelf-fgColor-accent: var(--shelf-base-accent-3);
+      --shelf-fgColor-danger: var(--shelf-base-danger-4);
+
+      --shelf-bgColor-default: var(--shelf-base-neutral-9);
+      --shelf-bgColor-raised: var(--shelf-base-neutral-8);
+      --shelf-bgColor-overlay: hsl(0 0% 0% / 0.6);
+
+      --shelf-borderColor-default: var(--shelf-base-neutral-7);
+      --shelf-borderColor-subtle: var(--shelf-base-neutral-8);
+
+      --shelf-focusRing-color: var(--shelf-base-accent-3);
+
+      --shelf-shadow-sm: 0 1px 2px hsl(0 0% 0% / 0.2);
+      --shelf-shadow-md: 0 2px 8px hsl(0 0% 0% / 0.3);
+      --shelf-shadow-lg: 0 8px 24px hsl(0 0% 0% / 0.4);
+    }
+  }
+
+  /* ================================================================
+     REDUCED MOTION — durations to zero
+     ================================================================ */
+  @media (prefers-reduced-motion: reduce) {
+    :root {
+      --shelf-motion-duration-fast: 0ms;
+      --shelf-motion-duration-base: 0ms;
+      --shelf-motion-duration-slow: 0ms;
+    }
+  }
+
+  /* ================================================================
+     COMPONENT TIER — bind roles to places
+     (Minimal seed. Builders add tokens as components are built.)
+     ================================================================ */
+  :root {
+    --shelf-button-primary-bgColor-rest: var(--shelf-bgColor-accent);
+    --shelf-button-primary-bgColor-hover: var(--shelf-bgColor-accent-hover);
+    --shelf-button-primary-bgColor-active: var(--shelf-bgColor-accent-active);
+    --shelf-button-primary-fgColor: var(--shelf-fgColor-on-accent);
+  }
+}

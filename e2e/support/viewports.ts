@@ -1,0 +1,8 @@
+// The viewport matrix. ui-foundation keeps this in sync with .claude/rules/ui-project.md.
+export const VIEWPORTS = {
+  mobile: { width: 375, height: 812 },
+  tablet: { width: 768, height: 1024 },
+  desktop: { width: 1280, height: 800 },
+} as const;
+
+export type ViewportName = keyof typeof VIEWPORTS;

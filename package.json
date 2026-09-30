@@ -1,0 +1,18 @@
+{
+  "name": "shelf",
+  "version": "1.0.0",
+  "description": "Everything needed to specify, build, review and fix UI with agents, with no visual surprises. Copy the contents into a repo root.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "sandcastle": "npx tsx .sandcastle/main.mts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@ai-hero/sandcastle": "^0.12.0",
+    "tsx": "^4.23.15",
+    "zod": "^4.6.5"
+  }
+}
