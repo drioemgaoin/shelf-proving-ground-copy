@@ -115,11 +115,15 @@ for (const cmd of CHECKS) {
 }
 
 // 3. UI changes need a matching, passing QA report.
+// Skip during the implement phase — the orchestrator runs visual-qa afterwards.
+const phaseFile = join(process.env.CLAUDE_PROJECT_DIR ?? process.cwd(), '.sandcastle/.phase');
+const phase = existsSync(phaseFile) ? readFileSync(phaseFile, 'utf8').trim() : '';
+
 const uiChanged = changes.some(({ path }) => UI_PATHS.test(path));
-if (uiChanged) {
-  if (!report) block('UI files changed but no QA report exists. Delegate to the visual-qa subagent before finishing.\n');
+if (uiChanged && phase !== 'implement') {
+  if (!report) block('UI files changed but no QA report exists. The orchestrator will run visual-qa next.\n');
   if (report.fingerprint !== fingerprint(base)) {
-    block('Code changed after the last QA run. Delegate to the visual-qa subagent again before finishing.\n');
+    block('Code changed after the last QA run. The orchestrator will run visual-qa again.\n');
   }
   if (report.status !== 'PASS') {
     const summary = (report.failures ?? []).slice(0, 10).map((f) => `  [${f.viewport}] ${f.test}: ${f.error}`).join('\n');

@@ -50,7 +50,7 @@ All app code is written in Sandcastle, never in an interactive session. A hook b
 
 **to-tickets default input.** When `to-tickets` is invoked without an explicit spec reference, it must automatically find the first available spec — using the project's tracker (e.g. `bd ready` for Beads, the oldest open `spec`-labeled issue for GitHub) — and use that as the spec to break down. Do not prompt the user to choose.
 
-**Night shift (`npm run sandcastle`):** one ticket per run in Docker. The builder uses the tdd skill, makes the ticket's acceptance tests pass, delegates to the visual-qa agent, and can't finish until the checks pass. Then a reviewer runs the code-review skill.
+**Night shift (`npm run sandcastle`):** one ticket per run in Docker. The builder uses the tdd skill and makes the ticket's acceptance tests pass. Then the orchestrator runs visual-qa and code-review as separate phases — the builder does not spawn these itself.
 
 **Morning (you):** review the branch, look at every new screenshot under `e2e/__screenshots__/`, merge. Merging approves the baselines. Triage anything visual-qa filed.
 

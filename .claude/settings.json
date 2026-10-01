@@ -8,7 +8,7 @@
             "type": "command"
           }
         ],
-        "matcher": "Edit|Write|MultiEdit|NotebookEdit|Bash"
+        "matcher": "Edit|Write|MultiEdit|NotebookEdit|Bash|Agent"
       }
     ],
     "SessionStart": [

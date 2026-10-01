@@ -35,6 +35,10 @@ function block(msg) {
   process.exit(2);
 }
 
+if (tool === 'Agent' && afk) {
+  block('Subagent spawning is not allowed in the sandbox. The orchestrator manages QA phases.');
+}
+
 if (tool === 'Bash') {
   const cmd = String(ti.command ?? '');
   if (/playwright|\be2e\b/.test(cmd) && /--update-snapshots|(^|\s)-u(\s|$)/.test(cmd)) {
