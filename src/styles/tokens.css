@@ -11,6 +11,26 @@
  * Deviations: none
  */
 
+/* ================================================================
+   REGISTERED COLOR PROPERTIES
+
+   Registering these as <color> makes getPropertyValue() return the
+   computed rgb() form, so component code (and tests) can compare a
+   token against a resolved getComputedStyle() value directly. Must
+   live at the top level — @property is not layer-scoped.
+   ================================================================ */
+@property --shelf-bgColor-accent {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: transparent;
+}
+
+@property --shelf-borderColor-subtle {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: transparent;
+}
+
 @layer tokens {
 
   /* ================================================================

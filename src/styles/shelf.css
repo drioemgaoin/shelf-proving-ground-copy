@@ -1,0 +1,217 @@
+/*
+ * Shelf grid — the page-load surface for the reading list.
+ * Values come only from tokens (src/styles/tokens.css); no raw values here.
+ */
+
+body {
+  margin: 0;
+  min-block-size: 100vh;
+  background: var(--shelf-bgColor-default);
+  color: var(--shelf-fgColor-default);
+  font-family: var(--shelf-font-family-base);
+}
+
+.shelf {
+  box-sizing: border-box;
+  max-inline-size: 1280px;
+  margin-inline: auto;
+  padding: var(--shelf-space-md);
+  color: var(--shelf-fgColor-default);
+}
+
+@media (min-width: 768px) {
+  .shelf {
+    padding: var(--shelf-space-lg);
+  }
+}
+
+.shelf-header {
+  margin-block-end: var(--shelf-space-md);
+}
+
+.shelf-heading {
+  margin: 0;
+  font-size: var(--shelf-font-size-2xl);
+  font-weight: var(--shelf-font-weight-semibold);
+}
+
+/* ---------- Filter chips ---------- */
+
+.shelf-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--shelf-space-sm);
+  margin-block-end: var(--shelf-space-md);
+}
+
+.shelf-chip {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 2.25rem;
+  padding: var(--shelf-space-xs) var(--shelf-space-md);
+  font-family: inherit;
+  font-size: var(--shelf-font-size-sm);
+  font-weight: var(--shelf-font-weight-medium);
+  color: var(--shelf-fgColor-default);
+  background: var(--shelf-bgColor-raised);
+  border: 1px solid var(--shelf-borderColor-subtle);
+  border-radius: var(--shelf-radius-full);
+  cursor: pointer;
+}
+
+.shelf-chip:hover {
+  background: var(--shelf-bgColor-default);
+}
+
+.shelf-chip:focus-visible {
+  outline: var(--shelf-focusRing);
+  outline-offset: var(--shelf-focusRing-offset);
+}
+
+.shelf-chip[aria-pressed='true'] {
+  color: var(--shelf-fgColor-on-accent);
+  background: var(--shelf-bgColor-accent);
+  border-color: var(--shelf-bgColor-accent);
+}
+
+/* ---------- Live region ---------- */
+
+.shelf-announce {
+  min-block-size: 1.25rem;
+  margin-block-end: var(--shelf-space-md);
+  font-size: var(--shelf-font-size-sm);
+  color: var(--shelf-fgColor-muted);
+}
+
+/* ---------- Grid ---------- */
+
+.shelf-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--shelf-space-lg);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* ---------- Card ---------- */
+
+.shelf-card {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: var(--shelf-space-xs);
+  min-block-size: 8.5rem;
+  padding: var(--shelf-space-md);
+  background: var(--shelf-bgColor-raised);
+  border: 1px solid var(--shelf-borderColor-subtle);
+  border-radius: var(--shelf-radius-md);
+  box-shadow: var(--shelf-shadow-sm);
+}
+
+.shelf-card-title {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  margin: 0;
+  font-size: var(--shelf-font-size-lg);
+  font-weight: var(--shelf-font-weight-semibold);
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.shelf-card-author {
+  overflow: hidden;
+  margin: 0;
+  font-size: var(--shelf-font-size-sm);
+  color: var(--shelf-fgColor-muted);
+  line-height: 1.4;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* ---------- Status badge ---------- */
+
+.shelf-badge {
+  align-self: flex-end;
+  padding: var(--shelf-space-xs) var(--shelf-space-sm);
+  font-size: var(--shelf-font-size-xs);
+  font-weight: var(--shelf-font-weight-medium);
+  line-height: 1.4;
+  white-space: nowrap;
+  border-radius: var(--shelf-radius-full);
+}
+
+.shelf-badge--to-read {
+  color: var(--shelf-fgColor-muted);
+  background: var(--shelf-bgColor-default);
+  border: 1px solid var(--shelf-borderColor-default);
+}
+
+.shelf-badge--reading {
+  color: var(--shelf-fgColor-on-accent);
+  background: var(--shelf-bgColor-accent);
+}
+
+.shelf-badge--finished {
+  color: var(--shelf-fgColor-accent);
+  background: var(--shelf-bgColor-default);
+  border: 1px solid var(--shelf-fgColor-accent);
+}
+
+/* ---------- Skeleton ---------- */
+
+.shelf-skeleton-pill {
+  align-self: flex-end;
+  inline-size: 4rem;
+  block-size: 1.25rem;
+  border-radius: var(--shelf-radius-full);
+}
+
+.shelf-skeleton-bar {
+  block-size: 1.125rem;
+  border-radius: var(--shelf-radius-sm);
+}
+
+.shelf-skeleton-title {
+  inline-size: 80%;
+}
+
+.shelf-skeleton-author {
+  inline-size: 50%;
+  block-size: 0.875rem;
+}
+
+/* Border color (not -subtle) stays visible on the raised card in dark mode. */
+.shelf-skeleton-pill,
+.shelf-skeleton-bar {
+  background: var(--shelf-borderColor-default);
+  animation: shelf-shimmer var(--shelf-motion-duration-slow) ease-in-out infinite;
+}
+
+@keyframes shelf-shimmer {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shelf-skeleton-pill,
+  .shelf-skeleton-bar {
+    animation: none;
+  }
+}
+
+/* ---------- Error ---------- */
+
+.shelf-error {
+  margin: 0;
+  color: var(--shelf-fgColor-danger);
+  font-size: var(--shelf-font-size-base);
+}
