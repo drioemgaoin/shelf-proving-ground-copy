@@ -38,6 +38,22 @@ export async function readToken(page: Page, name: string): Promise<string> {
   return value;
 }
 
+/**
+ * Resolve any CSS color string to the browser-normalized rgb()/rgba() form.
+ * Use this when comparing a token value (raw authored, e.g. `hsl(...)`) against
+ * a computed style (always `rgb(...)`). The browser does the conversion.
+ */
+export async function resolveColor(page: Page, raw: string): Promise<string> {
+  return page.evaluate((c) => {
+    const el = document.createElement('div');
+    el.style.color = c;
+    document.body.appendChild(el);
+    const resolved = getComputedStyle(el).color;
+    el.remove();
+    return resolved;
+  }, raw);
+}
+
 /** "250ms" or "0.25s" -> 250 */
 export function toMs(value: string): number {
   const n = parseFloat(value);

@@ -1,7 +1,7 @@
 import { test, expect } from '../support/fixtures';
 import {
   freezeTime, stabilize, expectScreenshot,
-  readToken, toMs,
+  readToken, toMs, resolveColor,
   readAnimations, setReducedMotion,
   measureFrames,
   recordLayoutShifts, resetLayoutShifts, layoutShift,
@@ -135,14 +135,14 @@ test.describe('Shelf grid', () => {
     const selectedBg = await chip(page, 'Reading').evaluate(
       (el) => getComputedStyle(el).backgroundColor,
     );
-    expect(selectedBg).toBe(accentBg);
+    expect(selectedBg).toBe(await resolveColor(page, accentBg));
 
     // Unselected chip has subtle border
     const subtleBorder = await readToken(page, '--shelf-borderColor-subtle');
     const unselectedBorder = await chip(page, 'To Read').evaluate(
       (el) => getComputedStyle(el).borderColor,
     );
-    expect(unselectedBorder).toBe(subtleBorder);
+    expect(unselectedBorder).toBe(await resolveColor(page, subtleBorder));
   });
 
   test('Shelf grid: default populated screenshot', { tag: '@visual' }, async ({ page }) => {
