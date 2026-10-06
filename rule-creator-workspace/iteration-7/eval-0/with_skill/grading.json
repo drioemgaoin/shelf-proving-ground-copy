@@ -1,0 +1,87 @@
+{
+  "expectations": [
+    {
+      "text": "Both rules are classified as T1",
+      "passed": true,
+      "evidence": "Transcript shows 'Classification: T1' for both rules. Output file has tier: T1 in both enforcement blocks (lines 13 and 25)."
+    },
+    {
+      "text": "Each enforcement block contains a regex pattern field that would match the violation",
+      "passed": true,
+      "evidence": "Rule 1 has pattern \"\\bexcept\\s*:\" which matches bare except clauses. Rule 2 has pattern \"#\\s*type:\\s*ignore(?!\\[)\" which uses a negative lookahead to match type: ignore without a bracketed error code. Both are syntactically correct and would match their target violations."
+    },
+    {
+      "text": "The scope field targets Python files (e.g., **/*.py or src/**/*.py)",
+      "passed": true,
+      "evidence": "Both enforcement blocks contain scope: \"**/*.py\" (lines 16 and 27 in the output file)."
+    },
+    {
+      "text": "The skill presents its recommendation and reasoning before generating blocks",
+      "passed": true,
+      "evidence": "Transcript sections 'Sorting test: Rule 1' and 'Sorting test: Rule 2' each contain multi-step reasoning ('Step 1: Can a tool catch it?', regex explanation, classification) before the 'Output' section where blocks are written to the file."
+    },
+    {
+      "text": "The blocks are placed immediately after each rule's text",
+      "passed": true,
+      "evidence": "In python-standards.md: Rule 1 text on line 9, its enforcement block starts on line 11 (indented under the bullet). Rule 2 text on line 20, its enforcement block starts on line 22. No intervening content between rule text and its block."
+    },
+    {
+      "text": "A budget check is performed after generating blocks",
+      "passed": true,
+      "evidence": "Transcript contains a 'Budget check' section listing: T1 rules: 2, T3 rules: 0, Scopeless T3: 0, Critical T3: 0, concluding 'No budget concerns.'"
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "failed": 0,
+    "total": 6,
+    "pass_rate": 1.0
+  },
+  "execution_metrics": {
+    "transcript_chars": 2084,
+    "output_chars": 1075
+  },
+  "timing": {
+    "total_duration_seconds": 57.2,
+    "total_tokens": 25754
+  },
+  "claims": [
+    {
+      "claim": "A bare except: has a clear syntactic signature matched by \\bexcept\\s*:",
+      "type": "factual",
+      "verified": true,
+      "evidence": "The regex \\bexcept\\s*: correctly matches 'except:' and 'except :' while the word boundary prevents matching substrings."
+    },
+    {
+      "claim": "The regex #\\s*type:\\s*ignore(?!\\[) matches bare type: ignore while allowing the bracketed form",
+      "type": "factual",
+      "verified": true,
+      "evidence": "The negative lookahead (?!\\[) ensures 'type: ignore[override]' does not match while 'type: ignore' alone or 'type: ignore # reason' does match."
+    },
+    {
+      "claim": "No existing enforcement blocks in the file before modification",
+      "type": "factual",
+      "verified": true,
+      "evidence": "The transcript states 'No existing enforcement blocks in the file' and the output shows blocks only on the two target rules, consistent with fresh additions."
+    },
+    {
+      "claim": "Both rules share the same parent heading so a parser would need sub-indexing to disambiguate",
+      "type": "factual",
+      "verified": true,
+      "evidence": "Both rules fall under '## Error handling' in the output file (lines 8-29)."
+    }
+  ],
+  "user_notes_summary": null,
+  "eval_feedback": {
+    "suggestions": [
+      {
+        "assertion": "Each enforcement block contains a regex pattern field that would match the violation",
+        "reason": "The assertion checks that a pattern exists and looks plausible, but does not verify the regex actually matches test strings. A stronger eval could include sample strings (e.g., 'except:', 'except ValueError:', '# type: ignore', '# type: ignore[override]') and test them against the patterns to confirm true/false positive behavior."
+      },
+      {
+        "reason": "No assertion checks that the third rule ('Never silence exceptions with pass') was left untouched. The skill was asked to add enforcement to only two rules, but an overzealous run could have added blocks to others. Verifying the remaining rules are unmodified would catch that."
+      }
+    ],
+    "overall": "Assertions cover the key outcomes well. The two suggestions above would harden against false positives from plausible-looking but incorrect regex patterns and from over-application."
+  }
+}

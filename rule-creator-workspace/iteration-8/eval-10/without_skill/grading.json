@@ -1,0 +1,43 @@
+{
+  "expectations": [
+    {
+      "text": "The skill reads BOTH rules files before classifying",
+      "passed": true,
+      "evidence": "The transcript's Input Analysis section shows counts extracted from both ui-rules.md (8 T3 blocks, 2 critical, 3 scopeless) and code-rules.md (4 T3 blocks, 0 critical, 0 scopeless) before any new rules were added, demonstrating both files were read prior to classification."
+    },
+    {
+      "text": "Pre-classification budget report shows aggregated totals: 12 T3, 2 critical, 3 scopeless across both files",
+      "passed": true,
+      "evidence": "The transcript explicitly states under 'Cross-file totals (before)': Total T3: 12, Total critical: 2, Total scopeless: 3 — matching the assertion exactly."
+    },
+    {
+      "text": "'Test files must not import from other test files' is classified as T1",
+      "passed": false,
+      "evidence": "In code-rules.md, the enforcement block for 'Test files must not import from other test files' has tier: T3, not T1."
+    },
+    {
+      "text": "'Components must not exceed 200 lines' is classified as T1",
+      "passed": false,
+      "evidence": "In code-rules.md, the enforcement block for 'Components must not exceed 200 lines including template/JSX' has tier: T3, not T1."
+    },
+    {
+      "text": "Post-classification budget report includes T3 counts from ui-rules.md even though only code-rules.md was edited",
+      "passed": true,
+      "evidence": "The 'Cross-file Totals (after)' table in the transcript includes ui-rules.md with 8 T3 blocks, 2 critical, and 3 scopeless — unchanged from before, but explicitly included in the post-edit totals table."
+    },
+    {
+      "text": "The per-file breakdown is shown alongside the aggregated totals",
+      "passed": true,
+      "evidence": "The transcript's 'Cross-file Totals (after)' table has columns for ui-rules.md, code-rules.md, and Total — showing per-file values (8 and 7 T3 blocks) alongside the aggregate total (15)."
+    }
+  ],
+  "summary": {
+    "passed": 4,
+    "failed": 2,
+    "total": 6,
+    "pass_rate": 0.6667
+  },
+  "timing": {
+    "total_duration_seconds": null
+  }
+}

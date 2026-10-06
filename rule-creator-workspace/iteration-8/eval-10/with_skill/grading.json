@@ -1,0 +1,43 @@
+{
+  "expectations": [
+    {
+      "text": "The skill reads BOTH rules files before classifying",
+      "passed": true,
+      "evidence": "Transcript shows 'Found two rules files: .claude/rules/ui-rules.md and .claude/rules/code-rules.md' and presents a pre-edit inventory for both files separately before any classification work begins."
+    },
+    {
+      "text": "Pre-classification budget report shows aggregated totals: 12 T3, 2 critical, 3 scopeless across both files",
+      "passed": true,
+      "evidence": "Transcript 'Cross-file totals (before)' table shows: Total T3 = 12, Critical T3 = 2, Scopeless T3 = 3, matching the assertion exactly."
+    },
+    {
+      "text": "'Test files must not import from other test files' is classified as T1 (regex on import paths)",
+      "passed": true,
+      "evidence": "Transcript states 'Classification: T1 (deterministic)' with reasoning 'A regex or lint rule can match import paths containing .test or .spec within test files.' Output code-rules.md confirms tier: T1 with pattern: \"import .* from ['\\\"].*\\\\.(test|spec)['\\\"]\"."
+    },
+    {
+      "text": "'Components must not exceed 200 lines' is classified as T1 (line count is syntactic)",
+      "passed": true,
+      "evidence": "Transcript states 'Classification: T1 (deterministic)' with reasoning 'This is a hard numeric threshold — 200 lines. A lint rule or script can count lines in component files.' Output code-rules.md confirms tier: T1 with pattern: \"file line count > 200\"."
+    },
+    {
+      "text": "Post-classification budget report includes T3 counts from ui-rules.md even though only code-rules.md was edited",
+      "passed": true,
+      "evidence": "Transcript 'Cross-file totals (after)' shows Total T3 going from 12 to 13, where 12 includes ui-rules.md's 8 T3 rules. The post-edit aggregate is correctly computed across both files, not just the edited code-rules.md."
+    },
+    {
+      "text": "The per-file breakdown is shown alongside the aggregated totals",
+      "passed": false,
+      "evidence": "The pre-edit section shows both per-file breakdowns (ui-rules.md and code-rules.md) alongside aggregate totals. However, the post-edit section only shows a per-file breakdown for code-rules.md — ui-rules.md has no post-edit per-file row. The cross-file aggregate is shown, but without a complete per-file breakdown for both files in the post-classification report."
+    }
+  ],
+  "summary": {
+    "passed": 5,
+    "failed": 1,
+    "total": 6,
+    "pass_rate": 0.8333333333333334
+  },
+  "timing": {
+    "total_duration_seconds": 108.1
+  }
+}

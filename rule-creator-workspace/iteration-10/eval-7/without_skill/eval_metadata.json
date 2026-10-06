@@ -1,0 +1,13 @@
+{
+  "eval_id": 7,
+  "eval_name": "t3-agent-selection",
+  "prompt": "Add enforcement blocks to all 4 rules in .claude/rules/review-rules.md. Two are visual quality rules and two are code structure rules. I want to make sure each gets the right T3 agent \u2014 visual-qa for things you judge from screenshots, reviewer for things you judge from code.",
+  "assertions": [
+    "'Loading skeletons match content shape' gets T3 visual-qa (requires screenshot comparison, not code review)",
+    "'Dark mode layout shift' gets T2 (CLS measurement) or T3 visual-qa (visual judgment), NOT T3 reviewer",
+    "'No business logic in components' gets T3 reviewer (code structure judgment), NOT visual-qa",
+    "'Functions over 50 lines' gets T1 (line count is syntactic), NOT T3",
+    "The skill explains the visual-qa vs reviewer distinction for each T3 rule",
+    "T3 instructions include what to look for, what counts as a violation, and what correct looks like"
+  ]
+}

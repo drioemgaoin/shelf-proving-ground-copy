@@ -1,0 +1,61 @@
+{
+  "expectations": [
+    {
+      "text": "The skill counts existing enforcement blocks before adding new ones",
+      "passed": true,
+      "evidence": "Transcript shows 'Pre-existing enforcement block inventory' table listing all 11 blocks with their tier, scope, and critical status. Budget status computed before changes."
+    },
+    {
+      "text": "It reports the current T3 count, scopeless count (8), and critical count (2) based on what the file actually contains",
+      "passed": true,
+      "evidence": "Transcript reports: 'Total T3: 11', 'Scopeless T3 (scope: \"*\"): 8 / 10 max -- only 2 slots remaining!', 'Critical T3: 2 / 10 max'. These match the file contents (11 T3 blocks, 8 with scope \"*\", 2 with critical: true)."
+    },
+    {
+      "text": "New rules are classified appropriately (empty/error states as T3 visual-qa, modal as T2 or T3)",
+      "passed": true,
+      "evidence": "Transcript classifies: Rule 1 (empty states) as 'T3 (visual-qa)', Rule 2 (error states) as 'T3 (visual-qa)', Rule 3 (modal dialogs) as 'T2' with reasoning that Playwright can deterministically assert bounding box properties. Output file confirms these tiers."
+    },
+    {
+      "text": "It warns about approaching the scopeless cap (8 of 10 used)",
+      "passed": true,
+      "evidence": "Transcript states: 'Scopeless T3 (scope: \"*\"): 8 / 10 max -- only 2 slots remaining!' and budget commentary: 'The scopeless budget is tight at 8/10.'"
+    },
+    {
+      "text": "It suggests concrete mitigation: narrow scope to specific components instead of '*'",
+      "passed": true,
+      "evidence": "Transcript budget commentary: 'By scoping both new T3 rules to specific components (ShelfGrid, ErrorState), we avoided exceeding the limit.' and 'If future rules need scope: \"*\", consider narrowing existing scopeless rules (e.g., the heading hierarchy check could be scoped to specific page layouts).'"
+    },
+    {
+      "text": "The blocks for new rules include specific component scopes, not '*'",
+      "passed": true,
+      "evidence": "Output ui-rules.md shows: empty states rule has scope: \"ShelfGrid\", error states rule has scope: \"ErrorState\", modal rule has scope: \"per-component\" (T2 block). None use scope: \"*\"."
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "failed": 0,
+    "total": 6,
+    "pass_rate": 1.0
+  },
+  "timing": {
+    "total_duration_seconds": 200.2
+  },
+  "claims": [
+    {
+      "claim": "Modal dialogs rule is T2 because Playwright can compute bounding boxes deterministically",
+      "type": "process",
+      "verified": true,
+      "evidence": "Transcript reasoning: 'Playwright can compute bounding boxes of modal dialogs and deterministically assert: (1) the dialog center matches the viewport center within tolerance, (2) all edges are within viewport boundaries.' This is technically sound."
+    },
+    {
+      "claim": "Scopeless count remains at 8 after changes",
+      "type": "factual",
+      "verified": true,
+      "evidence": "Output file has the same 8 scope:\"*\" blocks as the input, and the 3 new rules all have specific scopes (ShelfGrid, ErrorState, per-component)."
+    }
+  ],
+  "eval_feedback": {
+    "suggestions": [],
+    "overall": "Assertions are well-targeted for this eval. They cover counting, reporting, classification, warning, mitigation, and output verification."
+  }
+}

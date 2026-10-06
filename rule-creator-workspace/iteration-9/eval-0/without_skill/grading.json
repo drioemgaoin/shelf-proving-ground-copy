@@ -1,0 +1,66 @@
+{
+  "expectations": [
+    {
+      "text": "Both rules are classified as T1",
+      "passed": false,
+      "evidence": "The without_skill run uses 'classification: ban' instead of the T1/T2/T3/Human tier system. While 'ban' implies a similar concept to T1 (static pattern matching), the actual tier label 'T1' is never used. The skill's tier vocabulary was not applied."
+    },
+    {
+      "text": "Each enforcement block contains a regex pattern field that would match the violation",
+      "passed": true,
+      "evidence": "Rule 1 has search_pattern 'except\\s*:' and Rule 2 has search_pattern '#\\s*type:\\s*ignore(?!\\[)'. Both are valid regex patterns that would match violations."
+    },
+    {
+      "text": "The scope field targets Python files (e.g., **/*.py or src/**/*.py)",
+      "passed": true,
+      "evidence": "Both blocks have applies_to: '**/*.py'."
+    },
+    {
+      "text": "The skill presents its recommendation and reasoning before generating blocks",
+      "passed": false,
+      "evidence": "The transcript shows classification and block generation together in Step 2-3 without a distinct presentation of recommendation and reasoning to the user before generating. The reasoning is documented but not in the 'present recommendation then generate' flow the skill uses."
+    },
+    {
+      "text": "The blocks are placed immediately after each rule's text",
+      "passed": true,
+      "evidence": "In the output file, the HTML comment enforcement blocks appear immediately after each rule's text, before the next bullet point."
+    },
+    {
+      "text": "A budget check is performed after generating blocks",
+      "passed": false,
+      "evidence": "No budget check appears in the transcript or output. The without_skill run does not reference T3 budgets, scopeless T3 counts, or any budget limits."
+    }
+  ],
+  "summary": {
+    "passed": 3,
+    "failed": 3,
+    "total": 6,
+    "pass_rate": 0.5
+  },
+  "timing": {
+    "total_duration_seconds": 63.9
+  },
+  "claims": [
+    {
+      "claim": "Used HTML comments for enforcement blocks so they are invisible when rendered",
+      "type": "process",
+      "verified": true,
+      "evidence": "Output file uses <!-- ENFORCEMENT: ... --> HTML comment blocks."
+    },
+    {
+      "claim": "Set autofix to false for both because the fix requires context-dependent human decisions",
+      "type": "quality",
+      "verified": true,
+      "evidence": "Both blocks have autofix: false with reasonable justification."
+    }
+  ],
+  "eval_feedback": {
+    "suggestions": [
+      {
+        "assertion": "Both rules are classified as T1",
+        "reason": "This assertion tests the skill's tier vocabulary. The without_skill run used 'ban' instead of 'T1', which is a valid differentiator between skill and no-skill runs."
+      }
+    ],
+    "overall": "The assertions effectively discriminate between skilled and unskilled execution. The tier system, presentation flow, and budget check are genuine skill-specific behaviors."
+  }
+}

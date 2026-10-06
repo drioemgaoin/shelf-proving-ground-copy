@@ -1,0 +1,86 @@
+{
+  "expectations": [
+    {
+      "text": "The latency rule is classified as T2 (runtime test, not static analysis)",
+      "passed": true,
+      "evidence": "Transcript Section 'Rule 1' states 'Classification: T2' and output file shows 'tier: T2' in the Performance enforcement block."
+    },
+    {
+      "text": "The error message rule is classified as Human or T3 (subjective judgment required)",
+      "passed": true,
+      "evidence": "Transcript Section 'Rule 2' states 'Classification: Human' with detailed reasoning about the qualifying adjective 'helpful'. Output file shows 'tier: Human' in the Error handling enforcement block."
+    },
+    {
+      "text": "The strict mode rule is classified as T2 (deterministic test: send unknown fields, assert rejection)",
+      "passed": true,
+      "evidence": "Transcript Section 'Rule 3' states 'Classification: T2'. Output file shows 'tier: T2' with assert: 'Integration test sends request bodies with unknown/extra fields to each endpoint and asserts a 400 or 422 rejection response'."
+    },
+    {
+      "text": "The skill does NOT classify the latency rule as T1 (can't regex-check latency)",
+      "passed": true,
+      "evidence": "Transcript explicitly states for Rule 1: 'Step 1 (Can a tool catch it?): No. Response time is a runtime property, not a syntactic pattern. No regex or lint rule can measure latency.' Classified as T2, never T1."
+    },
+    {
+      "text": "Each block uses the correct tier format (T2 blocks have scope and assert fields)",
+      "passed": true,
+      "evidence": "Output file: Both T2 blocks (Performance and Validation) contain 'scope' and 'assert' fields. The Human block (Error handling) contains 'review' and 'reason' fields, which is the correct format for the Human tier."
+    },
+    {
+      "text": "The skill explains WHY each tier was chosen, not just which one",
+      "passed": true,
+      "evidence": "Transcript provides step-by-step reasoning for all three rules. Rule 1: 'Response time is a runtime property, not a syntactic pattern.' Rule 2: 'The adjective \"helpful\" has no objective referent... three reviewers shown the same error message would likely disagree.' Rule 3: 'a T1 check for additionalProperties: false in schema files is possible, but it is a fragile proxy... The integration test approach (T2) is more reliable because it tests the actual runtime behavior.' Also includes a Key Decisions section explaining the Rule 2 Human vs T3 choice and Rule 3 T2 vs T1 choice."
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "failed": 0,
+    "total": 6,
+    "pass_rate": 1.0
+  },
+  "execution_metrics": {
+    "transcript_chars": 3217,
+    "output_chars": 1456
+  },
+  "timing": {
+    "total_duration_seconds": 88.2
+  },
+  "claims": [
+    {
+      "claim": "Existing enforcement blocks: 0. All rules are prose-only.",
+      "type": "factual",
+      "verified": true,
+      "evidence": "The output file shows enforcement blocks only on the three targeted rules, and the non-targeted rules (database queries, pagination, RFC 7807, stack traces, naming, documentation) remain as plain prose with no enforcement blocks."
+    },
+    {
+      "claim": "Only 3 rules had enforcement blocks added (the 3 specified in the task)",
+      "type": "factual",
+      "verified": true,
+      "evidence": "Output file has exactly 3 enforcement YAML blocks — under Performance (latency), Error handling (helpful messages), and Validation (strict mode). The other 8 rules are untouched."
+    },
+    {
+      "claim": "T1 check for Rule 3 is possible but fragile because frameworks handle strict mode differently",
+      "type": "quality",
+      "verified": true,
+      "evidence": "This is a reasonable architectural judgment. The transcript explains that a regex for 'additionalProperties: false' is a syntactic proxy that varies by stack (decorators, middleware config, etc.), making T2 the more reliable choice."
+    },
+    {
+      "claim": "Rule 2 was classified as Human rather than T3 because 'helpful' lacks an objective anchor",
+      "type": "quality",
+      "verified": true,
+      "evidence": "The transcript provides a coherent argument: 'three reviewers shown the same error message would likely disagree on whether it is helpful enough.' It also suggests a practical split (T2 for structure, Human for quality) which demonstrates genuine analysis rather than rote classification."
+    }
+  ],
+  "user_notes_summary": null,
+  "eval_feedback": {
+    "suggestions": [
+      {
+        "reason": "No assertion checks that the non-targeted rules were left untouched. The skill could have added enforcement blocks to all rules (over-scoping) and still passed every expectation. An assertion like 'Only the 3 specified rules have enforcement blocks; the other rules remain prose-only' would catch this."
+      },
+      {
+        "assertion": "Each block uses the correct tier format (T2 blocks have scope and assert fields)",
+        "reason": "This assertion doesn't check the Human tier format specifically — it only mentions T2. A skill that used T2 format for the Human block (with scope/assert instead of review/reason) could arguably pass. Consider splitting into separate format checks per tier."
+      }
+    ],
+    "overall": "Solid eval. The 6 assertions cover classification correctness, negative constraints (not T1), format compliance, and reasoning quality. The two suggestions above would tighten coverage against over-scoping and cross-tier format errors."
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "expectations": [
+    {
+      "text": "'Loading skeletons match content shape' gets T3 visual-qa",
+      "passed": true,
+      "evidence": "Rule 1 already had a T3 enforcement block with agent: visual-qa in the output file. The transcript confirms 'Already has a T3 enforcement block with agent: visual-qa. No changes needed.'"
+    },
+    {
+      "text": "'Dark mode layout shift' gets T2 or T3 visual-qa, NOT T3 reviewer",
+      "passed": true,
+      "evidence": "Rule 2 has both a T2 enforcement block (Playwright CLS assertion) and a T3 block with agent: visual-qa. The transcript confirms a T3 visual-qa block was added. No reviewer agent is used for this rule."
+    },
+    {
+      "text": "'No business logic in components' gets T3 reviewer, NOT visual-qa",
+      "passed": true,
+      "evidence": "Rule 3 has a T3 enforcement block with agent: reviewer. The transcript confirms 'Already has a T3 enforcement block with agent: reviewer. No changes needed.'"
+    },
+    {
+      "text": "'Functions over 50 lines' gets T1, NOT T3",
+      "passed": false,
+      "evidence": "Rule 4 has both a T1 enforcement block AND a T3 reviewer block. The assertion requires T1 only, but the baseline added a T3 reviewer block as well. The transcript explicitly states 'Needs a T3 reviewer block' was added."
+    },
+    {
+      "text": "The skill explains the visual-qa vs reviewer distinction for each T3 rule",
+      "passed": true,
+      "evidence": "The transcript's 'Agent Selection Reasoning' section explicitly explains: visual-qa is for rules requiring screenshot judgment; reviewer is for rules requiring code reading. Each rule change includes reasoning for which agent was chosen."
+    },
+    {
+      "text": "T3 instructions include what to look for, what counts as a violation, and what correct looks like",
+      "passed": true,
+      "evidence": "All T3 instructions in the output file contain explicit sections: what to look for (e.g., 'skeleton placeholder elements'), what counts as a violation (e.g., 'A violation is a skeleton element that is missing...'), and what correct looks like (e.g., 'Correct: every piece of real content... has a matching skeleton placeholder...'). This pattern is consistent across all four T3 blocks."
+    }
+  ],
+  "summary": {
+    "passed": 5,
+    "failed": 1,
+    "total": 6,
+    "pass_rate": 0.8333333333333334
+  },
+  "timing": {
+    "total_duration_seconds": 69.9
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "expectations": [
+    {
+      "text": "Both rules are classified as T1",
+      "passed": true,
+      "evidence": "Both classified as 'T1 (deterministic)' with sorting test reasoning"
+    },
+    {
+      "text": "Each enforcement block contains a regex pattern field that would match the violation",
+      "passed": true,
+      "evidence": "Pattern fields: \\\\bexcept\\\\s*: and #\\\\s*type:\\\\s*ignore(?!\\\\[)"
+    },
+    {
+      "text": "The scope field targets Python files (e.g., **/*.py or src/**/*.py)",
+      "passed": true,
+      "evidence": "Both blocks have scope: '**/*.py'"
+    },
+    {
+      "text": "The skill presents its recommendation and reasoning before generating blocks",
+      "passed": true,
+      "evidence": "Full sorting test reasoning for each rule before blocks"
+    },
+    {
+      "text": "The blocks are placed immediately after each rule's text",
+      "passed": true,
+      "evidence": "Stated blocks placed inline after each bullet per skill placement rules"
+    },
+    {
+      "text": "A budget check is performed after generating blocks",
+      "passed": true,
+      "evidence": "Budget check section shows zero T3 rules, all clear"
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "failed": 0,
+    "total": 6,
+    "pass_rate": 1.0
+  }
+}

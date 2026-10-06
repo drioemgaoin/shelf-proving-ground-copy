@@ -1,0 +1,40 @@
+{
+  "expectations": [
+    {
+      "text": "The empty-state instruction contains all 3 parts: what to look for, violation, correct",
+      "passed": true,
+      "evidence": "Instruction covers what to check, violation condition, and correct state"
+    },
+    {
+      "text": "The transition instruction specifies what to look for, what's wrong, what's right",
+      "passed": true,
+      "evidence": "Covers navigation, violation (flash/jump), correct (smooth transition)"
+    },
+    {
+      "text": "The gutter instruction specifies breakpoints, what's wrong, what's right",
+      "passed": true,
+      "evidence": "Covers breakpoints, unequal gaps, consistent spacing"
+    },
+    {
+      "text": "No instruction is a vague one-liner like 'Check that X looks good'",
+      "passed": true,
+      "evidence": "All instructions have detailed, specific criteria"
+    },
+    {
+      "text": "Each instruction is specific enough that a visual-qa agent could deterministically judge pass/fail",
+      "passed": true,
+      "evidence": "Instructions include concrete observable conditions"
+    },
+    {
+      "text": "All three blocks have appropriate scope, group, and priority fields",
+      "passed": false,
+      "evidence": "Blocks modeled on existing project blocks but may not include all structured fields"
+    }
+  ],
+  "summary": {
+    "passed": 5,
+    "failed": 1,
+    "total": 6,
+    "pass_rate": 0.83
+  }
+}

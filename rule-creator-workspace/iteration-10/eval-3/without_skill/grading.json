@@ -1,0 +1,45 @@
+{
+  "expectations": [
+    {
+      "text": "Rules are presented in groups of 3-5, not all at once",
+      "passed": false,
+      "evidence": "Wrote all 15 enforcement blocks in a single Write call with no grouping"
+    },
+    {
+      "text": "Each group shows a table or list with rule, recommended tier, and reasoning",
+      "passed": false,
+      "evidence": "Used <details> blocks with How to detect/Why/Fix pattern, no tier classification"
+    },
+    {
+      "text": "At least 6 of the Code Style + CSS rules are correctly classified as T1",
+      "passed": false,
+      "evidence": "No T1/T2/T3/Human classification used; all rules treated uniformly with grep/lint enforcement"
+    },
+    {
+      "text": "The 'single responsibility' rule is classified as Human (inherently subjective)",
+      "passed": false,
+      "evidence": "Given enforcement block with heuristics (150 lines, 5 props) - treated as enforceable, not Human"
+    },
+    {
+      "text": "The 'color alone does not convey meaning' rule is T3 visual-qa (requires visual inspection)",
+      "passed": false,
+      "evidence": "Described as 'manual review' + axe-core - no T3 visual-qa classification"
+    },
+    {
+      "text": "Budget checks run after all blocks are generated",
+      "passed": false,
+      "evidence": "No budget checks performed"
+    },
+    {
+      "text": "The total rule count matches the actual number of rules in the file",
+      "passed": true,
+      "evidence": "All 15 rules addressed in the output"
+    }
+  ],
+  "summary": {
+    "passed": 1,
+    "failed": 6,
+    "total": 7,
+    "pass_rate": 0.14
+  }
+}

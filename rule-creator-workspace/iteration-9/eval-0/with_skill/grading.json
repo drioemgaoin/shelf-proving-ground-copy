@@ -1,0 +1,61 @@
+{
+  "expectations": [
+    {
+      "text": "Both rules are classified as T1",
+      "passed": true,
+      "evidence": "Transcript Steps 3-4 explicitly classify both rules as T1. Output file shows both blocks with 'tier: T1'."
+    },
+    {
+      "text": "Each enforcement block contains a regex pattern field that would match the violation",
+      "passed": true,
+      "evidence": "Rule 1 has pattern '\\bexcept\\s*:' which matches bare except clauses. Rule 2 has pattern '#\\s*type:\\s*ignore(?!\\[)' which uses negative lookahead to match bare type: ignore without brackets. Both are correct regex patterns."
+    },
+    {
+      "text": "The scope field targets Python files (e.g., **/*.py or src/**/*.py)",
+      "passed": true,
+      "evidence": "Both blocks have scope: '**/*.py' in the output file."
+    },
+    {
+      "text": "The skill presents its recommendation and reasoning before generating blocks",
+      "passed": true,
+      "evidence": "Transcript Steps 3-4 show the sorting test reasoning for each rule (asking 'Can a regex, AST walker, or lint rule detect every violation...') before Step 5 which generates the blocks."
+    },
+    {
+      "text": "The blocks are placed immediately after each rule's text",
+      "passed": true,
+      "evidence": "In python-standards.md output, the first enforcement block appears on line 11 immediately after 'No bare except: clauses' on line 9, and the second block appears on line 21 immediately after the type: ignore rule on line 19."
+    },
+    {
+      "text": "A budget check is performed after generating blocks",
+      "passed": true,
+      "evidence": "Transcript Step 7 shows 'Budget check' with a table showing Total T3 rules: 0, Scopeless T3: 0, Critical T3: 0, all within limits."
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "failed": 0,
+    "total": 6,
+    "pass_rate": 1.0
+  },
+  "timing": {
+    "total_duration_seconds": 155.1
+  },
+  "claims": [
+    {
+      "claim": "No existing enforcement blocks in the file",
+      "type": "factual",
+      "verified": true,
+      "evidence": "The input file had no enforcement blocks; confirmed by comparing input structure to output."
+    },
+    {
+      "claim": "Regex \\bexcept\\s*: matches bare except clauses",
+      "type": "factual",
+      "verified": true,
+      "evidence": "The pattern correctly matches 'except:' with optional whitespace, and the word boundary prevents matching 'except ValueError:' since 'V' would follow."
+    }
+  ],
+  "eval_feedback": {
+    "suggestions": [],
+    "overall": "Assertions are well-targeted for this eval. The combination of classification correctness, regex quality, scope, ordering, and budget check covers the key skill behaviors."
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "expectations": [
+    {
+      "text": "'Use descriptive variable names' is classified as Human, NOT T1",
+      "passed": true,
+      "evidence": "Classified as Human via adjective trap detection in sorting test"
+    },
+    {
+      "text": "'Functions should do one thing' is classified as Human, NOT T1 or T2",
+      "passed": true,
+      "evidence": "Classified as Human - SRP is inherently subjective"
+    },
+    {
+      "text": "'No unused imports' is classified as T1 (lint rule catches this deterministically)",
+      "passed": true,
+      "evidence": "Classified as T1 - lint rule catches deterministically"
+    },
+    {
+      "text": "'Group imports by source' is classified as T1 (import-order linting)",
+      "passed": true,
+      "evidence": "Classified as T1 - import-order lint rule"
+    },
+    {
+      "text": "'Log errors with sufficient context' is classified as Human or T3",
+      "passed": true,
+      "evidence": "Classified as Human or T3 - 'sufficient' requires judgment"
+    },
+    {
+      "text": "The skill explicitly explains why 'descriptive' and 'one thing' are not T1",
+      "passed": true,
+      "evidence": "Adjective trap analysis explains why qualifying adjectives resist T1 classification"
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "failed": 0,
+    "total": 6,
+    "pass_rate": 1.0
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "expectations": [
+    {
+      "text": "interface{} vs any rule is classified as T1",
+      "passed": true,
+      "evidence": "Output file line 13-18: enforcement block has 'tier: T1' with pattern 'interface\\{\\}'. Transcript confirms 'Classification: T1' for this rule."
+    },
+    {
+      "text": "Unchecked errors rule is classified as T1 (go vet / errcheck catches this)",
+      "passed": true,
+      "evidence": "Output file lines 35-44: 'Always check returned errors' has T1 block with assert referencing 'errcheck linter flags unchecked error returns'. Transcript confirms T1 classification with errcheck reference."
+    },
+    {
+      "text": "Error message casing rule is classified as T1 (regex on string literals)",
+      "passed": true,
+      "evidence": "Output file lines 59-68: 'Error messages start with lowercase' has T1 block with regex pattern '(fmt\\.Errorf|errors\\.New)\\(\"[A-Z]|[.!?]\"\\)' matching string literals."
+    },
+    {
+      "text": "Error wrapping rule is classified as T1 and the skill surfaces that context message quality is not covered by the T1 check, suggesting it as a candidate for a separate rule if the team cares",
+      "passed": true,
+      "evidence": "Output file lines 46-57: wrapping rule has T1 block. Gap note at line 56-57 reads: 'Whether the wrapping context message is meaningful requires judgment. The T1 check only enforces that wrapping happens structurally (using %w). If context quality matters, write a separate T3 reviewer rule.'"
+    },
+    {
+      "text": "The skill references specific Go tooling (e.g., errcheck, wrapcheck, nakedret) where applicable",
+      "passed": true,
+      "evidence": "Output file references: 'nakedret linter' (line 28), 'errcheck linter' (line 42), 'wrapcheck linter' (line 53), 'revive/error-strings linter' (line 65). All three example tools are present."
+    },
+    {
+      "text": "Blocks are placed correctly after each rule in the bulleted list format",
+      "passed": true,
+      "evidence": "Output file shows each bulleted rule (lines 9, 20, 35, 46, 59) is immediately followed by an indented yaml code block. The structure is consistent: bullet text → yaml block → optional gap note, repeated for each classified rule."
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "failed": 0,
+    "total": 6,
+    "pass_rate": 1.0
+  },
+  "timing": {
+    "total_duration_seconds": 113.6
+  }
+}

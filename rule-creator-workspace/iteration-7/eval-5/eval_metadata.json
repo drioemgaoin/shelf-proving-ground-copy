@@ -1,0 +1,31 @@
+{
+  "eval_id": 5,
+  "eval_name": "eval-5",
+  "prompt": "I have coding standards in .claude/rules/code-quality.md. Add enforcement blocks to all 5 rules in the file: 'Use descriptive variable names', 'Functions should do one thing well', 'No unused imports', 'Group imports by source', and 'Log errors with sufficient context'.",
+  "assertions": [
+    {
+      "text": "'Use descriptive variable names' is classified as Human, NOT T1 (no regex can judge 'descriptive')",
+      "type": "llm_judge"
+    },
+    {
+      "text": "'Functions should do one thing' is classified as Human, NOT T1 or T2 (SRP is subjective)",
+      "type": "llm_judge"
+    },
+    {
+      "text": "'No unused imports' is classified as T1 (lint rule catches this deterministically)",
+      "type": "llm_judge"
+    },
+    {
+      "text": "'Group imports by source' is classified as T1 (import-order linting)",
+      "type": "llm_judge"
+    },
+    {
+      "text": "'Log errors with sufficient context' is classified as Human or T3 (judgment required)",
+      "type": "llm_judge"
+    },
+    {
+      "text": "The skill explicitly explains why 'descriptive' and 'one thing' are not T1 despite sounding like naming/structure conventions",
+      "type": "llm_judge"
+    }
+  ]
+}

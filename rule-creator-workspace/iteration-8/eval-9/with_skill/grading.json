@@ -1,0 +1,43 @@
+{
+  "expectations": [
+    {
+      "text": "The z-index rule gets a new T1 enforcement block with a regex pattern for raw z-index values",
+      "passed": true,
+      "evidence": "The output file shows the z-index rule has a T1 enforcement block with pattern: \"z-index:\\\\s*\\\\d\" which is a regex matching raw z-index values. The transcript confirms this was newly added."
+    },
+    {
+      "text": "The color-alone rule's existing T3 block is REPLACED (not patched) with a Human block",
+      "passed": true,
+      "evidence": "The output file shows the color-alone rule now has only a Human enforcement block. The transcript confirms the T3 block was fully replaced: 'Replaced T3 visual-qa block with Human block.' The T3 fields (agent, scope, instruction, group, priority, critical) are gone."
+    },
+    {
+      "text": "The Human block has review and reason fields (not agent/instruction/group fields from T3)",
+      "passed": true,
+      "evidence": "The Human block in the output contains only 'tier: Human', 'review: \"Manual accessibility review during PR\"', and 'reason: ...'. No agent, instruction, group, priority, or critical fields are present."
+    },
+    {
+      "text": "The reason field explains why T3 didn't work (e.g., 'visual-qa produces too many false positives')",
+      "passed": true,
+      "evidence": "The reason field reads: \"visual-qa agent produces too many false positives on color-only checks; human judgment required.\" This directly explains the T3 failure mode."
+    },
+    {
+      "text": "Budget checks report the change: one fewer T3, one fewer scopeless T3 (was scope '*')",
+      "passed": true,
+      "evidence": "The transcript's budget check shows T3 count went from 1 to 0 and states 'The T3-to-Human reclassification freed one T3 slot and one scopeless T3 slot.' The original T3 block had scope: '*' which is scopeless."
+    },
+    {
+      "text": "The skill acknowledges this is a reclassification, not a first-time classification",
+      "passed": true,
+      "evidence": "The transcript section header reads 'Change 2: Reclassify color-meaning rule from T3 to Human' and the summary states 'Color-meaning rule: Replaced T3 visual-qa block with Human block.' The sorting test section also shows the previous T3 block explicitly before discussing the reclassification."
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "failed": 0,
+    "total": 6,
+    "pass_rate": 1.0
+  },
+  "timing": {
+    "total_duration_seconds": 115.9
+  }
+}

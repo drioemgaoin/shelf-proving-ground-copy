@@ -1,0 +1,6 @@
+{
+  "eval_id": 3,
+  "eval_name": "eval-3",
+  "prompt": "I need enforcement blocks on ALL rules in .claude/rules/frontend-standards.md. Go through the whole file. There are about 15 rules across Code Style, CSS, Accessibility, Performance, and Architecture sections.",
+  "assertions": ["Rules are presented in groups of 3-5, not all at once", "Each group shows a table or list with rule, recommended tier, and reasoning", "At least 6 of the Code Style + CSS rules are correctly classified as T1", "The 'single responsibility' rule is classified as Human (inherently subjective)", "The 'color alone does not convey meaning' rule is T3 visual-qa (requires visual inspection)", "Budget checks run after all blocks are generated", "The total rule count matches the actual number of rules in the file"]
+}

@@ -1,0 +1,62 @@
+{
+  "expectations": [
+    {
+      "text": "The skill reads BOTH rules files before classifying",
+      "passed": true,
+      "evidence": "Transcript Step 1 is titled 'Inventory existing enforcement blocks across both files' and includes separate tables for ui-rules.md and code-rules.md. Both files were read and inventoried before any classification."
+    },
+    {
+      "text": "Pre-classification budget report shows aggregated totals: 12 T3, 2 critical, 3 scopeless across both files",
+      "passed": true,
+      "evidence": "Transcript 'Cross-file totals before changes' section shows: 'T3: 12, Critical: 2, Scopeless: 3'. Per-file details: ui-rules.md (8 T3, 2 critical, 3 scopeless), code-rules.md (4 T3, 0 critical, 0 scopeless)."
+    },
+    {
+      "text": "'Test files must not import from other test files' is classified as T1 (regex on import paths)",
+      "passed": true,
+      "evidence": "Transcript Rule B: 'Step 1 -- Can a tool catch it? Yes. The violation has a clear syntactic signature: any import statement in a test file that references another .test. or .spec. file. A regex or lint rule can detect this with no false positives. Classification: T1'. Output shows tier: T1 with regex pattern."
+    },
+    {
+      "text": "'Components must not exceed 200 lines' is classified as T1 (line count is syntactic)",
+      "passed": true,
+      "evidence": "Transcript Rule C: 'Step 1 -- Can a tool catch it? Yes. This is a hard threshold -- line count is deterministic. Classification: T1'. Output shows tier: T1."
+    },
+    {
+      "text": "Post-classification budget report includes T3 counts from ui-rules.md even though only code-rules.md was edited",
+      "passed": true,
+      "evidence": "Transcript 'Cross-file totals after changes' section shows: 'T3: 13 (12 existing + 1 new), Critical: 2 (unchanged), Scopeless: 3 (unchanged)'. The per-file breakdown explicitly lists 'ui-rules.md (unchanged): T3: 8, Critical: 2, Scopeless: 3'. The ui-rules.md counts are included."
+    },
+    {
+      "text": "The per-file breakdown is shown alongside the aggregated totals",
+      "passed": true,
+      "evidence": "Transcript shows both: 'Cross-file totals after changes' (aggregated: T3=13, Critical=2, Scopeless=3) and 'Per-file breakdown' (ui-rules.md: T3=8, Critical=2, Scopeless=3; code-rules.md: T3=5, T1=2, Critical=0, Scopeless=0). Both sections present."
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "failed": 0,
+    "total": 6,
+    "pass_rate": 1.0
+  },
+  "claims": [
+    {
+      "claim": "The utility purity rule was classified T3 reviewer",
+      "type": "factual",
+      "verified": true,
+      "evidence": "Transcript Rule A sorting test concludes: 'Classification: T3, agent: reviewer'. Output confirms tier: T3, agent: reviewer, scope: 'src/utils/**/*.ts'."
+    },
+    {
+      "claim": "The section heading 'Purity and Isolation' was used for the new rules",
+      "type": "factual",
+      "verified": true,
+      "evidence": "Output code-rules.md line 66: '## Purity and Isolation'. Transcript Step 4 confirms: 'Organized the 3 new rules under a new \"Purity and Isolation\" heading'."
+    }
+  ],
+  "eval_feedback": {
+    "suggestions": [
+      {
+        "reason": "Both with_skill and without_skill runs pass all 6 assertions for eval-10. The without_skill run performed surprisingly well on multi-file budget tracking -- it read both files, computed aggregated totals, and showed per-file breakdowns. This eval may not discriminate between skill-equipped and baseline runs. Consider adding assertions that test skill-specific behaviors like budget limit warnings, or more nuanced classification reasoning."
+      }
+    ],
+    "overall": "All assertions pass for both runs. The eval successfully tests multi-file budget awareness but may not differentiate skill vs. no-skill in this case."
+  }
+}

@@ -1,0 +1,80 @@
+{
+  "expectations": [
+    {
+      "text": "The z-index rule gets a new T1 enforcement block with a regex pattern for raw z-index values",
+      "passed": true,
+      "evidence": "Output file shows tier: T1 with pattern: \"z-index:\\\\s*\\\\d\", assert: never, scoped to src/**/*.css under the z-index rule."
+    },
+    {
+      "text": "The color-alone rule's existing T3 block is REPLACED (not patched) with a Human block",
+      "passed": true,
+      "evidence": "Transcript shows the previous T3 block (tier: T3, agent: visual-qa) and labels the new block as 'Replacement block (Human)'. The output file contains only the Human enforcement block under the color rule, with no T3 remnants."
+    },
+    {
+      "text": "The Human block has review and reason fields (not agent/instruction/group fields from T3)",
+      "passed": true,
+      "evidence": "Output file shows: review: \"Manual accessibility review during PR\", reason: \"visual-qa agent produces too many false positives on color-only checks; human judgment required.\" No agent, instruction, or group fields present."
+    },
+    {
+      "text": "The reason field explains why T3 didn't work (e.g., 'visual-qa produces too many false positives')",
+      "passed": true,
+      "evidence": "reason: \"visual-qa agent produces too many false positives on color-only checks; human judgment required.\""
+    },
+    {
+      "text": "Budget checks report the change: one fewer T3, one fewer scopeless T3 (was scope '*')",
+      "passed": true,
+      "evidence": "Transcript budget table shows Total T3: 1 -> 0 and Scopeless T3: 1 -> 0. Summary states: 'The T3 -> Human reclassification freed one T3 slot and one scopeless T3 slot.'"
+    },
+    {
+      "text": "The skill acknowledges this is a reclassification, not a first-time classification",
+      "passed": true,
+      "evidence": "Transcript section titled 'Reclassify T3 -> Human'. Text says 'Re-running sorting test' (implying it was sorted before) and 'The rule is reclassified to Human.' Also: 'This changes the answer at Step 3 of the sorting test.'"
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "failed": 0,
+    "total": 6,
+    "pass_rate": 1.0
+  },
+  "execution_metrics": {
+    "output_chars": 1095,
+    "transcript_chars": 3050
+  },
+  "timing": {
+    "total_duration_seconds": 89.0
+  },
+  "claims": [
+    {
+      "claim": "Before edits there were 0 T1, 0 T2, 1 T3, 0 Human enforcement blocks",
+      "type": "factual",
+      "verified": true,
+      "evidence": "The output file shows three rules: z-index (now T1), color (now Human), and 'as any' (no block). Before the edits, z-index and 'as any' had no block, and color had T3 -- consistent with the transcript's counts."
+    },
+    {
+      "claim": "The T3 block had scope '*' making it scopeless",
+      "type": "factual",
+      "verified": true,
+      "evidence": "Transcript shows the previous T3 block with scope: \"*\", and the budget table tracks it as a scopeless T3 that decreased from 1 to 0."
+    },
+    {
+      "claim": "A custom stylelint plugin exists that catches raw z-index values",
+      "type": "factual",
+      "verified": false,
+      "evidence": "The transcript states the user confirmed a custom stylelint plugin exists, but no evidence in outputs verifies the plugin actually exists in the codebase."
+    }
+  ],
+  "user_notes_summary": null,
+  "eval_feedback": {
+    "suggestions": [
+      {
+        "assertion": "The z-index rule gets a new T1 enforcement block with a regex pattern for raw z-index values",
+        "reason": "Could also check that the T1 block includes assert: never and a scope field, since a T1 block without these would be structurally incomplete per the skill's schema."
+      },
+      {
+        "reason": "No assertion checks that the 'as any' rule was left untouched. This is a mild concern -- a skill that accidentally added or removed enforcement on the third rule would go undetected."
+      }
+    ],
+    "overall": "Assertions are well-targeted and discriminating. The set covers the key structural, semantic, and bookkeeping aspects of the reclassification. Minor gaps noted above."
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "eval_id": 0,
+  "eval_name": "eval-0",
+  "prompt": "I have a Python project with coding standards in .claude/rules/python-standards.md. I want you to add enforcement blocks to the two error handling rules: 'No bare except: clauses' and 'No type: ignore comments without an error code'. Classify them and add the blocks.",
+  "assertions": ["Both rules are classified as T1", "Each enforcement block contains a regex pattern field that would match the violation", "The scope field targets Python files (e.g., **/*.py or src/**/*.py)", "The skill presents its recommendation and reasoning before generating blocks", "The blocks are placed immediately after each rule's text", "A budget check is performed after generating blocks"]
+}

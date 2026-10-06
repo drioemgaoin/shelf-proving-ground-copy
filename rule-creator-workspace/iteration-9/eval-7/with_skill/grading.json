@@ -1,0 +1,61 @@
+{
+  "expectations": [
+    {
+      "text": "'Loading skeletons match content shape' gets T3 visual-qa (requires screenshot comparison, not code review)",
+      "passed": true,
+      "evidence": "Transcript sorting table: 'T3 | visual-qa' for loading skeletons rule. Reasoning: 'Visible in screenshots -- compare skeleton state vs loaded state side by side.' Output file shows tier: T3, agent: visual-qa."
+    },
+    {
+      "text": "'Dark mode layout shift' gets T2 (CLS measurement) or T3 visual-qa (visual judgment), NOT T3 reviewer",
+      "passed": true,
+      "evidence": "Transcript classifies it as T2: 'Playwright can toggle data-theme, measure CLS via PerformanceObserver (layout-shift entries), and assert CLS < 0.01. This is a deterministic runtime check with a hard threshold. No LLM judgment needed.' Output file shows tier: T2 with a CLS assertion. Not T3 reviewer."
+    },
+    {
+      "text": "'No business logic in components' gets T3 reviewer (code structure judgment), NOT visual-qa",
+      "passed": true,
+      "evidence": "Transcript sorting table: 'T3 | reviewer' for business logic rule. Reasoning: 'a reviewer reads the component source and judges whether inline logic is domain-specific computation vs rendering wiring. This is a code structure judgment, not a visual one.' Output file shows tier: T3, agent: reviewer."
+    },
+    {
+      "text": "'Functions over 50 lines' gets T1 (line count is syntactic), NOT T3",
+      "passed": true,
+      "evidence": "Transcript sorting table: 'T1 | n/a' for 50-line functions. Reasoning: 'an AST walker counts lines between opening and closing braces... The 50-line threshold is a hard, measurable limit.' Output file shows tier: T1 with pattern and assert fields. A Gap note addresses the 'focused' qualifier separately."
+    },
+    {
+      "text": "The skill explains the visual-qa vs reviewer distinction for each T3 rule",
+      "passed": true,
+      "evidence": "Transcript 'Agent Assignment Rationale' section: 'Rule 1 (skeletons) -> visual-qa: The violation is visible in a screenshot... This is a visual judgment.' 'Rule 3 (business logic) -> reviewer: The violation is in code structure. You read .tsx source files to judge whether inline logic is domain computation vs rendering wiring. This is a code-reading judgment.'"
+    },
+    {
+      "text": "T3 instructions include what to look for, what counts as a violation, and what correct looks like",
+      "passed": true,
+      "evidence": "Output file review-rules.md T3 blocks: Skeleton rule instruction includes 'Look for skeleton placeholder elements... check whether they occupy the same positions, widths, and heights', 'A violation is a skeleton element that is missing, significantly different in size', 'Correct: every piece of real content has a matching skeleton placeholder'. Business logic rule instruction includes 'check whether it contains business logic -- data transformations, validation rules...', 'A violation is a component file that performs domain-specific computation... inline', 'Correct: component files contain only JSX rendering, event handler wiring, and calls to imported hooks/utilities'."
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "failed": 0,
+    "total": 6,
+    "pass_rate": 1.0
+  },
+  "timing": {
+    "total_duration_seconds": 174.4
+  },
+  "claims": [
+    {
+      "claim": "The 'focused' qualifier in the 50-line rule is surfaced as a gap",
+      "type": "factual",
+      "verified": true,
+      "evidence": "Output file includes: '> **Gap:** The qualifier \"focused\" is not enforceable by line count alone. A 45-line function that does three unrelated things would pass T1 but violate the spirit of the rule.'"
+    },
+    {
+      "claim": "Dark mode CLS can be measured with PerformanceObserver",
+      "type": "factual",
+      "verified": true,
+      "evidence": "PerformanceObserver with layout-shift entry type is a standard Web API for measuring Cumulative Layout Shift. The T2 assertion is technically sound."
+    }
+  ],
+  "eval_feedback": {
+    "suggestions": [],
+    "overall": "Excellent eval. The agent selection distinction (visual-qa vs reviewer) is the core discriminator and the assertions test it precisely. The T1 assertion for line count is also a good check for over-classification."
+  }
+}

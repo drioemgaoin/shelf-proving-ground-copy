@@ -1,0 +1,83 @@
+{
+  "expectations": [
+    {
+      "text": "interface{} vs any rule is classified as T1",
+      "passed": false,
+      "evidence": "The enforcement block uses `type: syntactic` (line 13 of go-standards.md). No T1/T2/T3 tier classification appears anywhere in the output. The transcript also uses 'syntactic' not 'T1'."
+    },
+    {
+      "text": "Unchecked errors rule is classified as T1 (go vet / errcheck catches this)",
+      "passed": false,
+      "evidence": "The enforcement block uses `type: syntactic` (line 39). The caveat does mention `errcheck` ('requires semantic analysis or a linter like errcheck'), but the rule is not classified as T1. No tier system is used."
+    },
+    {
+      "text": "Error message casing rule is classified as T1 (regex on string literals)",
+      "passed": false,
+      "evidence": "The enforcement block uses `type: syntactic` (line 68). No T1 classification. The block does include regex patterns for string literals, so the detection approach is correct, but the tier label is missing."
+    },
+    {
+      "text": "Error wrapping rule is classified as T1 and the skill surfaces that context message quality is not covered by the T1 check, suggesting it as a candidate for a separate rule if the team cares",
+      "passed": false,
+      "evidence": "Classified as `type: syntactic` not T1. The caveat mentions 'False positives are possible at package boundaries where wrapping is intentionally omitted' but does NOT surface that context message quality is beyond the reach of the syntactic check, nor does it suggest a separate rule for quality."
+    },
+    {
+      "text": "The skill references specific Go tooling (e.g., errcheck, wrapcheck, nakedret) where applicable",
+      "passed": false,
+      "evidence": "Only `errcheck` is mentioned (line 47 caveat: 'a linter like errcheck'). The naked return rule does not mention `nakedret`. The error wrapping rule does not mention `wrapcheck`. 1 out of 3 applicable tools referenced."
+    },
+    {
+      "text": "Blocks are placed correctly after each rule in the bulleted list format",
+      "passed": true,
+      "evidence": "Each enforcement block (HTML comment) is placed immediately after its corresponding bulleted rule. Lines 11-17 follow the `any` rule on line 9; lines 21-32 follow the named returns rule on line 19; lines 38-48 follow the error checking rule on line 36; lines 50-63 follow the error wrapping rule; lines 67-82 follow the error casing rule on line 65. All within the bulleted list format."
+    }
+  ],
+  "summary": {
+    "passed": 1,
+    "failed": 5,
+    "total": 6,
+    "pass_rate": 0.17
+  },
+  "timing": {
+    "total_tokens": 18691,
+    "duration_ms": 71933,
+    "total_duration_seconds": 71.9
+  },
+  "claims": [
+    {
+      "claim": "interface{} is a pure text substitution rule detectable by regex",
+      "type": "factual",
+      "verified": true,
+      "evidence": "The pattern `interface\\{\\}` in the enforcement block is correct and would match all occurrences in Go files."
+    },
+    {
+      "claim": "Naked returns are syntactically detectable with the pattern ^\\treturn$",
+      "type": "factual",
+      "verified": true,
+      "evidence": "The pattern matches bare return statements indented with a tab, which is standard Go formatting (gofmt). Reasonable heuristic."
+    },
+    {
+      "claim": "The regex `,\\s*_\\s*(:?=)` catches error discard patterns",
+      "type": "factual",
+      "verified": false,
+      "evidence": "The pattern uses `(:?=)` which is a non-capturing group around `=`, not what was likely intended. The correct pattern for matching `:=` or `=` would be `(?::=|=)` or `:?=`. The current pattern would match `, _ =` and `, _ :=` but the regex syntax is slightly off — `(:?=)` matches literal `:?=` as a group, not an optional colon. In practice it may still work for `:=` cases due to the `?` making `:` optional, but the grouping is unnecessary."
+    },
+    {
+      "claim": "Left Concurrency, Structure, and Testing sections untouched",
+      "type": "process",
+      "verified": true,
+      "evidence": "Lines 84-100 show these sections with no enforcement blocks added, matching the claim."
+    }
+  ],
+  "eval_feedback": {
+    "suggestions": [
+      {
+        "assertion": "interface{} vs any rule is classified as T1",
+        "reason": "The expectation assumes a T1/T2/T3 tier vocabulary. Without the skill providing that vocabulary, a baseline agent naturally uses 'syntactic/semantic' instead. The expectation is valid for measuring whether the skill's tier system is adopted, but could be more explicit about what T1 means (e.g., 'classified using the tier system with T1 label') to make it clear this is testing skill-specific vocabulary adoption."
+      },
+      {
+        "reason": "No expectation checks whether the enforcement blocks are valid YAML inside the HTML comments. The output uses a mix of single-item and array formats for the `search` field (single object for some rules, array for the casing rule). If a downstream parser expects a consistent schema, this inconsistency could cause failures."
+      }
+    ],
+    "overall": "The expectations are well-designed to measure skill-specific value-add (T1 tier labeling, Go tooling references, quality-vs-syntax distinction). The baseline agent produced reasonable enforcement blocks but missed the tier vocabulary and tooling references that the skill would inject, which is exactly what these evals are designed to discriminate."
+  }
+}

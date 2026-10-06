@@ -1,0 +1,43 @@
+{
+  "expectations": [
+    {
+      "text": "The latency rule is classified as T2 (runtime test, not static analysis)",
+      "passed": false,
+      "evidence": "The latency rule is classified as 'manual-review', not T2. The output does not use T1/T2/T3/Human tier terminology at all."
+    },
+    {
+      "text": "The error message rule is classified as Human or T3 (subjective judgment required)",
+      "passed": false,
+      "evidence": "The error message rule is classified as 'manual-review', not Human or T3. The output does not use T1/T2/T3/Human tier terminology."
+    },
+    {
+      "text": "The strict mode rule is classified as T2 (deterministic test: send unknown fields, assert rejection)",
+      "passed": false,
+      "evidence": "The strict mode rule is classified as 'code-review', not T2. The output does not use T1/T2/T3/Human tier terminology. Additionally, the classification leans toward static/grep inspection rather than a runtime test (send unknown fields, assert rejection), though it does mention integration tests as step 5."
+    },
+    {
+      "text": "The skill does NOT classify the latency rule as T1 (can't regex-check latency)",
+      "passed": true,
+      "evidence": "The latency rule is classified as 'manual-review', not T1. The reasoning explicitly states it cannot be enforced through static analysis or linting — consistent with not being T1."
+    },
+    {
+      "text": "Each block uses the correct tier format (T2 blocks have scope and assert fields)",
+      "passed": false,
+      "evidence": "The enforcement blocks use 'rule', 'type', 'reason', and 'how' fields — not the T2-specific 'scope' and 'assert' fields. The tier format is entirely different from the expected T1/T2/T3/Human schema."
+    },
+    {
+      "text": "The skill explains WHY each tier was chosen, not just which one",
+      "passed": true,
+      "evidence": "The transcript provides detailed reasoning for each classification: latency depends on infrastructure/statistics, error message helpfulness is subjective, strict mode is grep-able and deterministic. Both the transcript and the output 'reason' fields explain the rationale."
+    }
+  ],
+  "summary": {
+    "passed": 2,
+    "failed": 4,
+    "total": 6,
+    "pass_rate": 0.333
+  },
+  "timing": {
+    "total_duration_seconds": 80.8
+  }
+}

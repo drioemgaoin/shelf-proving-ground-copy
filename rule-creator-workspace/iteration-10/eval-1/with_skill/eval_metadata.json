@@ -1,0 +1,13 @@
+{
+  "eval_id": 1,
+  "eval_name": "api-t2-human-boundary",
+  "prompt": "I have an API standards file at .claude/rules/api-standards.md. I need enforcement on these three rules: 'Every endpoint responds within 200ms at p95 under normal load', 'Error messages should be helpful and suggest next steps to the caller', and 'Reject unknown fields in request bodies (strict mode)'. Classify each and add blocks.",
+  "assertions": [
+    "The latency rule is classified as T2 (runtime test, not static analysis)",
+    "The error message rule is classified as Human or T3 (subjective judgment required)",
+    "The strict mode rule is classified as T2 (deterministic test: send unknown fields, assert rejection)",
+    "The skill does NOT classify the latency rule as T1 (can't regex-check latency)",
+    "Each block uses the correct tier format (T2 blocks have scope and assert fields)",
+    "The skill explains WHY each tier was chosen, not just which one"
+  ]
+}

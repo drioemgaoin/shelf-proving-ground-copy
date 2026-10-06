@@ -1,0 +1,48 @@
+{
+  "expectations": [
+    {
+      "text": "Rules are presented in groups of 3-5, not all at once",
+      "passed": true,
+      "evidence": "Transcript shows 5 groups (Group 1 of 5 through Group 5 of 5), each containing exactly 3 rules. No group exceeds 5 rules."
+    },
+    {
+      "text": "Each group shows a table or list with rule, recommended tier, and reasoning",
+      "passed": true,
+      "evidence": "All 5 groups include a markdown table with columns '#', 'Rule', 'Recommended tier', and 'Reasoning'. Every rule entry has all three fields populated."
+    },
+    {
+      "text": "At least 6 of the Code Style + CSS rules are correctly classified as T1",
+      "passed": true,
+      "evidence": "All 3 Code Style rules (no 'as any', no 'export default', no nested ternaries) and all 3 CSS rules (design tokens, animate transform/opacity, no raw z-index) are classified T1. Total = 6 T1 rules from those two sections."
+    },
+    {
+      "text": "The 'single responsibility' rule is classified as Human (inherently subjective)",
+      "passed": true,
+      "evidence": "Transcript Group 5 classifies rule 14 ('Components follow single responsibility principle') as 'Human', with reasoning: 'Single responsibility is inherently subjective. Three experienced reviewers would draw the boundary differently.' The output file also shows tier: Human."
+    },
+    {
+      "text": "The 'color alone does not convey meaning' rule is T3 visual-qa (requires visual inspection)",
+      "passed": true,
+      "evidence": "Transcript Group 3 classifies rule 8 ('Color alone does not convey meaning') as 'T3 (visual-qa)'. The output file shows tier: T3 with agent: visual-qa."
+    },
+    {
+      "text": "Budget checks run after all blocks are generated",
+      "passed": true,
+      "evidence": "The 'Budget Check' section appears after all 5 groups are processed. The transcript sequence is: Group 1, Group 2, Group 3, Group 4, Group 5, then Budget Check."
+    },
+    {
+      "text": "The total rule count matches the actual number of rules in the file",
+      "passed": true,
+      "evidence": "Transcript states 'Total rules identified: 15' and the Rule ID Reference table lists 15 rules. The actual frontend-standards.md file contains exactly 15 rules: Code Style (3) + CSS (3) + Accessibility (3) + Performance (3) + Architecture (3) = 15."
+    }
+  ],
+  "summary": {
+    "passed": 7,
+    "failed": 0,
+    "total": 7,
+    "pass_rate": 1.0
+  },
+  "timing": {
+    "total_duration_seconds": null
+  }
+}

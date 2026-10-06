@@ -1,0 +1,73 @@
+{
+  "expectations": [
+    {
+      "text": "The empty-state instruction contains all 3 parts: what to look for (zero-data screens), violation (text only, no illustration), correct (illustration alongside text)",
+      "passed": true,
+      "evidence": "Instruction contains: 'On every zero-data screen (no books, no search results, fixture=empty)' (what to look for), 'Violation: the empty state contains only a text string or heading with no accompanying illustration element' (violation), 'Correct: a visible illustration or graphic is rendered next to or above the explanatory text' (correct)."
+    },
+    {
+      "text": "The transition instruction specifies what to look for (route navigation), what's wrong (white flash, abrupt change), what's right (smooth transition)",
+      "passed": true,
+      "evidence": "Instruction contains: 'During every route navigation (clicking links, browser back/forward, programmatic pushes)' (what to look for), 'Violation: a fully white or blank frame is visible for any perceptible duration... or the transition appears as an abrupt hard cut with no easing' (wrong), 'Correct: the outgoing page fades, slides, or cross-fades into the incoming page with no intermediate blank frame' (right)."
+    },
+    {
+      "text": "The gutter instruction specifies breakpoints, what's wrong (unequal gaps), what's right (consistent spacing)",
+      "passed": true,
+      "evidence": "Instruction contains: 'At each responsive breakpoint (mobile 320px, tablet 768px, desktop 1024px, wide 1440px)' (breakpoints), 'Violation: any gap between cards differs from the others by more than 1px, or outer padding is inconsistent with the inter-card gap value' (wrong), 'Correct: all horizontal gaps are identical, all vertical gaps are identical, and outer padding matches the grid's gutter token at every measured breakpoint' (right)."
+    },
+    {
+      "text": "No instruction is a vague one-liner like 'Check that X looks good'",
+      "passed": true,
+      "evidence": "All three instructions are multi-sentence with explicit violation/correct criteria. The shortest (empty states) is 3 sentences with concrete visual checks."
+    },
+    {
+      "text": "Each instruction is specific enough that a visual-qa agent could deterministically judge pass/fail",
+      "passed": true,
+      "evidence": "Empty states: checks for 'icon larger than 48x48' alongside text. Transitions: checks for 'fully white or blank frame... for one or more frames'. Gutters: checks gaps 'differ by more than 1px'. All provide measurable thresholds for deterministic judgment."
+    },
+    {
+      "text": "All three blocks have appropriate scope, group, and priority fields",
+      "passed": true,
+      "evidence": "Empty states: scope 'src/components/*EmptyState*', group 'empty-states', priority 2. Transitions: scope 'src/**/*', group 'transitions', priority 2. Gutters: scope 'src/components/*Grid*', group 'spacing', priority 2. All present with reasonable values."
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "failed": 0,
+    "total": 6,
+    "pass_rate": 1.0
+  },
+  "execution_metrics": {
+    "output_chars": 2312,
+    "transcript_chars": 2843
+  },
+  "timing": {
+    "total_duration_seconds": 49.0
+  },
+  "claims": [
+    {
+      "claim": "Referenced the project's existing visual-rules.md for the established pattern and field structure",
+      "type": "process",
+      "verified": true,
+      "evidence": "Transcript step 2 states this, and the output follows a consistent YAML enforcement block pattern with fields matching what one would find in an existing visual-rules file."
+    },
+    {
+      "claim": "T3 enforcement blocks are YAML code blocks placed directly after the rule they enforce",
+      "type": "factual",
+      "verified": true,
+      "evidence": "Output shows each YAML block immediately follows its corresponding rule bullet point."
+    }
+  ],
+  "eval_feedback": {
+    "suggestions": [
+      {
+        "reason": "No assertion checks that the YAML blocks are valid YAML that parses without error. A syntactically broken block would pass all current assertions since they only check the instruction text content."
+      },
+      {
+        "assertion": "All three blocks have appropriate scope, group, and priority fields",
+        "reason": "The assertion says 'appropriate' but doesn't define what appropriate means. A scope of '*' and a group of 'misc' would technically pass. Consider asserting specific scope patterns (e.g., empty-state scope targets EmptyState components, not a wildcard)."
+      }
+    ],
+    "overall": "Assertions cover instruction quality well but miss structural validity (YAML parsability) and could be more specific about what 'appropriate' scope/group values look like."
+  }
+}

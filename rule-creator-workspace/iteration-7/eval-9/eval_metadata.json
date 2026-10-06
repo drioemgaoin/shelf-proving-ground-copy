@@ -1,0 +1,31 @@
+{
+  "eval_id": 9,
+  "eval_name": "eval-9",
+  "prompt": "Two changes in .claude/rules/frontend-standards.md: (1) We built a custom stylelint plugin that catches raw z-index values now, so I want the 'Never set a raw z-index value' rule classified as T1 \u2014 it currently has no enforcement block. (2) The 'Color alone does not convey meaning' rule is currently T3 visual-qa but our visual-qa agent can't reliably judge this \u2014 too many false positives. I want to reclassify it as Human. Can you handle both?",
+  "assertions": [
+    {
+      "text": "The z-index rule gets a new T1 enforcement block with a regex pattern for raw z-index values",
+      "type": "llm_judge"
+    },
+    {
+      "text": "The color-alone rule's existing T3 block is REPLACED (not patched) with a Human block",
+      "type": "llm_judge"
+    },
+    {
+      "text": "The Human block has review and reason fields (not agent/instruction/group fields from T3)",
+      "type": "llm_judge"
+    },
+    {
+      "text": "The reason field explains why T3 didn't work (e.g., 'visual-qa produces too many false positives')",
+      "type": "llm_judge"
+    },
+    {
+      "text": "Budget checks report the change: one fewer T3, one fewer scopeless T3 (was scope '*')",
+      "type": "llm_judge"
+    },
+    {
+      "text": "The skill acknowledges this is a reclassification, not a first-time classification",
+      "type": "llm_judge"
+    }
+  ]
+}

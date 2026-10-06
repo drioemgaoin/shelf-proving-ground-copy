@@ -1,0 +1,13 @@
+{
+  "eval_id": 8,
+  "eval_name": "t3-instruction-quality",
+  "prompt": "Add a T3 enforcement block to this rule in .claude/rules/visual-rules.md: 'Empty states show a helpful illustration, not just text'. I've already decided it's T3 visual-qa \u2014 just generate the block. Also add blocks to the other two rules in the file: 'Page transitions are smooth and do not flash white' and 'Cards in a grid maintain equal gutters at every breakpoint'.",
+  "assertions": [
+    "The empty-state instruction contains all 3 parts: what to look for (zero-data screens), violation (text only, no illustration), correct (illustration alongside text)",
+    "The transition instruction specifies what to look for (route navigation), what's wrong (white flash, abrupt change), what's right (smooth transition)",
+    "The gutter instruction specifies breakpoints, what's wrong (unequal gaps), what's right (consistent spacing)",
+    "No instruction is a vague one-liner like 'Check that X looks good'",
+    "Each instruction is specific enough that a visual-qa agent could deterministically judge pass/fail",
+    "All three blocks have appropriate scope, group, and priority fields"
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "expectations": [
+    {
+      "text": "The skill counts existing enforcement blocks before adding new ones",
+      "passed": true,
+      "evidence": "The transcript shows a 'Pre-existing enforcement audit' section with a table counting T3 blocks (11), scopeless T3 (8), critical T3 (2), T1 (0), T2 (0), and Human (0) before any new rules are added."
+    },
+    {
+      "text": "It reports the current T3 count, scopeless count (8), and critical count (2) based on what the file actually contains",
+      "passed": true,
+      "evidence": "Transcript explicitly reports: 'Total T3 blocks: 11', 'Scopeless T3 (scope: \"*\"): 8 (headings hierarchy, body text, dark mode, accent colors, hover effects, disabled elements, loading states, no-overlap)', 'Critical T3 (critical: true): 2 (dark mode text, loading states)'. The output file confirms these counts are accurate — there are 9 rules with scope '*' but the transcript says 8 (headings hierarchy=scope:\"*\", body text=scope:\"*\", dark mode=scope:\"*\", accent colors=scope:\"*\", hover effects=scope:\"*\", disabled elements=scope:\"*\", loading states=scope:\"*\", no-overlap=scope:\"*\") — counting the output file yields exactly 8 scopeless entries. Critical count of 2 matches (dark mode and loading states both have critical: true)."
+    },
+    {
+      "text": "New rules are classified appropriately (empty/error states as T3 visual-qa, modal as T2 or T3)",
+      "passed": true,
+      "evidence": "Empty states classified as 'T3, agent: visual-qa'; Error states classified as 'T3, agent: visual-qa'; Modal dialogs classified as 'T3, agent: visual-qa'. All three use tier T3 with agent visual-qa in the output blocks."
+    },
+    {
+      "text": "It warns about approaching the scopeless cap (8 of 10 used)",
+      "passed": true,
+      "evidence": "Transcript states: 'Scopeless T3: 10 max | 8 | 2 remaining' and explicitly highlights: '**Key constraint:** Only 2 scopeless T3 slots remain. All 3 new rules must use specific scopes or we will exceed the budget.'"
+    },
+    {
+      "text": "It suggests concrete mitigation: narrow scope to specific components instead of '*'",
+      "passed": true,
+      "evidence": "Each new rule's 'Scope decision' section explicitly states the mitigation: 'Must use specific scope due to scopeless budget pressure. Scoped to \"EmptyState, Shelf\"', 'Scoped to \"ErrorState, Shelf\"', 'Scoped to \"Drawer, Dialog\"'. The budget check after confirms: 'Scopeless T3: 8 (no new scopeless added)'."
+    },
+    {
+      "text": "The blocks for new rules include specific component scopes, not '*'",
+      "passed": true,
+      "evidence": "In the output ui-rules.md, all three new enforcement blocks have specific scopes: empty states has 'scope: \"EmptyState, Shelf\"', error states has 'scope: \"ErrorState, Shelf\"', modal dialogs has 'scope: \"Drawer, Dialog\"'. None use scope: \"*\"."
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "failed": 0,
+    "total": 6,
+    "pass_rate": 1.0
+  },
+  "timing": {
+    "total_duration_seconds": 45.2
+  }
+}

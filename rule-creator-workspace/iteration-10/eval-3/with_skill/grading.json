@@ -1,0 +1,45 @@
+{
+  "expectations": [
+    {
+      "text": "Rules are presented in groups of 3-5, not all at once",
+      "passed": true,
+      "evidence": "Skill instructs batch mode with groups of 3-5; transcript follows this"
+    },
+    {
+      "text": "Each group shows a table or list with rule, recommended tier, and reasoning",
+      "passed": true,
+      "evidence": "Sorting test with tier recommendations per group"
+    },
+    {
+      "text": "At least 6 of the Code Style + CSS rules are correctly classified as T1",
+      "passed": true,
+      "evidence": "All Code Style and CSS rules correctly identified as T1 syntactic patterns"
+    },
+    {
+      "text": "The 'single responsibility' rule is classified as Human (inherently subjective)",
+      "passed": true,
+      "evidence": "Classified as Human - inherently subjective, no stable standard"
+    },
+    {
+      "text": "The 'color alone does not convey meaning' rule is T3 visual-qa (requires visual inspection)",
+      "passed": true,
+      "evidence": "Classified as T3 visual-qa - requires visual inspection of rendered output"
+    },
+    {
+      "text": "Budget checks run after all blocks are generated",
+      "passed": true,
+      "evidence": "Budget check performed after all blocks generated"
+    },
+    {
+      "text": "The total rule count matches the actual number of rules in the file",
+      "passed": true,
+      "evidence": "All 15 rules processed"
+    }
+  ],
+  "summary": {
+    "passed": 7,
+    "failed": 0,
+    "total": 7,
+    "pass_rate": 1.0
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "expectations": [
+    {
+      "text": "Both rules are classified as T1",
+      "passed": false,
+      "evidence": "The transcript classifies both rules as 'pattern-ban', not as T1/T2/T3. The output uses 'ENFORCEMENT: pattern-ban' comments. There is no mention of T1/T2/T3 tier terminology anywhere in the transcript or output file."
+    },
+    {
+      "text": "Each enforcement block contains a regex pattern field that would match the violation",
+      "passed": false,
+      "evidence": "The enforcement blocks use a free-form code block with 'Detection:', 'Linter rule:', and 'Fix:' fields formatted as plain text inside a markdown code block. There is no structured 'pattern' field (e.g., YAML key 'pattern:'). The detection lines contain grep commands with regex, but not a dedicated 'pattern' field in a structured format."
+    },
+    {
+      "text": "The scope field targets Python files (e.g., **/*.py or src/**/*.py)",
+      "passed": false,
+      "evidence": "The output file has a frontmatter 'paths: \"**/*.py\"' at the top of the file, but the enforcement blocks themselves do not contain a 'scope' field. The grep commands inside detection blocks use '--include=\"*.py\"' but this is not a structured scope field within the enforcement block."
+    },
+    {
+      "text": "The skill presents its recommendation and reasoning before generating blocks",
+      "passed": true,
+      "evidence": "The transcript shows that in step 2 ('Classify each rule'), reasoning is provided for each rule before the enforcement blocks are designed in step 3. The classification reasoning states why each rule is a 'pattern-ban'. However, this is in the transcript, not as a separate presented recommendation to the user before writing the file."
+    },
+    {
+      "text": "The blocks are placed immediately after each rule's text",
+      "passed": true,
+      "evidence": "In the output python-standards.md, the enforcement blocks (HTML comments + code blocks) appear immediately after each target rule's bullet text, before the next bullet point. The bare except enforcement is after line 9, and the type:ignore enforcement is after line 19."
+    },
+    {
+      "text": "A budget check is performed after generating blocks",
+      "passed": false,
+      "evidence": "There is no mention of a budget check anywhere in the transcript or output. The transcript has 5 steps: Read file, Classify rules, Design enforcement blocks, Write modified file, Output. No budget check step exists."
+    }
+  ],
+  "summary": {
+    "passed": 2,
+    "failed": 4,
+    "total": 6,
+    "pass_rate": 0.333
+  },
+  "timing": {
+    "total_duration_seconds": 52.4
+  }
+}

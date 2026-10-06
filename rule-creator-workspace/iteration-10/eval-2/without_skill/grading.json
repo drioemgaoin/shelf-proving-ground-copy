@@ -1,0 +1,40 @@
+{
+  "expectations": [
+    {
+      "text": "interface{} vs any rule is classified as T1",
+      "passed": true,
+      "evidence": "Classified as 'Fully Syntactic' - pure token search"
+    },
+    {
+      "text": "Unchecked errors rule is classified as T1 (go vet / errcheck catches this)",
+      "passed": true,
+      "evidence": "Classified as 'Fully Syntactic' - literal token match, mentions errcheck"
+    },
+    {
+      "text": "Error message casing rule is classified as T1 (regex on string literals)",
+      "passed": true,
+      "evidence": "Classified as 'Fully Syntactic' - regex on errors.New/fmt.Errorf strings"
+    },
+    {
+      "text": "Error wrapping rule is classified as T1 and surfaces gap about context quality",
+      "passed": true,
+      "evidence": "Classified as 'Hybrid' with syntactic shortcut plus semantic remainder about context quality"
+    },
+    {
+      "text": "The skill references specific Go tooling (e.g., errcheck, wrapcheck, nakedret) where applicable",
+      "passed": true,
+      "evidence": "References errcheck and Go tooling"
+    },
+    {
+      "text": "Blocks are placed correctly after each rule in the bulleted list format",
+      "passed": false,
+      "evidence": "Could not write output files; described format but no structured YAML blocks"
+    }
+  ],
+  "summary": {
+    "passed": 5,
+    "failed": 1,
+    "total": 6,
+    "pass_rate": 0.83
+  }
+}

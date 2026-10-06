@@ -1,0 +1,48 @@
+{
+  "expectations": [
+    {
+      "text": "Rules are presented in groups of 3-5, not all at once",
+      "passed": false,
+      "evidence": "The transcript processes all 15 rules in a single flat numbered list under 'Approach', and the output writes all 15 enforcement blocks in one pass with no batched grouping."
+    },
+    {
+      "text": "Each group shows a table or list with rule, recommended tier, and reasoning",
+      "passed": false,
+      "evidence": "No tier system (T1/T2/T3/Human) appears anywhere in the transcript or output. Rules are listed with only their enforcement block text and no tier classification or reasoning."
+    },
+    {
+      "text": "At least 6 of the Code Style + CSS rules are correctly classified as T1",
+      "passed": false,
+      "evidence": "No tier classification exists in either file. The 6 Code Style + CSS rules each have enforcement blocks but no T1/T2/T3/Human designation."
+    },
+    {
+      "text": "The 'single responsibility' rule is classified as Human (inherently subjective)",
+      "passed": false,
+      "evidence": "The 'single responsibility' rule exists in the output (line 121-127) with an enforcement block, but has no tier classification of any kind."
+    },
+    {
+      "text": "The 'color alone does not convey meaning' rule is T3 visual-qa (requires visual inspection)",
+      "passed": false,
+      "evidence": "The 'color alone does not convey meaning' rule exists in the output (lines 69-75) with an enforcement block, but has no T3 or visual-qa classification."
+    },
+    {
+      "text": "Budget checks run after all blocks are generated",
+      "passed": false,
+      "evidence": "No budget checks are mentioned in the transcript or output. The transcript goes directly from identifying rules to documenting the enforcement block structure with no budget or token-count step."
+    },
+    {
+      "text": "The total rule count matches the actual number of rules in the file",
+      "passed": true,
+      "evidence": "The transcript explicitly states '15 rules across 5 sections' and the output contains exactly 15 enforcement blocks (3 Code Style + 3 CSS + 3 Accessibility + 3 Performance + 3 Architecture), matching the task description."
+    }
+  ],
+  "summary": {
+    "passed": 1,
+    "failed": 6,
+    "total": 7,
+    "pass_rate": 0.14
+  },
+  "timing": {
+    "total_duration_seconds": 68.0
+  }
+}

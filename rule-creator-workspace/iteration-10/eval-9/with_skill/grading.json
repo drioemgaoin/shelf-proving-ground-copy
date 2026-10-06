@@ -1,0 +1,40 @@
+{
+  "expectations": [
+    {
+      "text": "The z-index rule gets a new T1 enforcement block with a regex pattern for raw z-index values",
+      "passed": true,
+      "evidence": "T1 block with pattern for raw z-index values referencing stylelint plugin"
+    },
+    {
+      "text": "The color-alone rule's existing T3 block is REPLACED (not patched) with a Human block",
+      "passed": true,
+      "evidence": "Replaced entirely with Human block per skill instruction 'Replace the entire enforcement block'"
+    },
+    {
+      "text": "The Human block has review and reason fields (not agent/instruction/group fields from T3)",
+      "passed": true,
+      "evidence": "Human block uses review and reason fields per tier-formats.md"
+    },
+    {
+      "text": "The reason field explains why T3 didn't work",
+      "passed": true,
+      "evidence": "Reason: visual-qa agent produces too many false positives"
+    },
+    {
+      "text": "Budget checks report the change: one fewer T3, one fewer scopeless T3",
+      "passed": true,
+      "evidence": "Budget check shows T3 count decreased, scopeless decreased by 1"
+    },
+    {
+      "text": "The skill acknowledges this is a reclassification, not a first-time classification",
+      "passed": true,
+      "evidence": "Explicitly states this is editing/reclassifying existing blocks"
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "failed": 0,
+    "total": 6,
+    "pass_rate": 1.0
+  }
+}

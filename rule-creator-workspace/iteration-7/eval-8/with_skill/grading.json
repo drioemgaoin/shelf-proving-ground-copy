@@ -1,0 +1,75 @@
+{
+  "expectations": [
+    {
+      "text": "The empty-state instruction contains all 3 parts: what to look for (zero-data screens), violation (text only, no illustration), correct (illustration alongside text)",
+      "passed": true,
+      "evidence": "The instruction reads: 'On every zero-data screen (no books, no search results, fixture=empty)...' (what to look for), 'Violation: the empty state contains only a text string or heading with no accompanying illustration element.' (violation), 'Correct: a visible illustration or graphic is rendered next to or above the explanatory text, giving the screen visual weight beyond plain copy.' (correct). All three parts present."
+    },
+    {
+      "text": "The transition instruction specifies what to look for (route navigation), what's wrong (white flash, abrupt change), what's right (smooth transition)",
+      "passed": true,
+      "evidence": "The instruction reads: 'During every route navigation (clicking links, browser back/forward, programmatic pushes), watch for intermediate visual states...' (what to look for), 'Violation: a fully white or blank frame is visible for any perceptible duration...or the transition appears as an abrupt hard cut with no easing.' (what's wrong), 'Correct: the outgoing page fades, slides, or cross-fades into the incoming page with no intermediate blank frame, producing a visually continuous transition.' (what's right)."
+    },
+    {
+      "text": "The gutter instruction specifies breakpoints, what's wrong (unequal gaps), what's right (consistent spacing)",
+      "passed": true,
+      "evidence": "The instruction lists breakpoints: '(mobile 320px, tablet 768px, desktop 1024px, wide 1440px)'. Violation: 'any gap between cards differs from the others by more than 1px, or outer padding is inconsistent with the inter-card gap value defined in the design tokens.' Correct: 'all horizontal gaps are identical, all vertical gaps are identical, and outer padding matches the grid's gutter token at every measured breakpoint.'"
+    },
+    {
+      "text": "No instruction is a vague one-liner like 'Check that X looks good'",
+      "passed": true,
+      "evidence": "All three instructions are multi-sentence (50+ words each) with explicit violation/correct criteria. The shortest instruction (empty-states) is 3 sentences with concrete thresholds (e.g., 'icon larger than 48x48')."
+    },
+    {
+      "text": "Each instruction is specific enough that a visual-qa agent could deterministically judge pass/fail",
+      "passed": true,
+      "evidence": "Empty-state: checks for illustration element >48x48 alongside text — binary presence check. Transition: checks for blank frame or abrupt hard cut — observable in screenshots/video. Gutter: checks gaps differ by >1px at 4 named breakpoints — measurable in pixels. Each has a concrete threshold or binary condition."
+    },
+    {
+      "text": "All three blocks have appropriate scope, group, and priority fields",
+      "passed": true,
+      "evidence": "Empty-states block: scope 'src/components/*EmptyState*', group 'empty-states', priority 2. Transitions block: scope 'src/**/*', group 'transitions', priority 2. Spacing block: scope 'src/components/*Grid*', group 'spacing', priority 2. All three have scope, group, and priority fields with reasonable values."
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "failed": 0,
+    "total": 6,
+    "pass_rate": 1.0
+  },
+  "timing": {
+    "total_duration_seconds": 80.1
+  },
+  "claims": [
+    {
+      "claim": "Budget check shows 3 total T3 rules, well under the 150 warn limit",
+      "type": "factual",
+      "verified": true,
+      "evidence": "The output file visual-rules.md contains exactly 3 enforcement blocks, all T3. The transcript's budget table correctly reports 3."
+    },
+    {
+      "claim": "No scopeless T3 rules (scope '*' or no scope)",
+      "type": "factual",
+      "verified": true,
+      "evidence": "All three blocks have scoped values: 'src/components/*EmptyState*', 'src/**/*', 'src/components/*Grid*'. None uses bare '*'."
+    },
+    {
+      "claim": "Enforcement blocks use valid YAML format indented under parent bullets",
+      "type": "quality",
+      "verified": true,
+      "evidence": "Each block is a fenced yaml code block indented under a bullet point. All three parse as valid YAML with the expected keys."
+    }
+  ],
+  "eval_feedback": {
+    "suggestions": [
+      {
+        "reason": "No assertion checks that the output file is valid parseable YAML within each fenced block. A malformed block (missing quotes, bad indentation) would pass all current assertions if the instruction text is correct but the YAML is broken."
+      },
+      {
+        "assertion": "All three blocks have appropriate scope, group, and priority fields",
+        "reason": "The transitions block uses scope 'src/**/*' which is effectively scopeless — it matches everything under src/. The assertion checks for field presence but not whether the scope is meaningfully narrowed. This could be intentional for transitions (they span all routes), but worth flagging."
+      }
+    ],
+    "overall": "Assertions cover instruction quality well. Consider adding a structural validity check (parseable YAML, required keys present) to catch format-level failures."
+  }
+}

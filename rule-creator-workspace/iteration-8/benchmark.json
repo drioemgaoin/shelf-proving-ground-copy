@@ -1,0 +1,1155 @@
+{
+  "metadata": {
+    "skill_name": "rule-creator",
+    "skill_path": ".claude/skills/rule-creator",
+    "executor_model": "claude-opus-4-6",
+    "analyzer_model": "claude-opus-4-6",
+    "timestamp": "2026-10-06T16:00:00Z",
+    "evals_run": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ],
+    "runs_per_configuration": 1
+  },
+  "runs": [
+    {
+      "eval_id": 0,
+      "eval_name": "Python T1 basics",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 66.8,
+        "tokens": 26392,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Both rules are classified as T1",
+          "passed": true,
+          "evidence": "Transcript Step 3 concludes 'Classification: T1 (deterministic, pre-commit)' for bare except, and Step 4 concludes 'Classification: T1 (deterministic, pre-commit)' for bare type: ignore. Output file shows tier: T1 in both enforcement blocks."
+        },
+        {
+          "text": "Each enforcement block contains a regex pattern field that would match the violation",
+          "passed": true,
+          "evidence": "Rule 1 has pattern: \"except\\\\s*:\" which matches bare except: syntax. Rule 2 has pattern: \"#\\\\s*type:\\\\s*ignore(?!\\\\[)\" which matches bare type: ignore without bracket error code. Both patterns are semantically correct for their violations."
+        },
+        {
+          "text": "The scope field targets Python files (e.g., **/*.py or src/**/*.py)",
+          "passed": true,
+          "evidence": "Both enforcement blocks in the output file contain scope: \"**/*.py\", matching the frontmatter paths field of the rules file."
+        },
+        {
+          "text": "The skill presents its recommendation and reasoning before generating blocks",
+          "passed": true,
+          "evidence": "Transcript Steps 3 and 4 each walk through the sorting test reasoning ('Can a tool catch it?', syntactic analysis) and state the classification before Step 5 generates the blocks."
+        },
+        {
+          "text": "The blocks are placed immediately after each rule's text",
+          "passed": true,
+          "evidence": "In python-standards.md, the enforcement block for bare except: appears immediately after line 9 ('- No bare `except:` clauses...'), and the block for type: ignore appears immediately after line 20 ('- No `type: ignore` comments without an error code...'). The third rule (line 31) has no block."
+        },
+        {
+          "text": "A budget check is performed after generating blocks",
+          "passed": true,
+          "evidence": "Transcript Step 7 'Budget check' lists T1: 2, T2: 0, T3: 0 and states 'All budgets healthy. No action needed.' This occurs after Step 5 generates the blocks."
+        }
+      ]
+    },
+    {
+      "eval_id": 0,
+      "eval_name": "Python T1 basics",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.333,
+        "passed": 2,
+        "failed": 4,
+        "total": 6,
+        "time_seconds": 52.4,
+        "tokens": 18304,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Both rules are classified as T1",
+          "passed": false,
+          "evidence": "The transcript classifies both rules as 'pattern-ban', not as T1/T2/T3. The output uses 'ENFORCEMENT: pattern-ban' comments. There is no mention of T1/T2/T3 tier terminology anywhere in the transcript or output file."
+        },
+        {
+          "text": "Each enforcement block contains a regex pattern field that would match the violation",
+          "passed": false,
+          "evidence": "The enforcement blocks use a free-form code block with 'Detection:', 'Linter rule:', and 'Fix:' fields formatted as plain text inside a markdown code block. There is no structured 'pattern' field (e.g., YAML key 'pattern:'). The detection lines contain grep commands with regex, but not a dedicated 'pattern' field in a structured format."
+        },
+        {
+          "text": "The scope field targets Python files (e.g., **/*.py or src/**/*.py)",
+          "passed": false,
+          "evidence": "The output file has a frontmatter 'paths: \"**/*.py\"' at the top of the file, but the enforcement blocks themselves do not contain a 'scope' field. The grep commands inside detection blocks use '--include=\"*.py\"' but this is not a structured scope field within the enforcement block."
+        },
+        {
+          "text": "The skill presents its recommendation and reasoning before generating blocks",
+          "passed": true,
+          "evidence": "The transcript shows that in step 2 ('Classify each rule'), reasoning is provided for each rule before the enforcement blocks are designed in step 3. The classification reasoning states why each rule is a 'pattern-ban'. However, this is in the transcript, not as a separate presented recommendation to the user before writing the file."
+        },
+        {
+          "text": "The blocks are placed immediately after each rule's text",
+          "passed": true,
+          "evidence": "In the output python-standards.md, the enforcement blocks (HTML comments + code blocks) appear immediately after each target rule's bullet text, before the next bullet point. The bare except enforcement is after line 9, and the type:ignore enforcement is after line 19."
+        },
+        {
+          "text": "A budget check is performed after generating blocks",
+          "passed": false,
+          "evidence": "There is no mention of a budget check anywhere in the transcript or output. The transcript has 5 steps: Read file, Classify rules, Design enforcement blocks, Write modified file, Output. No budget check step exists."
+        }
+      ]
+    },
+    {
+      "eval_id": 1,
+      "eval_name": "API T2/Human boundary",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 97.4,
+        "tokens": 27707,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The latency rule is classified as T2 (runtime test, not static analysis)",
+          "passed": true,
+          "evidence": "Transcript explicitly classifies rule 1 as 'Classification: T2 (runtime pass/fail via automated performance test)'. The output file shows `tier: T2` block under the performance rule."
+        },
+        {
+          "text": "The error message rule is classified as Human or T3 (subjective judgment required)",
+          "passed": true,
+          "evidence": "Transcript classifies rule 2 as 'Classification: T3 (reviewer, because the rule requires reading error message strings in code and judging quality against anchored criteria)'. Output file shows `tier: T3` with `agent: reviewer`."
+        },
+        {
+          "text": "The strict mode rule is classified as T2 (deterministic test: send unknown fields, assert rejection)",
+          "passed": true,
+          "evidence": "Transcript classifies rule 3 as 'Classification: T2 (runtime pass/fail via integration test)'. Output file shows `tier: T2` with assert field describing sending unknown field and asserting 400/422 rejection."
+        },
+        {
+          "text": "The skill does NOT classify the latency rule as T1 (can't regex-check latency)",
+          "passed": true,
+          "evidence": "Transcript explicitly states 'There is no source code pattern a regex or linter can match to determine whether an endpoint will respond within 200ms' and provides 'Why T2 and not T1' reasoning. Classification is T2, not T1."
+        },
+        {
+          "text": "Each block uses the correct tier format (T2 blocks have scope and assert fields)",
+          "passed": true,
+          "evidence": "Both T2 blocks in the output file have `scope` and `assert` fields. The T3 block has `agent`, `scope`, `instruction`, `triage_hint`, `group`, `priority`, and `critical` fields (correct T3 format)."
+        },
+        {
+          "text": "The skill explains WHY each tier was chosen, not just which one",
+          "passed": true,
+          "evidence": "All three rules include explicit reasoning: Rule 1 has 'Why T2 and not T1' and 'Why T2 and not T3' sections. Rule 2 walks through all three steps (tool? test? LLM?) with adjective trap reasoning. Rule 3 has 'Why T2 and not T1' and 'Why T2 and not T3' sections."
+        }
+      ]
+    },
+    {
+      "eval_id": 1,
+      "eval_name": "API T2/Human boundary",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.333,
+        "passed": 2,
+        "failed": 4,
+        "total": 6,
+        "time_seconds": 80.8,
+        "tokens": 20558,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The latency rule is classified as T2 (runtime test, not static analysis)",
+          "passed": false,
+          "evidence": "The latency rule is classified as 'manual-review', not T2. The output does not use T1/T2/T3/Human tier terminology at all."
+        },
+        {
+          "text": "The error message rule is classified as Human or T3 (subjective judgment required)",
+          "passed": false,
+          "evidence": "The error message rule is classified as 'manual-review', not Human or T3. The output does not use T1/T2/T3/Human tier terminology."
+        },
+        {
+          "text": "The strict mode rule is classified as T2 (deterministic test: send unknown fields, assert rejection)",
+          "passed": false,
+          "evidence": "The strict mode rule is classified as 'code-review', not T2. The output does not use T1/T2/T3/Human tier terminology. Additionally, the classification leans toward static/grep inspection rather than a runtime test (send unknown fields, assert rejection), though it does mention integration tests as step 5."
+        },
+        {
+          "text": "The skill does NOT classify the latency rule as T1 (can't regex-check latency)",
+          "passed": true,
+          "evidence": "The latency rule is classified as 'manual-review', not T1. The reasoning explicitly states it cannot be enforced through static analysis or linting \u2014 consistent with not being T1."
+        },
+        {
+          "text": "Each block uses the correct tier format (T2 blocks have scope and assert fields)",
+          "passed": false,
+          "evidence": "The enforcement blocks use 'rule', 'type', 'reason', and 'how' fields \u2014 not the T2-specific 'scope' and 'assert' fields. The tier format is entirely different from the expected T1/T2/T3/Human schema."
+        },
+        {
+          "text": "The skill explains WHY each tier was chosen, not just which one",
+          "passed": true,
+          "evidence": "The transcript provides detailed reasoning for each classification: latency depends on infrastructure/statistics, error message helpfulness is subjective, strict mode is grep-able and deterministic. Both the transcript and the output 'reason' fields explain the rationale."
+        }
+      ]
+    },
+    {
+      "eval_id": 2,
+      "eval_name": "Go syntactic proxies",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 113.6,
+        "tokens": 29904,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "interface{} vs any rule is classified as T1",
+          "passed": true,
+          "evidence": "Output file line 13-18: enforcement block has 'tier: T1' with pattern 'interface\\{\\}'. Transcript confirms 'Classification: T1' for this rule."
+        },
+        {
+          "text": "Unchecked errors rule is classified as T1 (go vet / errcheck catches this)",
+          "passed": true,
+          "evidence": "Output file lines 35-44: 'Always check returned errors' has T1 block with assert referencing 'errcheck linter flags unchecked error returns'. Transcript confirms T1 classification with errcheck reference."
+        },
+        {
+          "text": "Error message casing rule is classified as T1 (regex on string literals)",
+          "passed": true,
+          "evidence": "Output file lines 59-68: 'Error messages start with lowercase' has T1 block with regex pattern '(fmt\\.Errorf|errors\\.New)\\(\"[A-Z]|[.!?]\"\\)' matching string literals."
+        },
+        {
+          "text": "Error wrapping rule is classified as T1 and the skill surfaces that context message quality is not covered by the T1 check, suggesting it as a candidate for a separate rule if the team cares",
+          "passed": true,
+          "evidence": "Output file lines 46-57: wrapping rule has T1 block. Gap note at line 56-57 reads: 'Whether the wrapping context message is meaningful requires judgment. The T1 check only enforces that wrapping happens structurally (using %w). If context quality matters, write a separate T3 reviewer rule.'"
+        },
+        {
+          "text": "The skill references specific Go tooling (e.g., errcheck, wrapcheck, nakedret) where applicable",
+          "passed": true,
+          "evidence": "Output file references: 'nakedret linter' (line 28), 'errcheck linter' (line 42), 'wrapcheck linter' (line 53), 'revive/error-strings linter' (line 65). All three example tools are present."
+        },
+        {
+          "text": "Blocks are placed correctly after each rule in the bulleted list format",
+          "passed": true,
+          "evidence": "Output file shows each bulleted rule (lines 9, 20, 35, 46, 59) is immediately followed by an indented yaml code block. The structure is consistent: bullet text \u2192 yaml block \u2192 optional gap note, repeated for each classified rule."
+        }
+      ]
+    },
+    {
+      "eval_id": 2,
+      "eval_name": "Go syntactic proxies",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.1667,
+        "passed": 1,
+        "failed": 5,
+        "total": 6,
+        "time_seconds": 75.3,
+        "tokens": 18876,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "interface{} vs any rule is classified as T1",
+          "passed": false,
+          "evidence": "The output classifies this rule as 'grep' enforcement. The 'T1' label in the summary table is a row identifier meaning 'Types rule 1', not the T1/T2/T3 enforcement tier system. Without the skill, the tier vocabulary is absent."
+        },
+        {
+          "text": "Unchecked errors rule is classified as T1 (go vet / errcheck catches this)",
+          "passed": false,
+          "evidence": "The output classifies this rule as 'lint' (errcheck). No T1/T2/T3 tier system is used. The output correctly identifies errcheck but does not frame it as T1."
+        },
+        {
+          "text": "Error message casing rule is classified as T1 (regex on string literals)",
+          "passed": false,
+          "evidence": "The output classifies this rule as 'grep', which is conceptually correct (regex on string literals), but the T1 tier label is not used. Without the skill, the T1/T2/T3 vocabulary does not appear."
+        },
+        {
+          "text": "Error wrapping rule is classified as T1 and the skill surfaces that context message quality is not covered by the T1 check, suggesting it as a candidate for a separate rule if the team cares",
+          "passed": false,
+          "evidence": "The error wrapping rule is classified as 'lint' (wrapcheck), not T1. There is no mention of context message quality being a gap, nor any suggestion of a separate rule for message quality."
+        },
+        {
+          "text": "The skill references specific Go tooling (e.g., errcheck, wrapcheck, nakedret) where applicable",
+          "passed": false,
+          "evidence": "errcheck and wrapcheck are both referenced in the transcript and output file. However, nakedret is never mentioned despite being applicable to the named-returns / naked-return rule. The assertion requires all three; nakedret is absent."
+        },
+        {
+          "text": "Blocks are placed correctly after each rule in the bulleted list format",
+          "passed": true,
+          "evidence": "In go-standards.md, each bullet-point rule is followed immediately by a <!-- ENFORCEMENT: ... --> comment block. The placement is consistent across all five rules in the Types and Error handling sections."
+        }
+      ]
+    },
+    {
+      "eval_id": 3,
+      "eval_name": "Batch mode (15 rules)",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 7,
+        "failed": 0,
+        "total": 7,
+        "time_seconds": 156.4,
+        "tokens": 35347,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Rules are presented in groups of 3-5, not all at once",
+          "passed": true,
+          "evidence": "Transcript shows 5 groups (Group 1 of 5 through Group 5 of 5), each containing exactly 3 rules. No group exceeds 5 rules."
+        },
+        {
+          "text": "Each group shows a table or list with rule, recommended tier, and reasoning",
+          "passed": true,
+          "evidence": "All 5 groups include a markdown table with columns '#', 'Rule', 'Recommended tier', and 'Reasoning'. Every rule entry has all three fields populated."
+        },
+        {
+          "text": "At least 6 of the Code Style + CSS rules are correctly classified as T1",
+          "passed": true,
+          "evidence": "All 3 Code Style rules (no 'as any', no 'export default', no nested ternaries) and all 3 CSS rules (design tokens, animate transform/opacity, no raw z-index) are classified T1. Total = 6 T1 rules from those two sections."
+        },
+        {
+          "text": "The 'single responsibility' rule is classified as Human (inherently subjective)",
+          "passed": true,
+          "evidence": "Transcript Group 5 classifies rule 14 ('Components follow single responsibility principle') as 'Human', with reasoning: 'Single responsibility is inherently subjective. Three experienced reviewers would draw the boundary differently.' The output file also shows tier: Human."
+        },
+        {
+          "text": "The 'color alone does not convey meaning' rule is T3 visual-qa (requires visual inspection)",
+          "passed": true,
+          "evidence": "Transcript Group 3 classifies rule 8 ('Color alone does not convey meaning') as 'T3 (visual-qa)'. The output file shows tier: T3 with agent: visual-qa."
+        },
+        {
+          "text": "Budget checks run after all blocks are generated",
+          "passed": true,
+          "evidence": "The 'Budget Check' section appears after all 5 groups are processed. The transcript sequence is: Group 1, Group 2, Group 3, Group 4, Group 5, then Budget Check."
+        },
+        {
+          "text": "The total rule count matches the actual number of rules in the file",
+          "passed": true,
+          "evidence": "Transcript states 'Total rules identified: 15' and the Rule ID Reference table lists 15 rules. The actual frontend-standards.md file contains exactly 15 rules: Code Style (3) + CSS (3) + Accessibility (3) + Performance (3) + Architecture (3) = 15."
+        }
+      ]
+    },
+    {
+      "eval_id": 3,
+      "eval_name": "Batch mode (15 rules)",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.14,
+        "passed": 1,
+        "failed": 6,
+        "total": 7,
+        "time_seconds": 68.0,
+        "tokens": 18826,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Rules are presented in groups of 3-5, not all at once",
+          "passed": false,
+          "evidence": "The transcript processes all 15 rules in a single flat numbered list under 'Approach', and the output writes all 15 enforcement blocks in one pass with no batched grouping."
+        },
+        {
+          "text": "Each group shows a table or list with rule, recommended tier, and reasoning",
+          "passed": false,
+          "evidence": "No tier system (T1/T2/T3/Human) appears anywhere in the transcript or output. Rules are listed with only their enforcement block text and no tier classification or reasoning."
+        },
+        {
+          "text": "At least 6 of the Code Style + CSS rules are correctly classified as T1",
+          "passed": false,
+          "evidence": "No tier classification exists in either file. The 6 Code Style + CSS rules each have enforcement blocks but no T1/T2/T3/Human designation."
+        },
+        {
+          "text": "The 'single responsibility' rule is classified as Human (inherently subjective)",
+          "passed": false,
+          "evidence": "The 'single responsibility' rule exists in the output (line 121-127) with an enforcement block, but has no tier classification of any kind."
+        },
+        {
+          "text": "The 'color alone does not convey meaning' rule is T3 visual-qa (requires visual inspection)",
+          "passed": false,
+          "evidence": "The 'color alone does not convey meaning' rule exists in the output (lines 69-75) with an enforcement block, but has no T3 or visual-qa classification."
+        },
+        {
+          "text": "Budget checks run after all blocks are generated",
+          "passed": false,
+          "evidence": "No budget checks are mentioned in the transcript or output. The transcript goes directly from identifying rules to documenting the enforcement block structure with no budget or token-count step."
+        },
+        {
+          "text": "The total rule count matches the actual number of rules in the file",
+          "passed": true,
+          "evidence": "The transcript explicitly states '15 rules across 5 sections' and the output contains exactly 15 enforcement blocks (3 Code Style + 3 CSS + 3 Accessibility + 3 Performance + 3 Architecture), matching the task description."
+        }
+      ]
+    },
+    {
+      "eval_id": 4,
+      "eval_name": "Budget pressure",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 120.5,
+        "tokens": 30107,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The skill counts existing enforcement blocks before adding new ones",
+          "passed": true,
+          "evidence": "The transcript shows a 'Pre-existing enforcement audit' section with a table counting T3 blocks (11), scopeless T3 (8), critical T3 (2), T1 (0), T2 (0), and Human (0) before any new rules are added."
+        },
+        {
+          "text": "It reports the current T3 count, scopeless count (8), and critical count (2) based on what the file actually contains",
+          "passed": true,
+          "evidence": "Transcript explicitly reports: 'Total T3 blocks: 11', 'Scopeless T3 (scope: \"*\"): 8 (headings hierarchy, body text, dark mode, accent colors, hover effects, disabled elements, loading states, no-overlap)', 'Critical T3 (critical: true): 2 (dark mode text, loading states)'. The output file confirms these counts are accurate \u2014 there are 9 rules with scope '*' but the transcript says 8 (headings hierarchy=scope:\"*\", body text=scope:\"*\", dark mode=scope:\"*\", accent colors=scope:\"*\", hover effects=scope:\"*\", disabled elements=scope:\"*\", loading states=scope:\"*\", no-overlap=scope:\"*\") \u2014 counting the output file yields exactly 8 scopeless entries. Critical count of 2 matches (dark mode and loading states both have critical: true)."
+        },
+        {
+          "text": "New rules are classified appropriately (empty/error states as T3 visual-qa, modal as T2 or T3)",
+          "passed": true,
+          "evidence": "Empty states classified as 'T3, agent: visual-qa'; Error states classified as 'T3, agent: visual-qa'; Modal dialogs classified as 'T3, agent: visual-qa'. All three use tier T3 with agent visual-qa in the output blocks."
+        },
+        {
+          "text": "It warns about approaching the scopeless cap (8 of 10 used)",
+          "passed": true,
+          "evidence": "Transcript states: 'Scopeless T3: 10 max | 8 | 2 remaining' and explicitly highlights: '**Key constraint:** Only 2 scopeless T3 slots remain. All 3 new rules must use specific scopes or we will exceed the budget.'"
+        },
+        {
+          "text": "It suggests concrete mitigation: narrow scope to specific components instead of '*'",
+          "passed": true,
+          "evidence": "Each new rule's 'Scope decision' section explicitly states the mitigation: 'Must use specific scope due to scopeless budget pressure. Scoped to \"EmptyState, Shelf\"', 'Scoped to \"ErrorState, Shelf\"', 'Scoped to \"Drawer, Dialog\"'. The budget check after confirms: 'Scopeless T3: 8 (no new scopeless added)'."
+        },
+        {
+          "text": "The blocks for new rules include specific component scopes, not '*'",
+          "passed": true,
+          "evidence": "In the output ui-rules.md, all three new enforcement blocks have specific scopes: empty states has 'scope: \"EmptyState, Shelf\"', error states has 'scope: \"ErrorState, Shelf\"', modal dialogs has 'scope: \"Drawer, Dialog\"'. None use scope: \"*\"."
+        }
+      ]
+    },
+    {
+      "eval_id": 4,
+      "eval_name": "Budget pressure",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 95.2,
+        "tokens": 22972,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The skill counts existing enforcement blocks before adding new ones",
+          "passed": true,
+          "evidence": "The transcript explicitly lists all 11 existing enforcement blocks in a table and states 'Existing enforcement blocks (11 total)' before proceeding to add new rules."
+        },
+        {
+          "text": "It reports the current T3 count, scopeless count (8), and critical count (2) based on what the file actually contains",
+          "passed": true,
+          "evidence": "The transcript reports: 'Total T3: 11', 'Scopeless (scope: \"*\"): 8 (budget: max 10)', 'Critical (critical: true): 2 (budget: max 10)'. All three counts are reported and match the actual file contents (8 rules with scope '*', 2 with critical: true)."
+        },
+        {
+          "text": "New rules are classified appropriately (empty/error states as T3 visual-qa, modal as T2 or T3)",
+          "passed": true,
+          "evidence": "All three new rules (empty states, error states, modal dialogs) are classified as T3 with agent: visual-qa in the output file. Modal is T3 visual-qa, which is within the acceptable range (T2 or T3)."
+        },
+        {
+          "text": "It warns about approaching the scopeless cap (8 of 10 used)",
+          "passed": true,
+          "evidence": "The transcript states 'Scopeless (scope: \"*\"): 8 (budget: max 10) -- only 2 slots remain' and explicitly identifies it as 'The scopeless budget is the binding constraint. With 8 of 10 slots used, I can only add 2 more scopeless rules.'"
+        },
+        {
+          "text": "It suggests concrete mitigation: narrow scope to specific components instead of '*'",
+          "passed": true,
+          "evidence": "The transcript explicitly states the mitigation strategy: 'Since all 3 new rules can reasonably be scoped to specific components, I chose to give each a named scope rather than \"*\"' and lists specific component scopes for each rule."
+        },
+        {
+          "text": "The blocks for new rules include specific component scopes, not '*'",
+          "passed": true,
+          "evidence": "In the output file, the three new rules use scope: 'EmptyState', scope: 'ErrorState', and scope: 'Dialog' respectively \u2014 none use scope: '*'."
+        }
+      ]
+    },
+    {
+      "eval_id": 5,
+      "eval_name": "Adjective trap",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 103.3,
+        "tokens": 28867,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "'Use descriptive variable names' is classified as Human, NOT T1 (no regex can judge 'descriptive')",
+          "passed": true,
+          "evidence": "Rule 1 is classified as 'Human' in both the transcript (Group 1, row 1) and the output file. The transcript explicitly invokes the 'adjective trap' and states 'No regex can determine whether a variable name is descriptive enough in context.' The output YAML block has tier: Human."
+        },
+        {
+          "text": "'Functions should do one thing' is classified as Human, NOT T1 or T2 (SRP is subjective)",
+          "passed": true,
+          "evidence": "Rule 2 is classified as 'Human' in both files. The transcript notes 'Two qualifying adjectives: \"one thing\" (single-responsibility principle)' and that 'Single responsibility is explicitly listed as a Human example.' The output YAML block has tier: Human with reason citing SRP as 'inherently subjective'."
+        },
+        {
+          "text": "'No unused imports' is classified as T1 (lint rule catches this deterministically)",
+          "passed": true,
+          "evidence": "Rule 3 is classified as T1 in both files. The transcript states 'Pure syntactic check. ESLint's no-unused-imports plugin or TypeScript's --noUnusedLocals flag can detect every violation deterministically.' The output YAML block has tier: T1 with a concrete ESLint pattern."
+        },
+        {
+          "text": "'Group imports by source' is classified as T1 (import-order linting)",
+          "passed": true,
+          "evidence": "Rule 4 is classified as T1 in both files. The transcript states 'ESLint import/order can enforce grouping based on import path structure... Deterministic, auto-fixable.' The output YAML block has tier: T1 with pattern 'eslint import/order'."
+        },
+        {
+          "text": "'Log errors with sufficient context' is classified as Human or T3 (judgment required)",
+          "passed": true,
+          "evidence": "Rule 5 is classified as 'Human' \u2014 not T1 \u2014 in both files. The transcript explicitly applies the vacuity guard: 'stripping \"with sufficient context\" leaves \"log errors\" which is trivially satisfied by any log call, so the adjective is the core criterion and the adjective trap takes precedence.' The output YAML block has tier: Human."
+        },
+        {
+          "text": "The skill explicitly explains why 'descriptive' and 'one thing' are not T1 despite sounding like naming/structure conventions",
+          "passed": true,
+          "evidence": "The transcript's Key Decisions section states: 'Three rules classified as Human, not T3. All three contain qualifying adjectives (\"descriptive\", \"one thing\", \"sufficient\") that are the rule's core criterion. The adjective trap applies in each case.' Individual rule rows in the transcript also give explicit reasoning for each, calling out the adjective trap by name for rule 1 and noting SRP is 'explicitly listed as a Human example' for rule 2."
+        }
+      ]
+    },
+    {
+      "eval_id": 5,
+      "eval_name": "Adjective trap",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.0,
+        "passed": 0,
+        "failed": 6,
+        "total": 6,
+        "time_seconds": 55.4,
+        "tokens": 17996,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "'Use descriptive variable names' is classified as Human, NOT T1",
+          "passed": false,
+          "evidence": "The output uses no tier classification system (T1/T2/T3/Human) at all. 'Use descriptive variable names' has an enforcement block added but no tier label. Without the skill, tier terminology is not expected and was not produced."
+        },
+        {
+          "text": "'Functions should do one thing' is classified as Human, NOT T1 or T2",
+          "passed": false,
+          "evidence": "The output uses no tier classification system. 'Functions should do one thing well' has an enforcement block but no tier label of any kind. Without the skill, tier terminology is not expected and was not produced."
+        },
+        {
+          "text": "'No unused imports' is classified as T1",
+          "passed": false,
+          "evidence": "The output uses no tier classification system. 'No unused imports' has an enforcement block but no tier label. Without the skill, tier terminology is not expected and was not produced."
+        },
+        {
+          "text": "'Group imports by source' is classified as T1",
+          "passed": false,
+          "evidence": "The output uses no tier classification system. 'Group imports by source' has an enforcement block but no tier label. Without the skill, tier terminology is not expected and was not produced."
+        },
+        {
+          "text": "'Log errors with sufficient context' is classified as Human or T3",
+          "passed": false,
+          "evidence": "The output uses no tier classification system. 'Log errors with sufficient context' has an enforcement block but no tier label. Without the skill, tier terminology is not expected and was not produced."
+        },
+        {
+          "text": "The skill explicitly explains why 'descriptive' and 'one thing' are not T1 despite sounding like naming/structure conventions",
+          "passed": false,
+          "evidence": "No tier system is present in the output. The transcript describes enforcement logic per rule but contains no discussion of why certain rules resist automated enforcement vs others, and no T1/T2/T3/Human tier framing whatsoever."
+        }
+      ]
+    },
+    {
+      "eval_id": 6,
+      "eval_name": "New rule creation",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 7,
+        "failed": 0,
+        "total": 7,
+        "time_seconds": 82.3,
+        "tokens": 27110,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The skill discovers and reads the existing rules file before writing anything",
+          "passed": true,
+          "evidence": "Step 1 in the transcript explicitly shows discovery: 'Found one rules file: `.claude/rules/team-standards.md` (scoped to `src/**/*`). Sections: Code Style, Debugging, Testing. Existing enforcement blocks: 0'. Discovery precedes any rule writing."
+        },
+        {
+          "text": "It asks which section the rule belongs in (or suggests Code Style)",
+          "passed": true,
+          "evidence": "Step 2 in the transcript shows a placement decision: 'The rule belongs in the Debugging section. There is already a related bullet about using a dedicated logger instead of raw `console.*` calls.' The skill decided autonomously, which satisfies 'or suggests' rather than prompting."
+        },
+        {
+          "text": "The rule text is one clear imperative sentence, not a paragraph or multi-sentence explanation",
+          "passed": true,
+          "evidence": "Step 3 shows the rule text: 'Do not commit `console.log`, `console.debug`, or `console.info` calls.' \u2014 single imperative sentence. The surrounding explanation in the transcript is rationale, not the rule text itself. The rule as written in the output file is exactly one sentence."
+        },
+        {
+          "text": "The rule is classified as T1 (console.log has a clear syntactic signature)",
+          "passed": true,
+          "evidence": "Step 4 concludes 'Classification: T1 (deterministic, pre-commit)' and the enforcement block in both transcript and output file shows `tier: T1`."
+        },
+        {
+          "text": "The enforcement block has a regex pattern matching console.log",
+          "passed": true,
+          "evidence": "The enforcement block contains `pattern: \"console\\\\.(log|debug|info)\\\\s*\\\\(\"` which matches console.log, console.debug, and console.info calls. Verified in both the transcript (Step 5) and the output file."
+        },
+        {
+          "text": "The rule is appended to an appropriate section, not dumped at the end of the file",
+          "passed": true,
+          "evidence": "In team-standards.md the rule appears under the `## Debugging` section (line 16), between the existing debugging bullet and the `## Testing` section \u2014 not appended to the end of the file."
+        },
+        {
+          "text": "Budget checks run after generating the block",
+          "passed": true,
+          "evidence": "Step 6 'Budget check' runs after Step 5 'Enforcement block' and shows a budget table for T3 rules. It concludes 'This rule is T1, so it has no impact on T3 budgets. All clear.'"
+        }
+      ]
+    },
+    {
+      "eval_id": 6,
+      "eval_name": "New rule creation",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.2857142857142857,
+        "passed": 2,
+        "failed": 5,
+        "total": 7,
+        "time_seconds": 35.1,
+        "tokens": 17157,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The skill discovers and reads the existing rules file before writing anything",
+          "passed": true,
+          "evidence": "The transcript explicitly states step 1: 'Read the existing file. The file already has a \"Debugging\" section with one bullet about using a logger utility instead of raw console.* calls.' The agent read the file and identified its existing content before making changes."
+        },
+        {
+          "text": "It asks which section the rule belongs in (or suggests Code Style)",
+          "passed": false,
+          "evidence": "The transcript shows no interaction asking the user which section to place the rule in. The agent autonomously decided: 'Rather than creating a new section, I added a new bullet under the existing \"Debugging\" section since the topic fits perfectly there.' No question was posed to the user."
+        },
+        {
+          "text": "The rule text is one clear imperative sentence, not a paragraph or multi-sentence explanation",
+          "passed": false,
+          "evidence": "The added rule is a multi-sentence paragraph: 'Do not commit console.log, console.debug, console.info, or console.warn statements used for debugging. Remove all debugging console calls before committing code. If a console statement is intentional and permanent (e.g., console.error in an error handler), add a comment explaining why it must stay (e.g., // intentional: logs unrecoverable startup failure). Reviewers should treat any uncommented console.* call in a diff as a blocking issue.' This is four sentences, not one imperative sentence."
+        },
+        {
+          "text": "The rule is classified as T1 (console.log has a clear syntactic signature)",
+          "passed": false,
+          "evidence": "No T1 classification appears anywhere in the transcript or output file. The output file contains only plain markdown bullets with no tier classification system. This is expected to fail in the baseline (without skill) run."
+        },
+        {
+          "text": "The enforcement block has a regex pattern matching console.log",
+          "passed": false,
+          "evidence": "The output file contains no YAML enforcement block and no regex pattern. The rule is added as a plain markdown bullet point only. No enforcement metadata was generated. This is expected to fail in the baseline (without skill) run."
+        },
+        {
+          "text": "The rule is appended to an appropriate section, not dumped at the end of the file",
+          "passed": true,
+          "evidence": "The rule was added under the existing 'Debugging' section, which is the semantically correct placement for a console.log prohibition rule. The file structure shows the rule appears within that section, not at the end of the file."
+        },
+        {
+          "text": "Budget checks run after generating the block",
+          "passed": false,
+          "evidence": "The transcript shows no budget checks at any point. There is no mention of token counts, length limits, or any budget-related verification step. The transcript only covers reading the file, deciding placement, crafting the rule, and preserving structure."
+        }
+      ]
+    },
+    {
+      "eval_id": 7,
+      "eval_name": "T3 agent selection",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 122.0,
+        "tokens": 29041,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "'Loading skeletons match content shape' gets T3 visual-qa (requires screenshot comparison, not code review)",
+          "passed": true,
+          "evidence": "Rule is classified T3 with agent: visual-qa in both the transcript and the output file. Transcript explicitly states: 'Classification: T3, agent: visual-qa -- the violation is visible in a screenshot comparison.' Output file shows enforcement block with tier: T3 and agent: visual-qa."
+        },
+        {
+          "text": "'Dark mode layout shift' gets T2 (CLS measurement) or T3 visual-qa (visual judgment), NOT T3 reviewer",
+          "passed": true,
+          "evidence": "Rule is classified T2 in both transcript and output file. Transcript states: 'Classification: T2 -- runtime pass/fail via CLS measurement.' Output shows tier: T2 with CLS assertion. The agent is not visual-qa or reviewer -- it is a deterministic test, satisfying the assertion that it is NOT T3 reviewer."
+        },
+        {
+          "text": "'No business logic in components' gets T3 reviewer (code structure judgment), NOT visual-qa",
+          "passed": true,
+          "evidence": "Rule is classified T3 with agent: reviewer in both transcript and output file. Transcript states: 'Classification: T3, agent: reviewer -- the violation is in code structure, visible in source files.' Output shows enforcement block with tier: T3, agent: reviewer."
+        },
+        {
+          "text": "'Functions over 50 lines' gets T1 (line count is syntactic), NOT T3",
+          "passed": true,
+          "evidence": "Rule is classified T1 in both transcript and output file. Transcript states: 'Classification: T1 -- deterministic line-count check on the measurable threshold.' Output shows tier: T1 with AST pattern. The rule is not T3."
+        },
+        {
+          "text": "The skill explains the visual-qa vs reviewer distinction for each T3 rule",
+          "passed": true,
+          "evidence": "The transcript provides explicit reasoning for both T3 rules. For visual-qa: 'An agent needs to see screenshots of both skeleton and loaded states and judge whether placeholders correspond to real content in position, size, and count. This is visible in screenshots, not code.' For reviewer: 'A reviewer reads the component source and judges whether inline computations are domain logic or rendering helpers. This is about code structure, not visual output -- you judge it by reading .tsx files, not by looking at screenshots.' The summary table also clearly distinguishes: 'Screenshot comparison needed' vs 'Code structure judgment'."
+        },
+        {
+          "text": "T3 instructions include what to look for, what counts as a violation, and what correct looks like",
+          "passed": true,
+          "evidence": "Both T3 rules have detailed instructions. For visual-qa: instruction covers what to look for ('skeleton placeholder elements'), what counts as violation ('a skeleton element that is missing, significantly different in size, or in a different position'), and what correct looks like ('every piece of real content has a matching skeleton placeholder of approximately the same dimensions'). For reviewer: instruction covers what to look for ('data transformations, validation rules, computed derivations'), what counts as violation ('component file that performs domain-specific computation inline'), and what correct looks like ('component files contain only JSX rendering, event handler wiring, and calls to imported hooks/utilities')."
+        }
+      ]
+    },
+    {
+      "eval_id": 7,
+      "eval_name": "T3 agent selection",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.8333333333333334,
+        "passed": 5,
+        "failed": 1,
+        "total": 6,
+        "time_seconds": 69.9,
+        "tokens": 19065,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "'Loading skeletons match content shape' gets T3 visual-qa",
+          "passed": true,
+          "evidence": "Rule 1 already had a T3 enforcement block with agent: visual-qa in the output file. The transcript confirms 'Already has a T3 enforcement block with agent: visual-qa. No changes needed.'"
+        },
+        {
+          "text": "'Dark mode layout shift' gets T2 or T3 visual-qa, NOT T3 reviewer",
+          "passed": true,
+          "evidence": "Rule 2 has both a T2 enforcement block (Playwright CLS assertion) and a T3 block with agent: visual-qa. The transcript confirms a T3 visual-qa block was added. No reviewer agent is used for this rule."
+        },
+        {
+          "text": "'No business logic in components' gets T3 reviewer, NOT visual-qa",
+          "passed": true,
+          "evidence": "Rule 3 has a T3 enforcement block with agent: reviewer. The transcript confirms 'Already has a T3 enforcement block with agent: reviewer. No changes needed.'"
+        },
+        {
+          "text": "'Functions over 50 lines' gets T1, NOT T3",
+          "passed": false,
+          "evidence": "Rule 4 has both a T1 enforcement block AND a T3 reviewer block. The assertion requires T1 only, but the baseline added a T3 reviewer block as well. The transcript explicitly states 'Needs a T3 reviewer block' was added."
+        },
+        {
+          "text": "The skill explains the visual-qa vs reviewer distinction for each T3 rule",
+          "passed": true,
+          "evidence": "The transcript's 'Agent Selection Reasoning' section explicitly explains: visual-qa is for rules requiring screenshot judgment; reviewer is for rules requiring code reading. Each rule change includes reasoning for which agent was chosen."
+        },
+        {
+          "text": "T3 instructions include what to look for, what counts as a violation, and what correct looks like",
+          "passed": true,
+          "evidence": "All T3 instructions in the output file contain explicit sections: what to look for (e.g., 'skeleton placeholder elements'), what counts as a violation (e.g., 'A violation is a skeleton element that is missing...'), and what correct looks like (e.g., 'Correct: every piece of real content... has a matching skeleton placeholder...'). This pattern is consistent across all four T3 blocks."
+        }
+      ]
+    },
+    {
+      "eval_id": 8,
+      "eval_name": "T3 instruction quality",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 75.9,
+        "tokens": 28298,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The empty-state instruction contains all 3 parts: what to look for (zero-data screens), violation (text only, no illustration), correct (illustration alongside text)",
+          "passed": true,
+          "evidence": "The instruction reads: 'On every zero-data screen (no books, no search results, fixture=empty), verify that an illustrative graphic...' (what to look for). 'Violation: the empty state contains only a text string or heading with no accompanying illustration element.' (violation). 'Correct: a visible illustration or graphic is rendered next to or above the explanatory text...' (correct)."
+        },
+        {
+          "text": "The transition instruction specifies what to look for (route navigation), what's wrong (white flash, abrupt change), what's right (smooth transition)",
+          "passed": true,
+          "evidence": "The instruction reads: 'During every route navigation (clicking links, browser back/forward, programmatic pushes), watch for intermediate visual states...' (what to look for). 'Violation: a fully white or blank frame is visible for any perceptible duration...or the transition appears as an abrupt hard cut with no easing.' (what's wrong). 'Correct: the outgoing page fades, slides, or cross-fades into the incoming page with no intermediate blank frame...' (what's right)."
+        },
+        {
+          "text": "The gutter instruction specifies breakpoints, what's wrong (unequal gaps), what's right (consistent spacing)",
+          "passed": true,
+          "evidence": "The instruction reads: 'At each responsive breakpoint (mobile 320px, tablet 768px, desktop 1024px, wide 1440px), measure the gaps...' (breakpoints specified). 'Violation: any gap between cards differs from the others by more than 1px, or outer padding is inconsistent...' (what's wrong). 'Correct: all horizontal gaps are identical, all vertical gaps are identical, and outer padding matches the grid's gutter token at every measured breakpoint.' (what's right)."
+        },
+        {
+          "text": "No instruction is a vague one-liner like 'Check that X looks good'",
+          "passed": true,
+          "evidence": "All three instructions are multi-sentence, structured, and specific. The shortest instruction (empty-states) is a full paragraph covering context, violation, and correct behavior. None contain vague phrases like 'looks good' or 'check that it works'."
+        },
+        {
+          "text": "Each instruction is specific enough that a visual-qa agent could deterministically judge pass/fail",
+          "passed": true,
+          "evidence": "Empty-states: specifies icon size threshold (>48x48), specific fixture to use (fixture=empty), clear binary presence/absence test. Transitions: specifies 'one or more frames' threshold for white flash. Spacing: specifies 1px tolerance for gap differences and references design tokens for comparison. All three provide measurable, binary pass/fail criteria."
+        },
+        {
+          "text": "All three blocks have appropriate scope, group, and priority fields",
+          "passed": true,
+          "evidence": "Empty-states: scope='src/components/*EmptyState*', group='empty-states', priority=2. Transitions: scope='src/**/*', group='transitions', priority=2. Spacing: scope='src/components/*Grid*', group='spacing', priority=2. All three blocks have all three required fields present and populated with appropriate values."
+        }
+      ]
+    },
+    {
+      "eval_id": 8,
+      "eval_name": "T3 instruction quality",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 91.1,
+        "tokens": 29799,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The empty-state instruction contains all 3 parts: what to look for, violation, correct",
+          "passed": true,
+          "evidence": "The empty-state instruction says: (1) what to look for: 'Navigate to the empty state (use ?fixture=empty). Verify that the empty state includes a visual illustration (icon, graphic, or image element) alongside any text message.' (2) violation: 'A violation is an empty state that displays only a text message with no accompanying visual element.' (3) correct: 'Correct: the empty state renders both a meaningful illustration and descriptive text, giving the user visual context for why the list is empty and a clear path to their next action.'"
+        },
+        {
+          "text": "The transition instruction specifies what to look for, what's wrong, what's right",
+          "passed": true,
+          "evidence": "The transition instruction says: (1) what to look for: 'Navigate between routes and observe page transitions. Take screenshots before navigation, during transition, and after arrival.' (2) what's wrong: 'A violation is any visible white flash, blank frame, or abrupt content swap during a route change \u2014 the outgoing content must not disappear before the incoming content is ready to render.' (3) what's right: 'Correct: transitions between pages are smooth with no intermediate blank or white frames; content either cross-fades, slides, or replaces seamlessly without a perceptible flash.'"
+        },
+        {
+          "text": "The gutter instruction specifies breakpoints, what's wrong, what's right",
+          "passed": true,
+          "evidence": "The gutter instruction specifies breakpoints: '(320px, 768px, 1024px, 1440px)'. What's wrong: 'A violation is any breakpoint where the horizontal gutter differs from the vertical gutter, or where gutters between adjacent cards are uneven (e.g., edge margins differ from inner gaps).' What's right: 'Correct: at every breakpoint the spacing between all cards is visually uniform \u2014 top, bottom, left, and right gaps between cards are equal.'"
+        },
+        {
+          "text": "No instruction is a vague one-liner like 'Check that X looks good'",
+          "passed": true,
+          "evidence": "All three instructions are multi-sentence, structured paragraphs with specific observable criteria. None are vague one-liners. The shortest instruction (empty-state) still contains 3 distinct actionable parts spanning multiple sentences."
+        },
+        {
+          "text": "Each instruction is specific enough that a visual-qa agent could deterministically judge pass/fail",
+          "passed": true,
+          "evidence": "Empty-state: binary check for presence of illustration element alongside text \u2014 deterministic. Transition: checks for presence/absence of white flash or blank frame \u2014 deterministic with screenshots. Gutter: compares horizontal vs vertical gaps at named breakpoints \u2014 deterministic with measurement or visual inspection."
+        },
+        {
+          "text": "All three blocks have appropriate scope, group, and priority fields",
+          "passed": true,
+          "evidence": "All three blocks have: scope: 'Shelf', priority: 2, and distinct group values: 'empty-states', 'motion', 'layout'. All are present and appropriate for a T3 visual-qa rule."
+        }
+      ]
+    },
+    {
+      "eval_id": 9,
+      "eval_name": "Edit/reclassify",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 115.9,
+        "tokens": 28177,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The z-index rule gets a new T1 enforcement block with a regex pattern for raw z-index values",
+          "passed": true,
+          "evidence": "The output file shows the z-index rule has a T1 enforcement block with pattern: \"z-index:\\\\s*\\\\d\" which is a regex matching raw z-index values. The transcript confirms this was newly added."
+        },
+        {
+          "text": "The color-alone rule's existing T3 block is REPLACED (not patched) with a Human block",
+          "passed": true,
+          "evidence": "The output file shows the color-alone rule now has only a Human enforcement block. The transcript confirms the T3 block was fully replaced: 'Replaced T3 visual-qa block with Human block.' The T3 fields (agent, scope, instruction, group, priority, critical) are gone."
+        },
+        {
+          "text": "The Human block has review and reason fields (not agent/instruction/group fields from T3)",
+          "passed": true,
+          "evidence": "The Human block in the output contains only 'tier: Human', 'review: \"Manual accessibility review during PR\"', and 'reason: ...'. No agent, instruction, group, priority, or critical fields are present."
+        },
+        {
+          "text": "The reason field explains why T3 didn't work (e.g., 'visual-qa produces too many false positives')",
+          "passed": true,
+          "evidence": "The reason field reads: \"visual-qa agent produces too many false positives on color-only checks; human judgment required.\" This directly explains the T3 failure mode."
+        },
+        {
+          "text": "Budget checks report the change: one fewer T3, one fewer scopeless T3 (was scope '*')",
+          "passed": true,
+          "evidence": "The transcript's budget check shows T3 count went from 1 to 0 and states 'The T3-to-Human reclassification freed one T3 slot and one scopeless T3 slot.' The original T3 block had scope: '*' which is scopeless."
+        },
+        {
+          "text": "The skill acknowledges this is a reclassification, not a first-time classification",
+          "passed": true,
+          "evidence": "The transcript section header reads 'Change 2: Reclassify color-meaning rule from T3 to Human' and the summary states 'Color-meaning rule: Replaced T3 visual-qa block with Human block.' The sorting test section also shows the previous T3 block explicitly before discussing the reclassification."
+        }
+      ]
+    },
+    {
+      "eval_id": 9,
+      "eval_name": "Edit/reclassify",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.6667,
+        "passed": 4,
+        "failed": 2,
+        "total": 6,
+        "time_seconds": 78.6,
+        "tokens": 18984,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The z-index rule gets a new T1 enforcement block with a regex pattern for raw z-index values",
+          "passed": false,
+          "evidence": "A T1 enforcement block was added with `tool: stylelint` and `rule: \"plugin/no-raw-z-index\"`, but there is no regex pattern for raw z-index values. The assertion requires a regex pattern; the output uses a stylelint rule reference instead."
+        },
+        {
+          "text": "The color-alone rule's existing T3 block is REPLACED (not patched) with a Human block",
+          "passed": true,
+          "evidence": "The output shows the color-alone rule has `tier: Human` with no T3 fields remaining. The transcript confirms: \"I replaced the T3 visual-qa enforcement block with a Human enforcement block.\""
+        },
+        {
+          "text": "The Human block has review and reason fields (not agent/instruction/group fields from T3)",
+          "passed": true,
+          "evidence": "The Human block contains exactly `review: \"Manual accessibility review during PR\"` and `reason: \"visual-qa agent produces too many false positives on color-only checks; human judgment required.\"` \u2014 no agent, instruction, or group fields are present."
+        },
+        {
+          "text": "The reason field explains why T3 didn't work",
+          "passed": true,
+          "evidence": "The reason field states: \"visual-qa agent produces too many false positives on color-only checks; human judgment required.\" This directly explains why the T3 visual-qa enforcement was inadequate."
+        },
+        {
+          "text": "Budget checks report the change: one fewer T3, one fewer scopeless T3",
+          "passed": false,
+          "evidence": "The transcript contains no mention of budget checks, T3 counts, or scopeless T3 reporting. The reasoning section only describes what was changed, not any budget or tier-count reporting."
+        },
+        {
+          "text": "The skill acknowledges this is a reclassification, not a first-time classification",
+          "passed": true,
+          "evidence": "The transcript explicitly frames Change 2 as a reclassification: \"The rule... was previously T3 with visual-qa as the enforcement mechanism\" and \"I replaced the T3 visual-qa enforcement block with a Human enforcement block.\" The task header also labels it \"Reclassify from T3 visual-qa to Human.\""
+        }
+      ]
+    },
+    {
+      "eval_id": 10,
+      "eval_name": "Multi-file budget",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.8333333333333334,
+        "passed": 5,
+        "failed": 1,
+        "total": 6,
+        "time_seconds": 108.1,
+        "tokens": 30491,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The skill reads BOTH rules files before classifying",
+          "passed": true,
+          "evidence": "Transcript shows 'Found two rules files: .claude/rules/ui-rules.md and .claude/rules/code-rules.md' and presents a pre-edit inventory for both files separately before any classification work begins."
+        },
+        {
+          "text": "Pre-classification budget report shows aggregated totals: 12 T3, 2 critical, 3 scopeless across both files",
+          "passed": true,
+          "evidence": "Transcript 'Cross-file totals (before)' table shows: Total T3 = 12, Critical T3 = 2, Scopeless T3 = 3, matching the assertion exactly."
+        },
+        {
+          "text": "'Test files must not import from other test files' is classified as T1 (regex on import paths)",
+          "passed": true,
+          "evidence": "Transcript states 'Classification: T1 (deterministic)' with reasoning 'A regex or lint rule can match import paths containing .test or .spec within test files.' Output code-rules.md confirms tier: T1 with pattern: \"import .* from ['\\\"].*\\\\.(test|spec)['\\\"]\"."
+        },
+        {
+          "text": "'Components must not exceed 200 lines' is classified as T1 (line count is syntactic)",
+          "passed": true,
+          "evidence": "Transcript states 'Classification: T1 (deterministic)' with reasoning 'This is a hard numeric threshold \u2014 200 lines. A lint rule or script can count lines in component files.' Output code-rules.md confirms tier: T1 with pattern: \"file line count > 200\"."
+        },
+        {
+          "text": "Post-classification budget report includes T3 counts from ui-rules.md even though only code-rules.md was edited",
+          "passed": true,
+          "evidence": "Transcript 'Cross-file totals (after)' shows Total T3 going from 12 to 13, where 12 includes ui-rules.md's 8 T3 rules. The post-edit aggregate is correctly computed across both files, not just the edited code-rules.md."
+        },
+        {
+          "text": "The per-file breakdown is shown alongside the aggregated totals",
+          "passed": false,
+          "evidence": "The pre-edit section shows both per-file breakdowns (ui-rules.md and code-rules.md) alongside aggregate totals. However, the post-edit section only shows a per-file breakdown for code-rules.md \u2014 ui-rules.md has no post-edit per-file row. The cross-file aggregate is shown, but without a complete per-file breakdown for both files in the post-classification report."
+        }
+      ]
+    },
+    {
+      "eval_id": 10,
+      "eval_name": "Multi-file budget",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.6667,
+        "passed": 4,
+        "failed": 2,
+        "total": 6,
+        "time_seconds": 87.4,
+        "tokens": 21357,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "The skill reads BOTH rules files before classifying",
+          "passed": true,
+          "evidence": "The transcript's Input Analysis section shows counts extracted from both ui-rules.md (8 T3 blocks, 2 critical, 3 scopeless) and code-rules.md (4 T3 blocks, 0 critical, 0 scopeless) before any new rules were added, demonstrating both files were read prior to classification."
+        },
+        {
+          "text": "Pre-classification budget report shows aggregated totals: 12 T3, 2 critical, 3 scopeless across both files",
+          "passed": true,
+          "evidence": "The transcript explicitly states under 'Cross-file totals (before)': Total T3: 12, Total critical: 2, Total scopeless: 3 \u2014 matching the assertion exactly."
+        },
+        {
+          "text": "'Test files must not import from other test files' is classified as T1",
+          "passed": false,
+          "evidence": "In code-rules.md, the enforcement block for 'Test files must not import from other test files' has tier: T3, not T1."
+        },
+        {
+          "text": "'Components must not exceed 200 lines' is classified as T1",
+          "passed": false,
+          "evidence": "In code-rules.md, the enforcement block for 'Components must not exceed 200 lines including template/JSX' has tier: T3, not T1."
+        },
+        {
+          "text": "Post-classification budget report includes T3 counts from ui-rules.md even though only code-rules.md was edited",
+          "passed": true,
+          "evidence": "The 'Cross-file Totals (after)' table in the transcript includes ui-rules.md with 8 T3 blocks, 2 critical, and 3 scopeless \u2014 unchanged from before, but explicitly included in the post-edit totals table."
+        },
+        {
+          "text": "The per-file breakdown is shown alongside the aggregated totals",
+          "passed": true,
+          "evidence": "The transcript's 'Cross-file Totals (after)' table has columns for ui-rules.md, code-rules.md, and Total \u2014 showing per-file values (8 and 7 T3 blocks) alongside the aggregate total (15)."
+        }
+      ]
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 0.98,
+        "stddev": 0.05,
+        "min": 0.83,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 105.65,
+        "stddev": 25.0,
+        "min": 66.8,
+        "max": 156.4
+      },
+      "tokens": {
+        "mean": 29221.91,
+        "stddev": 2392.56,
+        "min": 26392,
+        "max": 35347
+      }
+    },
+    "without_skill": {
+      "pass_rate": {
+        "mean": 0.49,
+        "stddev": 0.35,
+        "min": 0.0,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 71.75,
+        "stddev": 18.2,
+        "min": 35.1,
+        "max": 95.2
+      },
+      "tokens": {
+        "mean": 20354,
+        "stddev": 3537.66,
+        "min": 17157,
+        "max": 29799
+      }
+    },
+    "delta": {
+      "pass_rate": "+0.49",
+      "time_seconds": "+33.9",
+      "tokens": "+8868"
+    }
+  },
+  "notes": [
+    "Eval 5 (Adjective trap) is now 100% with skill, up from 83% in iteration 7. The 'Log errors with sufficient context' rule is now correctly classified as Human via the vacuity guard.",
+    "Eval 8 (T3 instruction quality) passes 100% in both configurations \u2014 the baseline also produces good T3 instructions. This eval does not differentiate skill value well.",
+    "Eval 4 (Budget pressure) passes 100% in both configurations \u2014 the baseline also handles budget awareness. Consider harder budget scenarios.",
+    "Eval 10 (Multi-file budget) drops to 83% with skill due to incomplete per-file breakdown in post-classification report \u2014 a presentation gap, not a classification error.",
+    "With-skill adds ~33s average execution time but improves pass rate from 49% to 98%."
+  ]
+}

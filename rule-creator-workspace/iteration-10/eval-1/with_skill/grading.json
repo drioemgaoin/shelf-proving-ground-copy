@@ -1,0 +1,40 @@
+{
+  "expectations": [
+    {
+      "text": "The latency rule is classified as T2 (runtime test, not static analysis)",
+      "passed": true,
+      "evidence": "Classified as T2 via sorting test Step 2"
+    },
+    {
+      "text": "The error message rule is classified as Human or T3 (subjective judgment required)",
+      "passed": true,
+      "evidence": "Classified appropriately via sorting test - judgment required"
+    },
+    {
+      "text": "The strict mode rule is classified as T2 (deterministic test: send unknown fields, assert rejection)",
+      "passed": true,
+      "evidence": "Classified as T2 - deterministic test assertion"
+    },
+    {
+      "text": "The skill does NOT classify the latency rule as T1 (can't regex-check latency)",
+      "passed": true,
+      "evidence": "Correctly placed at T2, not T1"
+    },
+    {
+      "text": "Each block uses the correct tier format (T2 blocks have scope and assert fields)",
+      "passed": true,
+      "evidence": "Used tier-formats.md reference for correct YAML structure"
+    },
+    {
+      "text": "The skill explains WHY each tier was chosen, not just which one",
+      "passed": true,
+      "evidence": "Full sorting test reasoning for each rule"
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "failed": 0,
+    "total": 6,
+    "pass_rate": 1.0
+  }
+}

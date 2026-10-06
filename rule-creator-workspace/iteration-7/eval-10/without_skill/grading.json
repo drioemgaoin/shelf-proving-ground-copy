@@ -1,0 +1,87 @@
+{
+  "expectations": [
+    {
+      "text": "The skill reads BOTH rules files before classifying",
+      "passed": true,
+      "evidence": "The transcript's budget analysis table shows per-file columns for both ui-rules.md and code-rules.md, and both files appear in the outputs directory. The 'Before' table enumerates metrics from both files, confirming both were read."
+    },
+    {
+      "text": "Pre-classification budget report shows aggregated totals: 12 T3, 2 critical, 3 scopeless across both files",
+      "passed": true,
+      "evidence": "The 'Before' table in the transcript shows: T3 blocks = 8 + 4 = 12 Total, Critical = 2 + 0 = 2 Total, Scopeless = 3 + 0 = 3 Total. All three totals match the expectation exactly."
+    },
+    {
+      "text": "'Test files must not import from other test files' is classified as T1 (regex on import paths)",
+      "passed": false,
+      "evidence": "The transcript classifies this rule with 'tier: T3, agent: reviewer'. The output code-rules.md confirms 'tier: T3'. The expectation requires T1 classification since detecting cross-test imports is a syntactic regex check on import paths, but the executor treated it as a reviewer rule instead."
+    },
+    {
+      "text": "'Components must not exceed 200 lines' is classified as T1 (line count is syntactic)",
+      "passed": false,
+      "evidence": "The transcript classifies this rule with 'tier: T3, agent: reviewer'. The output code-rules.md confirms 'tier: T3'. The expectation requires T1 classification since line-counting is a purely syntactic check that could be enforced by a linter/script, but the executor assigned it as a T3 reviewer rule."
+    },
+    {
+      "text": "Post-classification budget report includes T3 counts from ui-rules.md even though only code-rules.md was edited",
+      "passed": true,
+      "evidence": "The 'After' table shows ui-rules.md column with 8 T3 blocks, code-rules.md with 7, Total 15. The ui-rules.md counts are preserved in the post-classification report."
+    },
+    {
+      "text": "The per-file breakdown is shown alongside the aggregated totals",
+      "passed": true,
+      "evidence": "Both the 'Before' and 'After' tables use three columns: ui-rules.md, code-rules.md, and Total. The per-file values and aggregated totals are side by side."
+    }
+  ],
+  "summary": {
+    "passed": 4,
+    "failed": 2,
+    "total": 6,
+    "pass_rate": 0.67
+  },
+  "timing": {
+    "total_duration_seconds": 75.8
+  },
+  "claims": [
+    {
+      "claim": "All 3 new rules received specific scopes (no wildcard), keeping scopeless count unchanged",
+      "type": "factual",
+      "verified": true,
+      "evidence": "The three new enforcement blocks use scopes 'src/utils/**/*.ts', 'src/**/*.test.{ts,tsx}', and 'src/components/**/*.tsx' — none use '*'. Scopeless count stays at 3."
+    },
+    {
+      "claim": "None of the new rules were marked critical",
+      "type": "factual",
+      "verified": true,
+      "evidence": "All three new enforcement blocks in code-rules.md show 'critical: false'."
+    },
+    {
+      "claim": "The total of 15 T3 blocks is within reasonable limits",
+      "type": "quality",
+      "verified": true,
+      "evidence": "8 (ui-rules) + 7 (code-rules) = 15. The arithmetic is correct. Whether 15 is 'reasonable' is subjective but the count is accurate."
+    },
+    {
+      "claim": "All existing code-rules.md rules use reviewer agent",
+      "type": "factual",
+      "verified": true,
+      "evidence": "All 4 original enforcement blocks in code-rules.md specify 'agent: reviewer'."
+    },
+    {
+      "claim": "All 4 existing code-rules.md rules have triage_hint",
+      "type": "factual",
+      "verified": true,
+      "evidence": "Each of the 4 original enforcement blocks includes a triage_hint field."
+    }
+  ],
+  "eval_feedback": {
+    "suggestions": [
+      {
+        "assertion": "'Test files must not import from other test files' is classified as T1 (regex on import paths)",
+        "reason": "This is a strong discriminating assertion. It tests whether the executor understands tier classification — a regex-checkable rule should be T1, not T3. The without-skill baseline predictably fails this, which is exactly what a good eval should show."
+      },
+      {
+        "reason": "No assertion checks whether the enforcement block YAML is structurally valid (has all required fields like tier, agent, scope, instruction). The executor happened to include them all, but this is worth verifying explicitly since a malformed block would be useless."
+      }
+    ],
+    "overall": "The tier-classification assertions (expectations 3 and 4) are the most discriminating — they test genuine understanding of the tier system. The budget-reporting assertions (1, 2, 5, 6) are solid but easier to satisfy. Good overall coverage for measuring skill vs no-skill gap."
+  }
+}

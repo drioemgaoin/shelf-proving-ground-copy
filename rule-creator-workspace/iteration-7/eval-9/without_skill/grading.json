@@ -1,0 +1,83 @@
+{
+  "expectations": [
+    {
+      "text": "The z-index rule gets a new T1 enforcement block with a regex pattern for raw z-index values",
+      "passed": true,
+      "evidence": "Output frontend-standards.md contains a T1 enforcement block under the z-index rule with pattern: \"z-index:\\\\s*\\\\d\", assert: never, scope: \"src/**/*.css\", and a fix instruction."
+    },
+    {
+      "text": "The color-alone rule's existing T3 block is REPLACED (not patched) with a Human block",
+      "passed": true,
+      "evidence": "Output frontend-standards.md shows the color-alone rule has tier: Human with no remnants of T3 fields (no agent, instruction, or group fields). Transcript states: 'Reclassified to Human tier with a note explaining the reason.'"
+    },
+    {
+      "text": "The Human block has review and reason fields (not agent/instruction/group fields from T3)",
+      "passed": true,
+      "evidence": "Output shows exactly two fields: review: \"Manual accessibility review during PR\" and reason: \"visual-qa agent produces too many false positives on color-only checks; human judgment required.\" No agent/instruction/group fields present."
+    },
+    {
+      "text": "The reason field explains why T3 didn't work (e.g., 'visual-qa produces too many false positives')",
+      "passed": true,
+      "evidence": "The reason field reads: \"visual-qa agent produces too many false positives on color-only checks; human judgment required.\""
+    },
+    {
+      "text": "Budget checks report the change: one fewer T3, one fewer scopeless T3 (was scope '*')",
+      "passed": false,
+      "evidence": "The transcript contains no mention of budget checks, T3 counts, scopeless T3 counts, or any quantitative reporting of enforcement tier changes. The agent simply applied the edits without tracking or reporting budget impact."
+    },
+    {
+      "text": "The skill acknowledges this is a reclassification, not a first-time classification",
+      "passed": true,
+      "evidence": "The transcript is titled 'Edit-Reclassify Task' and the reasoning states: 'T3 visual-qa means enforcement is delegated to the visual-qa agent during automated review... Reclassified to Human tier.' This framing distinguishes reclassification from first-time classification."
+    }
+  ],
+  "summary": {
+    "passed": 5,
+    "failed": 1,
+    "total": 6,
+    "pass_rate": 0.83
+  },
+  "execution_metrics": {
+    "output_chars": 1156,
+    "transcript_chars": 1683
+  },
+  "timing": {
+    "total_duration_seconds": 83.2
+  },
+  "claims": [
+    {
+      "claim": "A custom stylelint plugin now catches raw z-index values",
+      "type": "factual",
+      "verified": false,
+      "evidence": "This claim comes from the user's prompt, not from the agent verifying the plugin exists. The agent took it at face value, which is reasonable."
+    },
+    {
+      "claim": "The T1 block uses assert: never semantics",
+      "type": "factual",
+      "verified": true,
+      "evidence": "Output file shows assert: never in the z-index enforcement block."
+    },
+    {
+      "claim": "The color-alone rule was previously T3 visual-qa",
+      "type": "factual",
+      "verified": false,
+      "evidence": "No input fixture file is available to verify the original state. The transcript asserts this based on the user's prompt."
+    }
+  ],
+  "user_notes_summary": null,
+  "eval_feedback": {
+    "suggestions": [
+      {
+        "assertion": "Budget checks report the change: one fewer T3, one fewer scopeless T3 (was scope '*')",
+        "reason": "This assertion tests a workflow feature (budget tracking) that only the skill provides. In a without_skill run, no agent would spontaneously produce budget reports. This assertion is effectively guaranteed to fail for without_skill and may not be discriminating in that context."
+      },
+      {
+        "reason": "No assertion checks whether the output preserves ALL original rules (e.g., the 'All values come from design tokens' rule and the 'No as any' rule). The agent could have dropped rules during editing and still pass all assertions. An assertion like 'all original rules are preserved in the output' would catch destructive edits."
+      },
+      {
+        "reason": "No assertion verifies the YAML enforcement blocks are syntactically valid YAML. The agent could produce malformed YAML that looks right in the markdown but would fail parsing."
+      }
+    ],
+    "overall": "The assertions cover the core reclassification mechanics well. The budget check assertion is a strong discriminator for with_skill vs without_skill runs. Consider adding a preservation assertion to catch destructive edits."
+  }
+}

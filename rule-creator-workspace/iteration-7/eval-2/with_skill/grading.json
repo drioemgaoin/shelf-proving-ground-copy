@@ -1,0 +1,83 @@
+{
+  "expectations": [
+    {
+      "text": "interface{} vs any rule is classified as T1",
+      "passed": true,
+      "evidence": "In go-standards.md, the rule 'Use `any` instead of `interface{}`' has an enforcement block with `tier: T1` and pattern `interface\\{\\}`. Transcript Step 1 explicitly classifies it: 'Classification: T1' with rationale 'The literal token interface{} in Go source is always a violation.'"
+    },
+    {
+      "text": "Unchecked errors rule is classified as T1 (go vet / errcheck catches this)",
+      "passed": true,
+      "evidence": "In go-standards.md, the rule 'Always check returned errors. Never discard with `_`' has `tier: T1`. The transcript says: 'The `errcheck` linter catches unchecked errors.' The enforcement block includes a regex pattern matching `_` assignments."
+    },
+    {
+      "text": "Error message casing rule is classified as T1 (regex on string literals)",
+      "passed": true,
+      "evidence": "In go-standards.md, the rule 'Error messages start with lowercase and do not end with punctuation' has `tier: T1` with a regex pattern matching `(errors\\.New|fmt\\.Errorf)\\(\"[A-Z]` and trailing punctuation. The transcript confirms: 'A regex can match errors.New(\" or fmt.Errorf(\" followed by an uppercase letter... Pure syntactic check.'"
+    },
+    {
+      "text": "Error wrapping rule is classified as T1 and the skill surfaces that context message quality is not covered by the T1 check, suggesting it as a candidate for a separate rule if the team cares",
+      "passed": true,
+      "evidence": "In go-standards.md, the error wrapping rule has `tier: T1`. The gap note reads: 'Whether the wrapping context message is meaningful (e.g., \"doing X\" vs \"error\") requires judgment and is not covered by this pattern. If context-message quality matters, create a separate T3 reviewer rule.' This surfaces the gap and suggests a separate rule."
+    },
+    {
+      "text": "The skill references specific Go tooling (e.g., errcheck, wrapcheck, nakedret) where applicable",
+      "passed": true,
+      "evidence": "The transcript references all three tools: 'errcheck linter catches unchecked errors', 'wrapcheck linter catches this', and 'nakedret detect this pattern'. The output file's gap note for named returns mentions 'tools like `nakedret` detect'. However, the output file does not reference `errcheck` or `wrapcheck` in the enforcement blocks or gap notes — those references appear only in the transcript."
+    },
+    {
+      "text": "Blocks are placed correctly after each rule in the bulleted list format",
+      "passed": true,
+      "evidence": "In go-standards.md, all 5 rules under Types and Error handling have enforcement blocks placed as indented yaml code blocks immediately after the rule's bullet text. Rules in Concurrency, Structure, and Testing (which were out of scope) remain unmodified with no blocks. The format matches the expected bulleted-list pattern: '- Rule text.\\n\\n  ```yaml\\n  enforcement:\\n    ...\\n  ```'"
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "failed": 0,
+    "total": 6,
+    "pass_rate": 1.0
+  },
+  "timing": {
+    "total_tokens": 27293,
+    "executor_duration_seconds": 92.4,
+    "total_duration_seconds": 92.4
+  },
+  "claims": [
+    {
+      "claim": "All 5 rules classified as T1",
+      "type": "factual",
+      "verified": true,
+      "evidence": "All enforcement blocks in go-standards.md have tier: T1. The named returns and error wrapping rules have gap notes acknowledging judgment aspects but classify the enforceable part as T1."
+    },
+    {
+      "claim": "Two rules have gap notes documenting judgment aspects",
+      "type": "factual",
+      "verified": true,
+      "evidence": "go-standards.md has gap notes after the named-returns rule (line 31: 'Whether named returns clarify the signature is a judgment call') and the error-wrapping rule (line 57: 'Whether the wrapping context message is meaningful requires judgment')."
+    },
+    {
+      "claim": "No budget concerns — all new blocks are T1",
+      "type": "factual",
+      "verified": true,
+      "evidence": "The budget table in the transcript shows 0 T3 rules against all limits. All 5 blocks are T1, which have no budget caps."
+    },
+    {
+      "claim": "Sections outside scope (Concurrency, Structure, Testing) were not modified",
+      "type": "factual",
+      "verified": true,
+      "evidence": "go-standards.md lines 70-86 show Concurrency, Structure, and Testing sections with bare prose and no enforcement blocks."
+    }
+  ],
+  "eval_feedback": {
+    "suggestions": [
+      {
+        "assertion": "The skill references specific Go tooling (e.g., errcheck, wrapcheck, nakedret) where applicable",
+        "reason": "This assertion is ambiguous about where the references should appear — transcript reasoning vs. the output file. The output file only mentions nakedret (in a gap note); errcheck and wrapcheck appear only in the transcript. If the intent is that the final artifact references tooling, the assertion should say 'in the output file' or 'in gap notes'. As written, it passes because the transcript counts, but this may not test what was intended."
+      },
+      {
+        "reason": "No assertion checks whether the regex patterns in enforcement blocks are actually correct. For example, the unchecked-errors pattern `\\b_\\s*=\\s*\\w+\\(` would also match non-error _ assignments (e.g., `_ = someString`), and the error-wrapping pattern `return\\s+(err|fmt\\.Errorf\\([^%]*\\))` would false-positive on `fmt.Errorf` calls that use %v instead of %w. Pattern correctness is arguably the most important quality signal for T1 blocks."
+      }
+    ],
+    "overall": "Assertions cover classification, tooling references, gap surfacing, and formatting well. The main gap is the absence of any assertion testing regex pattern quality, which is the core value proposition of a T1 block."
+  }
+}

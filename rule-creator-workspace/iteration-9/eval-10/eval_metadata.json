@@ -1,0 +1,31 @@
+{
+  "eval_id": 10,
+  "eval_name": "multi-file-budget",
+  "prompt": "I have two rules files: .claude/rules/ui-rules.md (8 T3 blocks, 2 critical, 3 scopeless) and .claude/rules/code-rules.md (4 T3 blocks, 0 critical, 0 scopeless). I need enforcement blocks on the 3 new rules at the bottom of code-rules.md. Make sure you count budgets across BOTH files.",
+  "assertions": [
+    {
+      "text": "The skill reads BOTH rules files before classifying",
+      "type": "quality"
+    },
+    {
+      "text": "Pre-classification budget report shows aggregated totals: 12 T3, 2 critical, 3 scopeless across both files",
+      "type": "quality"
+    },
+    {
+      "text": "'Test files must not import from other test files' is classified as T1 (regex on import paths)",
+      "type": "quality"
+    },
+    {
+      "text": "'Components must not exceed 200 lines' is classified as T1 (line count is syntactic)",
+      "type": "quality"
+    },
+    {
+      "text": "Post-classification budget report includes T3 counts from ui-rules.md even though only code-rules.md was edited",
+      "type": "quality"
+    },
+    {
+      "text": "The per-file breakdown is shown alongside the aggregated totals",
+      "type": "quality"
+    }
+  ]
+}

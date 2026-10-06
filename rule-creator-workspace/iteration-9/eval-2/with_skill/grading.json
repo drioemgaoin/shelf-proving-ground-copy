@@ -1,0 +1,61 @@
+{
+  "expectations": [
+    {
+      "text": "interface{} vs any rule is classified as T1",
+      "passed": true,
+      "evidence": "Transcript Rule 1: 'Classification: T1'. Reasoning: 'A regex matches the literal string interface{}. Every occurrence is a violation regardless of context.' Output file shows tier: T1."
+    },
+    {
+      "text": "Unchecked errors rule is classified as T1 (go vet / errcheck catches this)",
+      "passed": true,
+      "evidence": "Transcript Rule 3: 'Classification: T1'. Reasoning: 'The errcheck linter catches unchecked errors. A regex can also match patterns like _ = someFunc()'. Output shows tier: T1 with assert mentioning 'use errcheck or golangci-lint'."
+    },
+    {
+      "text": "Error message casing rule is classified as T1 (regex on string literals)",
+      "passed": true,
+      "evidence": "Transcript Rule 5: 'Classification: T1'. Reasoning: 'A regex matches fmt.Errorf(\" or errors.New(\" followed by an uppercase letter, or error strings ending with punctuation.' Output shows tier: T1 with pattern matching these cases."
+    },
+    {
+      "text": "Error wrapping rule is classified as T1 and the skill surfaces that context message quality is not covered by the T1 check, suggesting it as a candidate for a separate rule if the team cares",
+      "passed": true,
+      "evidence": "Transcript Rule 4: 'Classification: T1 (with gap surfaced: quality of context message not covered)'. Output file includes a Gap note: 'Whether the context message in fmt.Errorf is meaningful is a judgment call not covered by this check. If context quality matters, create a separate T3 rule for it.'"
+    },
+    {
+      "text": "The skill references specific Go tooling (e.g., errcheck, wrapcheck, nakedret) where applicable",
+      "passed": true,
+      "evidence": "Transcript references: errcheck (Rule 3), errorlint and wrapcheck (Rule 4), staticcheck ST1005 and revive (Rule 5). Output file also references these in assert fields."
+    },
+    {
+      "text": "Blocks are placed correctly after each rule in the bulleted list format",
+      "passed": true,
+      "evidence": "In go-standards.md output, each enforcement block is indented under its rule bullet with proper YAML code fence formatting. Blocks appear immediately after the rule text, before the next bullet or section."
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "failed": 0,
+    "total": 6,
+    "pass_rate": 1.0
+  },
+  "timing": {
+    "total_duration_seconds": 190.9
+  },
+  "claims": [
+    {
+      "claim": "Named returns rule uses the 'Mostly, but not entirely' branch where structural part is independently enforceable",
+      "type": "process",
+      "verified": true,
+      "evidence": "Transcript explicitly references 'Mostly, but not entirely' branch and documents the gap for the 'clarify' judgment. Output includes a Gap note."
+    },
+    {
+      "claim": "All 5 rules classified as T1",
+      "type": "factual",
+      "verified": true,
+      "evidence": "Summary table in transcript shows all 5 rules as T1. Output file confirms all blocks have tier: T1."
+    }
+  ],
+  "eval_feedback": {
+    "suggestions": [],
+    "overall": "Strong eval. The assertion about surfacing the gap for error wrapping is particularly discriminating -- it tests whether the skill identifies partial enforceability and documents the limitation."
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "expectations": [
+    {
+      "text": "'Loading skeletons match content shape' gets T3 visual-qa (requires screenshot comparison, not code review)",
+      "passed": true,
+      "evidence": "Rule is classified T3 with agent: visual-qa in both the transcript and the output file. Transcript explicitly states: 'Classification: T3, agent: visual-qa -- the violation is visible in a screenshot comparison.' Output file shows enforcement block with tier: T3 and agent: visual-qa."
+    },
+    {
+      "text": "'Dark mode layout shift' gets T2 (CLS measurement) or T3 visual-qa (visual judgment), NOT T3 reviewer",
+      "passed": true,
+      "evidence": "Rule is classified T2 in both transcript and output file. Transcript states: 'Classification: T2 -- runtime pass/fail via CLS measurement.' Output shows tier: T2 with CLS assertion. The agent is not visual-qa or reviewer -- it is a deterministic test, satisfying the assertion that it is NOT T3 reviewer."
+    },
+    {
+      "text": "'No business logic in components' gets T3 reviewer (code structure judgment), NOT visual-qa",
+      "passed": true,
+      "evidence": "Rule is classified T3 with agent: reviewer in both transcript and output file. Transcript states: 'Classification: T3, agent: reviewer -- the violation is in code structure, visible in source files.' Output shows enforcement block with tier: T3, agent: reviewer."
+    },
+    {
+      "text": "'Functions over 50 lines' gets T1 (line count is syntactic), NOT T3",
+      "passed": true,
+      "evidence": "Rule is classified T1 in both transcript and output file. Transcript states: 'Classification: T1 -- deterministic line-count check on the measurable threshold.' Output shows tier: T1 with AST pattern. The rule is not T3."
+    },
+    {
+      "text": "The skill explains the visual-qa vs reviewer distinction for each T3 rule",
+      "passed": true,
+      "evidence": "The transcript provides explicit reasoning for both T3 rules. For visual-qa: 'An agent needs to see screenshots of both skeleton and loaded states and judge whether placeholders correspond to real content in position, size, and count. This is visible in screenshots, not code.' For reviewer: 'A reviewer reads the component source and judges whether inline computations are domain logic or rendering helpers. This is about code structure, not visual output -- you judge it by reading .tsx files, not by looking at screenshots.' The summary table also clearly distinguishes: 'Screenshot comparison needed' vs 'Code structure judgment'."
+    },
+    {
+      "text": "T3 instructions include what to look for, what counts as a violation, and what correct looks like",
+      "passed": true,
+      "evidence": "Both T3 rules have detailed instructions. For visual-qa: instruction covers what to look for ('skeleton placeholder elements'), what counts as violation ('a skeleton element that is missing, significantly different in size, or in a different position'), and what correct looks like ('every piece of real content has a matching skeleton placeholder of approximately the same dimensions'). For reviewer: instruction covers what to look for ('data transformations, validation rules, computed derivations'), what counts as violation ('component file that performs domain-specific computation inline'), and what correct looks like ('component files contain only JSX rendering, event handler wiring, and calls to imported hooks/utilities')."
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "failed": 0,
+    "total": 6,
+    "pass_rate": 1.0
+  },
+  "timing": {
+    "total_duration_seconds": 122.0
+  }
+}

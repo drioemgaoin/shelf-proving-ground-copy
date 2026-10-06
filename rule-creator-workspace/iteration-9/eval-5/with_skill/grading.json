@@ -1,0 +1,61 @@
+{
+  "expectations": [
+    {
+      "text": "'Use descriptive variable names' is classified as Human, NOT T1 (no regex can judge 'descriptive')",
+      "passed": true,
+      "evidence": "Transcript Step 4 classifies it as Human with reasoning: '\"Descriptive\" is a qualifying adjective (adjective trap). No regex can judge whether a variable name conveys sufficient purpose.' Output file shows tier: Human."
+    },
+    {
+      "text": "'Functions should do one thing' is classified as Human, NOT T1 or T2 (SRP is subjective)",
+      "passed": true,
+      "evidence": "Transcript Step 4 classifies it as Human: '\"One thing well\" is inherently subjective -- the single-responsibility principle. No syntactic signature.' Output file shows tier: Human."
+    },
+    {
+      "text": "'No unused imports' is classified as T1 (lint rule catches this deterministically)",
+      "passed": true,
+      "evidence": "Transcript classifies it as T1: 'ESLint's no-unused-imports rule and TypeScript's --noUnusedLocals flag detect every unused import deterministically.' Output file shows tier: T1."
+    },
+    {
+      "text": "'Group imports by source' is classified as T1 (import-order linting)",
+      "passed": true,
+      "evidence": "Transcript classifies it as T1: 'eslint-plugin-import with the import/order rule can enforce grouping and ordering.' Output file shows tier: T1."
+    },
+    {
+      "text": "'Log errors with sufficient context' is classified as Human or T3 (judgment required)",
+      "passed": true,
+      "evidence": "Transcript classifies it as Human: '\"Sufficient context\" is a qualifying adjective whose threshold depends on the error scenario...' Output file shows tier: Human with reason explaining why."
+    },
+    {
+      "text": "The skill explicitly explains why 'descriptive' and 'one thing' are not T1 despite sounding like naming/structure conventions",
+      "passed": true,
+      "evidence": "Transcript uses the 'adjective trap' framework for 'descriptive': 'No regex can judge whether a variable name conveys sufficient purpose. Removing \"descriptive\" leaves \"use variable names\" which is vacuous -- the adjective IS the core criterion.' For 'one thing': 'this is the canonical example of a rule where reviewers disagree. What constitutes \"one thing\" depends on abstraction level, context, and team norms.'"
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "failed": 0,
+    "total": 6,
+    "pass_rate": 1.0
+  },
+  "timing": {
+    "total_duration_seconds": 166.5
+  },
+  "claims": [
+    {
+      "claim": "Discovered 5 rules files in .claude/rules/",
+      "type": "factual",
+      "verified": false,
+      "evidence": "Transcript lists 5 files but this is a fixture environment; cannot independently verify the fixture contents from outputs alone. The claim is plausible."
+    },
+    {
+      "claim": "No T3 budget concerns after changes since no T3 rules were added",
+      "type": "factual",
+      "verified": true,
+      "evidence": "All 5 rules classified as T1 (2) or Human (3). T3 count remains at 3 (from visual-rules.md). Budget table confirms no change."
+    }
+  ],
+  "eval_feedback": {
+    "suggestions": [],
+    "overall": "Strong eval. The adjective trap is the core discriminator and the assertions test it well. The explicit-explanation assertion (last one) is particularly valuable."
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "eval_id": 4,
+  "eval_name": "eval-4",
+  "prompt": "I have a UI rules file at .claude/rules/ui-rules.md that already has 11 T3 enforcement blocks (2 of which are critical, and 8 are scopeless with scope '*'). There are 3 new rules at the bottom that need enforcement. Add blocks to those 3 new rules. Watch the budgets.",
+  "assertions": ["The skill counts existing enforcement blocks before adding new ones", "It reports the current T3 count, scopeless count (8), and critical count (2) based on what the file actually contains", "New rules are classified appropriately (empty/error states as T3 visual-qa, modal as T2 or T3)", "It warns about approaching the scopeless cap (8 of 10 used)", "It suggests concrete mitigation: narrow scope to specific components instead of '*'", "The blocks for new rules include specific component scopes, not '*'"]
+}

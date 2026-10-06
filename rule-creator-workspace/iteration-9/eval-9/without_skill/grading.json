@@ -1,0 +1,57 @@
+{
+  "expectations": [
+    {
+      "text": "The z-index rule gets a new T1 enforcement block with a regex pattern for raw z-index values",
+      "passed": true,
+      "evidence": "Output frontend-standards.md shows a T1 block under the z-index rule with pattern: 'z-index:\\s*\\d', tier: T1, scope: 'src/**/*.css'. Valid regex for raw z-index values."
+    },
+    {
+      "text": "The color-alone rule's existing T3 block is REPLACED (not patched) with a Human block",
+      "passed": true,
+      "evidence": "Output frontend-standards.md shows the color rule with tier: Human, review, and reason fields. No T3 fields remain. Full replacement achieved."
+    },
+    {
+      "text": "The Human block has review and reason fields (not agent/instruction/group fields from T3)",
+      "passed": true,
+      "evidence": "The Human block contains: review: 'Manual accessibility review during PR', reason: 'visual-qa agent produces too many false positives on color-only checks; human judgment required.' No agent, instruction, group, priority, or critical fields present."
+    },
+    {
+      "text": "The reason field explains why T3 didn't work (e.g., 'visual-qa produces too many false positives')",
+      "passed": true,
+      "evidence": "reason: 'visual-qa agent produces too many false positives on color-only checks; human judgment required.'"
+    },
+    {
+      "text": "Budget checks report the change: one fewer T3, one fewer scopeless T3 (was scope '*')",
+      "passed": false,
+      "evidence": "The transcript does not include any budget check or report of T3 count changes. It lists steps (read, analyze, apply changes, write) but never mentions budget totals, scopeless counts, or before/after comparisons. Without the skill, no budget tracking was performed."
+    },
+    {
+      "text": "The skill acknowledges this is a reclassification, not a first-time classification",
+      "passed": true,
+      "evidence": "Transcript Step 4 says: 'Reclassified the color-meaning rule from T3 visual-qa to Human' — using 'reclassified' and referencing the prior T3 state explicitly."
+    }
+  ],
+  "summary": {
+    "passed": 5,
+    "failed": 1,
+    "total": 6,
+    "pass_rate": 0.83
+  },
+  "claims": [
+    {
+      "claim": "The assert field uses 'never' instead of a descriptive assertion string",
+      "type": "quality",
+      "verified": true,
+      "evidence": "Output shows 'assert: never' for the z-index T1 block, while the with_skill run uses 'assert: \"No raw z-index values — all z-index must use layer tokens\"'. The without_skill version is less informative."
+    }
+  ],
+  "eval_feedback": {
+    "suggestions": [
+      {
+        "assertion": "The z-index rule gets a new T1 enforcement block with a regex pattern for raw z-index values",
+        "reason": "Both runs produce a valid T1 block, but the without_skill run uses 'assert: never' instead of a descriptive string. An assertion checking that the assert field is a human-readable description (not just a keyword) would differentiate quality."
+      }
+    ],
+    "overall": "The budget-check assertion discriminates well between with_skill and without_skill runs. The missing budget report is a genuine capability gap."
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "eval_id": 6,
+  "eval_name": "new-rule-creation",
+  "prompt": "I want to add a new rule to my project. We keep having issues where developers use console.log for debugging and forget to remove them before committing. My rules are in .claude/rules/team-standards.md. Can you create a rule for this?",
+  "assertions": [
+    {
+      "text": "The skill discovers and reads the existing rules file before writing anything",
+      "type": "quality"
+    },
+    {
+      "text": "It asks which section the rule belongs in (or suggests Code Style)",
+      "type": "quality"
+    },
+    {
+      "text": "The rule text is one clear imperative sentence, not a paragraph or multi-sentence explanation",
+      "type": "quality"
+    },
+    {
+      "text": "The rule is classified as T1 (console.log has a clear syntactic signature)",
+      "type": "quality"
+    },
+    {
+      "text": "The enforcement block has a regex pattern matching console.log",
+      "type": "quality"
+    },
+    {
+      "text": "The rule is appended to an appropriate section, not dumped at the end of the file",
+      "type": "quality"
+    },
+    {
+      "text": "Budget checks run after generating the block",
+      "type": "quality"
+    }
+  ]
+}
