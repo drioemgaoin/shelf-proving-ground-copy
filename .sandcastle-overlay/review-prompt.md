@@ -1,32 +1,24 @@
-# TASK
+# INSTRUCTIONS
 
-Review the code changes on branch `{{BRANCH}}` and improve code clarity, consistency, and maintainability while preserving exact functionality.
+## Role
 
-# CONTEXT
+Review code changes on a branch and improve code clarity, consistency, and maintainability while preserving exact functionality.
 
-## Branch diff
+## Contract protection
 
-!`git diff {{TARGET_BRANCH}}...{{BRANCH}}`
+Scan the branch diff (in CONTEXT below) for changes to locked paths. These files must NOT be modified by the implementer:
 
-## Commits on this branch
-
-!`git log {{TARGET_BRANCH}}..{{BRANCH}} --oneline`
-
-# CONTRACT PROTECTION
-
-Verify that the locked files were not modified by the implementer:
-
-- `e2e/acceptance/` — only new baseline PNGs under `__screenshots__/` are allowed
+- `e2e/acceptance/` — only new baseline PNGs under `__screenshots__/` are allowed; no `.ts` file changes
 - `e2e/support/`, `scripts/ui-qa/`, `playwright.config.ts`, `.claude/` — must be untouched
 
-If any were modified, revert the changes with `git checkout {{TARGET_BRANCH}} -- <path>` before proceeding.
+If any locked file appears in the diff, revert it with `git checkout <base-branch> -- <path>` (use the base branch from CONTEXT) and note the revert in your report.
 
-# REVIEW PROCESS
+## Review checklist
 
-Use the code-review skill. Apply both axes:
+Apply both axes:
 
 1. **Standards**: Does the code follow the project's coding standards? See @.sandcastle/CODING_STANDARDS.md
-2. **Spec**: Does the code match what the originating issue asked for? Pull the issue with `bd show`.
+2. **Spec**: Does the code match what the originating issue asked for? Use the issue details from CONTEXT.
 
 Also check:
 
@@ -38,18 +30,90 @@ Also check:
 - Nested ternary operators (prefer switch statements or if/else chains)
 - Clarity over brevity: explicit code is often better than compact code
 
+Read and apply non-visual rules from these sections (cite by reference, do not copy):
+
+    `.claude/rules/ui-base.md`: Values, Layout, Motion
+    `.claude/rules/ui-project.md`: all sections (token naming, color roles,
+      typography, spacing, radius, elevation, layer order, focus, motion, viewports)
+
+Runtime-only rules (States, Accessibility floor, Budgets) are the visual-qa gate's responsibility — do not check them here.
+
 Preserve functionality. Never change what the code does, only how it does it.
 
-# EXECUTION
+## Prior fix dispositions
 
-If you find improvements to make:
+A finding the fixer intentionally skipped or traded off is settled. Do not re-raise it. Conflicting rules → DEFER. Do not attempt to resolve the tension.
 
-1. Make the changes directly on this branch
-2. Run `npm run typecheck` and `npm run test` to ensure nothing is broken
-3. Commit describing the refinements
+## Rule references
 
-If you made changes that touch UI files (`src/`), delegate to the **visual-qa** agent to re-validate. The finish hook requires a passing QA report when UI files changed.
+Every finding must begin with a rule reference in brackets:
 
-If the code is already clean and well-structured, do nothing.
+    `[<file> > <section> > <rule text>]` — rule from ui-base.md, ui-project.md, or CODING_STANDARDS.md
+    `[spec]` — divergence from the issue spec
+    `[clarity]` — code clarity issue with no specific rule
 
-Once complete, output <promise>COMPLETE</promise>.
+## Output format
+
+Write the findings file (path specified in CONTEXT below) with this exact format:
+
+If the code is clean and well-structured:
+
+    CLEAN
+    No issues found.
+
+If there are actionable findings the fixer can address:
+
+    FINDINGS
+    - <src/file.ext>:<line> `<selector or symbol>`
+      Cause: [<rule-file> > <section> > <rule>] <what's wrong>
+      Current: <the problematic code, one line>
+      Fix: <the exact replacement>
+
+If all findings are in locked files (already reverted) or require human judgment:
+
+    DEFER
+    - <description>
+      Cause: [<rule-file> > <section> > <rule>] <what's wrong>
+      Why deferred: <fix requires change to locked file / design decision needed>
+
+Do NOT fix the issues yourself. Do NOT commit. The fix prompt handles corrections.
+
+## Completion
+
+Once done, output the completion signal below as the very last thing you write. After emitting this tag, do not make any more tool calls, do not write any more text, do not verify or clean up anything. The signal ends your turn.
+
+<promise>COMPLETE</promise>
+
+# CONTEXT
+
+## Base branch
+
+{{BASE_BRANCH}}
+
+## Branch
+
+{{BRANCH}}
+
+## Branch diff
+
+!`git diff {{BASE_BRANCH}}...{{BRANCH}}`
+
+## Commits on this branch
+
+!`git log {{BASE_BRANCH}}..{{BRANCH}} --oneline`
+
+## Issue
+
+<issue>
+
+{{ISSUE_DETAILS}}
+
+</issue>
+
+## Prior fix history
+
+{{FIX_HISTORY}}
+
+## Findings file
+
+Write output to: `{{FINDINGS_FILE}}`

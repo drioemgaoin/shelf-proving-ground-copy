@@ -1,14 +1,12 @@
 # ISSUES
 
-Here are the open issues in the repo:
+Here are the open issues in the repo (pre-filtered to issues ready for work):
 
 <issues-json>
 
-!`bd ready --json --label=Sandcastle`
+{{READY_ISSUES}}
 
 </issues-json>
-
-The list above has already been filtered to issues ready for work.
 
 # TASK
 
@@ -29,8 +27,13 @@ For each unblocked issue, assign a branch name using the exact format `sandcastl
 Output your plan as a JSON object wrapped in `<plan>` tags:
 
 <plan>
-{"issues": [{"id": "42", "title": "Fix auth bug", "branch": "sandcastle/issue-42"}]}
+{"issues": [{"id": "42", "title": "Fix auth bug", "branch": "sandcastle/issue-42", "touchesUI": false, "scope": "src/api/**"}]}
 </plan>
+
+For each issue:
+
+- `touchesUI`: `true` if the work involves UI rendering, components, styling, layout, or visual behavior. `false` for infrastructure, tooling, data logic, or configuration-only work. Use the `ui` label as a strong hint. When in doubt, set `true`.
+- `scope`: a comma-separated glob pattern covering the directories/files the agent will need to work in (e.g., `"src/**"`, `"src/api.ts,src/fixtures.ts"`). This is used to generate a codemap — a navigation cheat sheet so the agent skips file exploration. Scope should be tight (just the working area), not the whole repo. Default to `"src/**"` if unsure.
 
 Include only unblocked issues. If every issue is blocked, include the single highest-priority candidate (the one with the fewest or weakest dependencies).
 

@@ -45,6 +45,7 @@ Thumbs.db
 # Sandcastle worktrees and logs
 .sandcastle/.baseline/
 .sandcastle/worktrees/
+.sandcastle/watch/
 .sandcastle/logs/
 
 # TypeScript incremental
@@ -59,3 +60,6 @@ playwright-report/
 
 # UI QA gate output (written by `npm run ui:qa`, read by the Stop hook)
 .ui-qa/
+
+# QA findings (written by visual-qa and review prompts, read by fix prompt)
+.qa/

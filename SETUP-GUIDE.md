@@ -61,20 +61,25 @@ npm install --save-dev @ai-hero/sandcastle tsx zod
 
 ### 6. Apply the overlay
 
-The overlay patches `main.mts` and replaces the stock prompts with the UI-workflow versions (TDD, contract rules, visual-qa delegation, code-review skill). It also patches the Dockerfile for Playwright.
+The overlay replaces the stock `main.mts` and prompts with the full UI-workflow versions (QA gates, fix loops, warm-image Docker, TDD, contract rules, visual-qa scoping, code-review skill). It also patches the Dockerfile for Playwright.
 
 ```bash
-node .sandcastle-overlay/apply-main-patch.mjs
+cp .sandcastle-overlay/main.mts .sandcastle/main.mts
 cp .sandcastle-overlay/implement-prompt.md .sandcastle/implement-prompt.md
 cp .sandcastle-overlay/review-prompt.md .sandcastle/review-prompt.md
+cp .sandcastle-overlay/visual-qa-prompt.md .sandcastle/visual-qa-prompt.md
 cp .sandcastle-overlay/CODING_STANDARDS.md .sandcastle/CODING_STANDARDS.md
 cp .sandcastle-overlay/Dockerfile.warm .sandcastle/Dockerfile.warm
 cp .sandcastle-overlay/build-warm.sh .sandcastle/build-warm.sh
+cp .sandcastle-overlay/fix-prompt.md .sandcastle/fix-prompt.md
+cp .sandcastle-overlay/reset.mts .sandcastle/reset.mts
+cp .sandcastle-overlay/replay.mts .sandcastle/replay.mts
+cp .sandcastle-overlay/replay-visual-qa.mts .sandcastle/replay-visual-qa.mts
 chmod +x .sandcastle/build-warm.sh
 node .sandcastle-overlay/patch-dockerfile.mjs 1.52.0
 ```
 
-`apply-main-patch.mjs` patches `main.mts` for the warm-image pattern, review phase, and UI guard. It replaces the stock `copyToWorktree` + `onSandboxReady` hooks with a pre-warmed Docker image (`Dockerfile.warm` + `build-warm.sh`) that bakes `node_modules` and `.beads/` into the image layer — cutting container cold start from ~20s to 2-3s. It also wraps each issue's execute phase in a `createSandbox()` so the implementer and reviewer share a branch, and passes `UI_GUARD=afk` env so the guard and backpressure hooks activate inside the sandbox. All scripts are idempotent.
+`main.mts` is the full orchestrator: three-phase plan→execute→merge loop with warm-image Docker (`Dockerfile.warm` + `build-warm.sh`), visual QA and code review gates (up to 3 rounds each with fixer agents), codemap generation, ticket-scoped visual QA (only reports failures matching the ticket's acceptance criteria), and `UI_GUARD=afk` backpressure for the implementer.
 
 ### 7. Set up authentication
 

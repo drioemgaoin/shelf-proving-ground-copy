@@ -11,6 +11,9 @@ FROM ${BASE_IMAGE}
 COPY --chown=agent:agent package.json package-lock.json /warm/
 RUN cd /warm && npm ci && rm -f package.json package-lock.json
 
+# ── Pre-cache repomix for codemap generation ─────────────────
+RUN cd /warm && npx -q repomix --version
+
 # ── Pre-initialize beads state ────────────────────────────────
 COPY --chown=agent:agent .beads/ /warm/.beads/
 RUN chmod 700 /warm/.beads

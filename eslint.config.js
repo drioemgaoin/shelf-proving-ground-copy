@@ -5,7 +5,7 @@ import reactRefresh from 'eslint-plugin-react-refresh';
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
-  { ignores: ['dist', 'node_modules', 'test-results', 'playwright-report', '.ui-qa'] },
+  { ignores: ['dist', 'node_modules', 'test-results', 'playwright-report', '.ui-qa', '.sandcastle'] },
   {
     files: ['**/*.{ts,tsx}'],
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
@@ -20,6 +20,18 @@ export default tseslint.config(
     rules: {
       ...reactHooks.configs.recommended.rules,
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
+      'camelcase': ['error', { properties: 'never', ignoreDestructuring: true }],
+      'no-nested-ternary': 'error',
+      'no-restricted-syntax': ['error', {
+        selector: 'ExportDefaultDeclaration',
+        message: 'Use named exports. See CODING_STANDARDS.md > Style.',
+      }],
+    },
+  },
+  {
+    files: ['vite.config.*', 'vitest.config.*', 'playwright.config.*'],
+    rules: {
+      'no-restricted-syntax': 'off',
     },
   },
 );

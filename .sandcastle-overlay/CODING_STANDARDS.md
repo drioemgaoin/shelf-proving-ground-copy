@@ -11,6 +11,9 @@
 
 - No `any` types; use `unknown` and narrow
 - No unsafe casts (`as`); use type guards
+- Derive types from data with `satisfies` and `as const`, never `as`. When stdlib
+  widens keys (`Object.fromEntries`, `Object.keys`), use an explicit literal with
+  a `// sync with <source>` comment. Co-located duplication beats an unsafe cast.
 - All public function parameters and return types must be typed
 
 ## Testing
@@ -25,6 +28,7 @@
 
 - Every interactive control must have an accessible name
 - Token values live only in `src/styles/tokens.css`; no raw color/spacing/size values in components
+- All `@keyframes` declarations must be inside their parent `@layer` block
 - Follow the rules in `.claude/rules/ui-base.md` and `.claude/rules/ui-project.md`
 
 ## Architecture

@@ -1,16 +1,22 @@
 # TASK
 
-Fix issue {{TASK_ID}}: {{ISSUE_TITLE}}
+Implement {{TASK_ID}}: {{ISSUE_TITLE}}
 
-Pull in the issue using `bd show <ID>`. If it has a parent PRD, pull that in too.
+Single-issue focus. Branch: {{BRANCH}}.
 
-Only work on the issue specified.
+<issue>
 
-Work on branch {{BRANCH}}. Make commits and run tests.
+{{ISSUE_DETAILS}}
+
+</issue>
 
 # CONTEXT
 
-Here are the last 10 commits:
+<codemap>
+
+{{CODEMAP}}
+
+</codemap>
 
 <recent-commits>
 
@@ -18,68 +24,72 @@ Here are the last 10 commits:
 
 </recent-commits>
 
-# CONTRACT RULES
+# CODING STANDARDS
 
-The acceptance tests in `e2e/acceptance/` are locked. Do not edit, delete, or move them. Do not edit files under `e2e/support/`, `scripts/ui-qa/`, `playwright.config.ts`, or `.claude/`. The guard hook will block you if you try.
+```
+{{CODING_STANDARDS}}
+```
 
-If a test looks wrong, comment on the ticket with `bd update <ID> --notes "..."` and apply the `ready-for-human` label. Then stop.
+# COLD START
 
-Extra integration tests you write go in `e2e/agent/`, not `e2e/acceptance/`.
+Your inputs are: the issue above, the codemap (file structure + signatures), CLAUDE.md (loads automatically), the coding standards above, and recent commits. That is everything you need to start.
 
-# EXPLORATION
+The codemap shows the repo layout and function signatures for your working area. Use it to find the right files — do not explore the tree yourself.
 
-Explore the repo and fill your context window with relevant information that will allow you to complete the task.
+Read the locked acceptance spec for this ticket and any existing source files you will modify. Then write code. Nothing else first.
 
-Pay extra attention to test files that touch the relevant parts of the code.
+Do NOT:
+- Browse the file tree, list directories, or search for tooling
+- Read config files, build scripts, or test infrastructure
+- Diagnose or fix environment/toolchain errors — escalate these instead
+
+# BOUNDARIES
+
+You are an implementer, not a researcher. No spikes, no experiments, no throwaway scripts. Trust the toolchain — it works. Your job is to make the acceptance tests pass, not to understand how they run.
+
+Opaque — do not read or edit: `e2e/support/`, `scripts/ui-qa/`, `playwright.config.ts`, config files.
+
+Locked — read to understand what to implement, do not edit: `e2e/acceptance/`.
+
+No issue-tracker commands. The issue is above. Your integration tests go in `e2e/agent/`.
 
 # EXECUTION
 
-Use the tdd skill to complete the task:
+Vertical slice, then widen. Red-green-refactor (TDD): read one acceptance test, write the minimum code to pass it, run it, repeat. Do not read all tests upfront. Do NOT write more than one source file before running tests. If you write multiple files before your first test run, you have violated your contract.
 
-1. RED: write one failing test (unit test, or use an existing locked acceptance test)
-2. GREEN: write the minimum implementation to pass that test
-3. REPEAT until all acceptance tests for this ticket pass
-4. REFACTOR the code
+Only run tests tagged for your ticket. Use the `Run` command from the "Tests to turn green" section in the issue details — never run the whole spec file. Tests from other tickets will fail; that is expected and not your problem. Do not investigate, report, or count them.
 
-# FEEDBACK LOOPS
+Do NOT run tests tagged `@visual` — not to debug them, not to validate them, not to "check before delegating." They run in a separate orchestrator phase that you cannot see or trigger. If a test name contains `@visual`, ignore it completely. Do NOT run `npm run ui:qa` — that is the orchestrator's job.
 
-Before committing, run `npm run typecheck` and `npm run test` to ensure the tests pass.
+Co-located tests. When you modify a source file, check the codemap for a matching test file (e.g. `Foo.tsx` → `Foo.test.tsx`). If one exists, read it and update any assertions that your changes invalidate — before running tests. Do not wait for a test failure to discover a stale assertion you could have anticipated from reading the file.
 
-# COMMIT
+Before committing:
 
-Make a git commit. The commit message must:
+1. `npm run typecheck && npm run lint && npm run test`
+2. Verify all test assertions use role-based queries (`getByRole`, `getByLabelText`), not `querySelector`.
+3. Verify no nested ternary operators — use if/else or switch.
+4. Verify all `@keyframes` declarations are inside their parent `@layer` block.
 
-1. Start with `RALPH:` prefix
-2. Include task completed + PRD reference
-3. Key decisions made
-4. Files changed
-5. Blockers or notes for next iteration
+Commit prefix: `RALPH:`. Include: task + PRD ref, key decisions, files changed, blockers.
 
-Keep it concise.
+# ESCALATION
 
-# VISUAL QA
+When a test looks wrong or visual-qa fails on a tooling issue (not your code):
 
-After all tests pass and you have committed, delegate to the **visual-qa** agent. It runs `npm run ui:qa`, triages any failures, and reports back PASS or FAIL. You cannot finish until visual-qa returns PASS.
+```
+{{COMMENT_TASK_COMMAND}}    # replace <COMMENT>
+{{LABEL_TASK_COMMAND}}
+{{CREATE_BUG_COMMAND}}      # tooling bugs only — replace <TITLE>, <DESCRIPTION>
+```
 
-If visual-qa reports regressions (under "Fix now"), fix them in your code, commit, and delegate to visual-qa again.
+Then stop.
 
-If visual-qa fails due to a tooling or environment issue (not a code regression), file a bug for the tooling issue using `bd create --type=bug --label=ready-for-human` with reproduction steps, link it in your ticket comment via `bd update <ID> --notes "..."`, and continue with escalation.
+# COMPLETION
 
-The finish hook will block you from stopping if:
-- UI files changed but no QA report exists
-- The QA report fingerprint does not match the current code
-- The QA report status is not PASS
+Incomplete? Comment on the issue with progress.
 
-After 5 blocks, escalate: comment on the ticket, apply the `ready-for-human` label, and stop.
+Do not close the issue — the merger handles that.
 
-# THE ISSUE
+Once done, output the completion signal below as the very last thing you write. After emitting this tag, do not make any more tool calls, do not write any more text, do not verify or clean up anything. The signal ends your turn.
 
-If the task is not complete, leave a comment on the issue with what was done.
-
-Do not close the issue — this will be done later by the merger.
-
-Once complete, output <promise>COMPLETE</promise>.
-
-# FINAL RULES
-
-ONLY WORK ON A SINGLE TASK.
+<promise>COMPLETE</promise>
