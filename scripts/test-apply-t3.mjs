@@ -421,6 +421,457 @@ test('visual-qa > 80 total → split by group', () => {
   rmSync(tmp, { recursive: true, force: true });
 });
 
+// ─── Ticket-04: Two-phase triage tests ──────────────────────────────
+
+function generateReviewerRules(count, opts = {}) {
+  let rules = '# Test rules\n\n';
+  for (let i = 0; i < count; i++) {
+    const id = opts.idPrefix ? `${opts.idPrefix}-${i}` : `rev-${i}`;
+    const group = opts.group ? `\n  group: ${opts.group}` : (opts.groupFn ? `\n  group: ${opts.groupFn(i)}` : '');
+    const priority = opts.priority !== undefined ? `\n  priority: ${opts.priority}` : (opts.priorityFn ? `\n  priority: ${opts.priorityFn(i)}` : '');
+    const exempt = opts.exempt ? '\n  triage_exempt: true' : '';
+    const hint = opts.hint ?? `rule ${i} hint`;
+    const instruction = opts.instruction ?? `Check rule ${i}.`;
+    rules += `- Review rule ${i}.
+
+  \`\`\`enforcement
+  id: "${id}"
+  tier: T3
+  agent: reviewer
+  scope: "src/**/*.ts"
+  triage_hint: "${hint}"${group}${priority}${exempt}
+  instruction: "${instruction}"
+  \`\`\`
+
+`;
+  }
+  return rules;
+}
+
+function readAllPayloadFiles(tmpDir, ticketId) {
+  const dir = join(tmpDir, '.sandcastle', 'payloads', ticketId);
+  if (!existsSync(dir)) return {};
+  const files = {};
+  for (const f of readdirSync(dir)) {
+    files[f] = readFileSync(join(dir, f), 'utf8');
+  }
+  return files;
+}
+
+// ─── Test: >80 non-exempt rules → triage activates (exit 3) ─────
+
+test('>80 non-exempt rules without triage results → exit 3 (triage needed)', () => {
+  const rules = generateReviewerRules(90);
+  const tmp = makeTempProject({ '.claude/rules/test.md': rules });
+  setupGitWithDiff(tmp, 'src/foo.ts', 'const x = 1;', 'const x = 2;');
+
+  const { exitCode, stderr } = runApplyT3(tmp, ['ticket-04', 'HEAD~1']);
+  assert(exitCode === 3, `Expected exit 3, got ${exitCode}. stderr: ${stderr}`);
+  assert(stderr.includes('triage'), `Expected triage message in stderr. stderr: ${stderr}`);
+
+  const files = readAllPayloadFiles(tmp, 'ticket-04');
+  assert(files['triage-phase1.json'] !== undefined, 'Expected triage-phase1.json');
+  const phase1 = JSON.parse(files['triage-phase1.json']);
+  assert(phase1.rules.length === 90, `Expected 90 rules in Phase 1, got ${phase1.rules.length}`);
+
+  rmSync(tmp, { recursive: true, force: true });
+});
+
+// ─── Test: >80 non-exempt with triage results → Phase 2 payload ≤ 90 ──
+
+test('>80 non-exempt with triage results → payload ≤ 90 rules', () => {
+  const rules = generateReviewerRules(100);
+  const tmp = makeTempProject({ '.claude/rules/test.md': rules });
+  setupGitWithDiff(tmp, 'src/foo.ts', 'const x = 1;', 'const x = 2;');
+
+  // Simulate Phase 1: flag 50 of the 100 rules
+  const flagged = [];
+  for (let i = 0; i < 50; i++) flagged.push(`rev-${i}`);
+  const triageFile = join(tmp, 'triage-results.json');
+  writeFileSync(triageFile, JSON.stringify(flagged));
+
+  const { exitCode, stderr } = runApplyT3(tmp, ['ticket-04', 'HEAD~1', `--triage-results=${triageFile}`]);
+  assert(exitCode === 0, `Expected exit 0, got ${exitCode}. stderr: ${stderr}`);
+
+  const files = readAllPayloadFiles(tmp, 'ticket-04');
+  const rev = files['reviewer.md'];
+  assert(rev !== undefined, 'Expected reviewer.md');
+  // Count rule sections (## id lines)
+  const ruleCount = (rev.match(/^## /gm) || []).length;
+  assert(ruleCount <= 90, `Expected ≤ 90 rules in payload, got ${ruleCount}`);
+  assert(ruleCount === 50, `Expected 50 rules (flagged), got ${ruleCount}`);
+
+  rmSync(tmp, { recursive: true, force: true });
+});
+
+// ─── Test: group expansion pulls related rules ──────────────────
+
+test('group expansion pulls related rules', () => {
+  // 90 rules: 30 in group-A (flag 1), 30 in group-B (flag none), 30 in group-C (flag 1)
+  let rules = '# Test rules\n\n';
+  for (let i = 0; i < 30; i++) {
+    rules += `- Group A rule ${i}.
+
+  \`\`\`enforcement
+  id: "ga-${i}"
+  tier: T3
+  agent: reviewer
+  scope: "src/**/*.ts"
+  group: group-A
+  triage_hint: "group A hint ${i}"
+  instruction: "Check group A rule ${i}."
+  \`\`\`
+
+`;
+  }
+  for (let i = 0; i < 30; i++) {
+    rules += `- Group B rule ${i}.
+
+  \`\`\`enforcement
+  id: "gb-${i}"
+  tier: T3
+  agent: reviewer
+  scope: "src/**/*.ts"
+  group: group-B
+  triage_hint: "group B hint ${i}"
+  instruction: "Check group B rule ${i}."
+  \`\`\`
+
+`;
+  }
+  for (let i = 0; i < 30; i++) {
+    rules += `- Group C rule ${i}.
+
+  \`\`\`enforcement
+  id: "gc-${i}"
+  tier: T3
+  agent: reviewer
+  scope: "src/**/*.ts"
+  group: group-C
+  triage_hint: "group C hint ${i}"
+  instruction: "Check group C rule ${i}."
+  \`\`\`
+
+`;
+  }
+
+  const tmp = makeTempProject({ '.claude/rules/test.md': rules });
+  setupGitWithDiff(tmp, 'src/foo.ts', 'x', 'y');
+
+  // Flag only ga-0 and gc-0 → should expand to all of group-A (30) and group-C (30)
+  const flagged = ['ga-0', 'gc-0'];
+  const triageFile = join(tmp, 'triage-results.json');
+  writeFileSync(triageFile, JSON.stringify(flagged));
+
+  const { exitCode, stderr } = runApplyT3(tmp, ['ticket-04', 'HEAD~1', `--triage-results=${triageFile}`]);
+  assert(exitCode === 0, `Expected exit 0, got ${exitCode}. stderr: ${stderr}`);
+
+  const files = readAllPayloadFiles(tmp, 'ticket-04');
+  const rev = files['reviewer.md'];
+  assert(rev !== undefined, 'Expected reviewer.md');
+
+  // All 30 group-A rules should be present
+  assert(rev.includes('ga-29'), 'Expected ga-29 (group expansion of group-A)');
+  // All 30 group-C rules should be present
+  assert(rev.includes('gc-29'), 'Expected gc-29 (group expansion of group-C)');
+  // Group-B should NOT be present
+  assert(!rev.includes('gb-0'), 'Expected group-B rules excluded');
+
+  // Count: 30 + 30 = 60 rules
+  const ruleCount = (rev.match(/^## /gm) || []).length;
+  assert(ruleCount === 60, `Expected 60 rules (expanded groups A+C), got ${ruleCount}`);
+
+  rmSync(tmp, { recursive: true, force: true });
+});
+
+// ─── Test: expanded set > 80 → top 80 by priority, log rest ─────
+
+test('expanded set > 80 → top 80 by priority, overflow logged', () => {
+  // 100 rules: flag all → expanded set = 100 > 80
+  const rules = generateReviewerRules(100, { priorityFn: (i) => i < 40 ? 0 : 3 });
+  const tmp = makeTempProject({ '.claude/rules/test.md': rules });
+  setupGitWithDiff(tmp, 'src/foo.ts', 'x', 'y');
+
+  const flagged = [];
+  for (let i = 0; i < 100; i++) flagged.push(`rev-${i}`);
+  const triageFile = join(tmp, 'triage-results.json');
+  writeFileSync(triageFile, JSON.stringify(flagged));
+
+  const { exitCode } = runApplyT3(tmp, ['ticket-04', 'HEAD~1', `--triage-results=${triageFile}`]);
+  assert(exitCode === 0, `Expected exit 0, got ${exitCode}`);
+
+  const files = readAllPayloadFiles(tmp, 'ticket-04');
+  const rev = files['reviewer.md'];
+  assert(rev !== undefined, 'Expected reviewer.md');
+  const ruleCount = (rev.match(/^## /gm) || []).length;
+  assert(ruleCount === 80, `Expected 80 rules in payload, got ${ruleCount}`);
+
+  // overflow-skipped.jsonl should exist with 20 entries
+  assert(files['overflow-skipped.jsonl'] !== undefined, 'Expected overflow-skipped.jsonl');
+  const overflowLines = files['overflow-skipped.jsonl'].trim().split('\n');
+  assert(overflowLines.length === 20, `Expected 20 overflow entries, got ${overflowLines.length}`);
+  const first = JSON.parse(overflowLines[0]);
+  assert(first.reason === 'triage-phase2-cap', `Expected reason triage-phase2-cap, got ${first.reason}`);
+
+  rmSync(tmp, { recursive: true, force: true });
+});
+
+// ─── Test: triage-exempt rules bypass triage ────────────────────
+
+test('triage-exempt rules bypass Phase 1 and Phase 2 cap', () => {
+  let rules = generateReviewerRules(85);
+  // Add 5 exempt rules
+  for (let i = 0; i < 5; i++) {
+    rules += `- Exempt rule ${i}.
+
+  \`\`\`enforcement
+  id: "exempt-${i}"
+  tier: T3
+  agent: reviewer
+  scope: "src/**/*.ts"
+  triage_exempt: true
+  triage_hint: "exempt hint ${i}"
+  instruction: "Check exempt rule ${i}."
+  \`\`\`
+
+`;
+  }
+
+  const tmp = makeTempProject({ '.claude/rules/test.md': rules });
+  setupGitWithDiff(tmp, 'src/foo.ts', 'x', 'y');
+
+  // Flag 40 non-exempt rules
+  const flagged = [];
+  for (let i = 0; i < 40; i++) flagged.push(`rev-${i}`);
+  const triageFile = join(tmp, 'triage-results.json');
+  writeFileSync(triageFile, JSON.stringify(flagged));
+
+  const { exitCode, stderr } = runApplyT3(tmp, ['ticket-04', 'HEAD~1', `--triage-results=${triageFile}`]);
+  assert(exitCode === 0, `Expected exit 0, got ${exitCode}. stderr: ${stderr}`);
+
+  const files = readAllPayloadFiles(tmp, 'ticket-04');
+  const rev = files['reviewer.md'];
+  assert(rev !== undefined, 'Expected reviewer.md');
+
+  // Should have 40 flagged + 5 exempt = 45 rules
+  const ruleCount = (rev.match(/^## /gm) || []).length;
+  assert(ruleCount === 45, `Expected 45 rules (40 flagged + 5 exempt), got ${ruleCount}`);
+
+  // Exempt rules should be in the payload
+  assert(rev.includes('exempt-0'), 'Expected exempt-0 in payload');
+  assert(rev.includes('exempt-4'), 'Expected exempt-4 in payload');
+
+  rmSync(tmp, { recursive: true, force: true });
+});
+
+// ─── Test: Phase 1 flags zero → anomaly warning + exempt-only ───
+
+test('Phase 1 flags zero rules → anomaly warning + exempt-only payload', () => {
+  let rules = generateReviewerRules(85);
+  // Add 3 exempt rules
+  for (let i = 0; i < 3; i++) {
+    rules += `- Exempt rule ${i}.
+
+  \`\`\`enforcement
+  id: "exempt-${i}"
+  tier: T3
+  agent: reviewer
+  scope: "src/**/*.ts"
+  triage_exempt: true
+  instruction: "Check exempt rule ${i}."
+  \`\`\`
+
+`;
+  }
+
+  const tmp = makeTempProject({ '.claude/rules/test.md': rules });
+  setupGitWithDiff(tmp, 'src/foo.ts', 'x', 'y');
+
+  // Flag zero rules
+  const triageFile = join(tmp, 'triage-results.json');
+  writeFileSync(triageFile, '[]');
+
+  const { exitCode, stderr } = runApplyT3(tmp, ['ticket-04', 'HEAD~1', `--triage-results=${triageFile}`]);
+  assert(exitCode === 0, `Expected exit 0, got ${exitCode}. stderr: ${stderr}`);
+  assert(stderr.includes('anomaly'), `Expected anomaly warning. stderr: ${stderr}`);
+
+  const files = readAllPayloadFiles(tmp, 'ticket-04');
+  const rev = files['reviewer.md'];
+  assert(rev !== undefined, 'Expected reviewer.md');
+
+  // Only exempt rules
+  const ruleCount = (rev.match(/^## /gm) || []).length;
+  assert(ruleCount === 3, `Expected 3 exempt-only rules, got ${ruleCount}`);
+  assert(rev.includes('exempt-0'), 'Expected exempt rule in payload');
+
+  rmSync(tmp, { recursive: true, force: true });
+});
+
+// ─── Test: >30K tokens → auto-chunks ────────────────────────────
+
+test('>30K tokens → auto-chunks reviewer payload', () => {
+  // Generate rules with very long instructions to exceed 30K tokens
+  // 30K tokens ≈ 23077 words. With 50 rules needing ~462 words each.
+  const longInstruction = 'Check that this rule is followed correctly. '.repeat(100);
+  const rules = generateReviewerRules(60, { instruction: longInstruction });
+  const tmp = makeTempProject({ '.claude/rules/test.md': rules });
+  setupGitWithDiff(tmp, 'src/foo.ts', 'x', 'y');
+
+  const { exitCode, stderr } = runApplyT3(tmp, ['ticket-04', 'HEAD~1']);
+  assert(exitCode === 0, `Expected exit 0, got ${exitCode}. stderr: ${stderr}`);
+  assert(stderr.includes('chunk') || stderr.includes('token'), `Expected chunking message. stderr: ${stderr}`);
+
+  const files = readAllPayloadFiles(tmp, 'ticket-04');
+  // Should have multiple reviewer payload files
+  const reviewerFiles = Object.keys(files).filter((f) => f.startsWith('reviewer'));
+  assert(reviewerFiles.length >= 2, `Expected multiple reviewer chunks, got ${reviewerFiles.length}: ${reviewerFiles.join(', ')}`);
+
+  rmSync(tmp, { recursive: true, force: true });
+});
+
+// ─── Test: triage-exclusions.jsonl records ──────────────────────
+
+test('triage exclusions logged for rules not flagged by Phase 1', () => {
+  const rules = generateReviewerRules(90);
+  const tmp = makeTempProject({ '.claude/rules/test.md': rules });
+  setupGitWithDiff(tmp, 'src/foo.ts', 'x', 'y');
+
+  // Flag only 30 rules
+  const flagged = [];
+  for (let i = 0; i < 30; i++) flagged.push(`rev-${i}`);
+  const triageFile = join(tmp, 'triage-results.json');
+  writeFileSync(triageFile, JSON.stringify(flagged));
+
+  const { exitCode } = runApplyT3(tmp, ['ticket-04', 'HEAD~1', `--triage-results=${triageFile}`]);
+  assert(exitCode === 0, `Expected exit 0, got ${exitCode}`);
+
+  const files = readAllPayloadFiles(tmp, 'ticket-04');
+  const excPath = join(tmp, '.sandcastle', 'payloads', 'ticket-04', 'triage-exclusions.jsonl');
+  assert(existsSync(excPath), 'Expected triage-exclusions.jsonl');
+  const excContent = readFileSync(excPath, 'utf8').trim();
+  const excLines = excContent.split('\n');
+  // 90 - 30 = 60 excluded
+  assert(excLines.length === 60, `Expected 60 exclusion entries, got ${excLines.length}`);
+  const entry = JSON.parse(excLines[0]);
+  assert(entry.ruleId !== undefined, 'Expected ruleId in exclusion entry');
+  assert(entry.runId !== undefined, 'Expected runId in exclusion entry');
+  assert(entry.diffRef !== undefined, 'Expected diffRef in exclusion entry');
+  assert(entry.ticketId !== undefined, 'Expected ticketId in exclusion entry');
+
+  rmSync(tmp, { recursive: true, force: true });
+});
+
+// ─── Test: zero non-exempt survive scope-gating → exempt only ───
+
+test('zero non-exempt survive scope-gating → run with exempt only', () => {
+  // All non-exempt rules scoped to *.css, diff only touches *.ts
+  let rules = '# Test rules\n\n';
+  for (let i = 0; i < 5; i++) {
+    rules += `- CSS rule ${i}.
+
+  \`\`\`enforcement
+  id: "css-${i}"
+  tier: T3
+  agent: reviewer
+  scope: "src/**/*.css"
+  triage_hint: "css hint ${i}"
+  instruction: "Check CSS rule ${i}."
+  \`\`\`
+
+`;
+  }
+  // Add 2 exempt rules scoped to *.ts
+  for (let i = 0; i < 2; i++) {
+    rules += `- Exempt TS rule ${i}.
+
+  \`\`\`enforcement
+  id: "exempt-ts-${i}"
+  tier: T3
+  agent: reviewer
+  scope: "src/**/*.ts"
+  triage_exempt: true
+  instruction: "Check exempt TS rule ${i}."
+  \`\`\`
+
+`;
+  }
+
+  const tmp = makeTempProject({ '.claude/rules/test.md': rules });
+  setupGitWithDiff(tmp, 'src/foo.ts', 'x', 'y');
+
+  const { exitCode } = runApplyT3(tmp, ['ticket-04', 'HEAD~1']);
+  assert(exitCode === 0, `Expected exit 0, got ${exitCode}`);
+
+  const files = readAllPayloadFiles(tmp, 'ticket-04');
+  const rev = files['reviewer.md'];
+  assert(rev !== undefined, 'Expected reviewer.md');
+  // Only exempt rules match
+  const ruleCount = (rev.match(/^## /gm) || []).length;
+  assert(ruleCount === 2, `Expected 2 exempt rules, got ${ruleCount}`);
+
+  rmSync(tmp, { recursive: true, force: true });
+});
+
+// ─── Test: zero exempt + zero non-exempt → skip, log ────────────
+
+test('zero exempt + zero non-exempt survive → skip Code Gate, log', () => {
+  // All rules scoped to *.css, diff only touches *.ts
+  let rules = '# Test rules\n\n';
+  for (let i = 0; i < 5; i++) {
+    rules += `- CSS rule ${i}.
+
+  \`\`\`enforcement
+  id: "css-${i}"
+  tier: T3
+  agent: reviewer
+  scope: "src/**/*.css"
+  triage_hint: "css hint ${i}"
+  instruction: "Check CSS rule ${i}."
+  \`\`\`
+
+`;
+  }
+
+  const tmp = makeTempProject({ '.claude/rules/test.md': rules });
+  setupGitWithDiff(tmp, 'src/foo.ts', 'x', 'y');
+
+  const { exitCode } = runApplyT3(tmp, ['ticket-04', 'HEAD~1']);
+  assert(exitCode === 0, `Expected exit 0, got ${exitCode}`);
+
+  const files = readAllPayloadFiles(tmp, 'ticket-04');
+  const rev = files['reviewer.md'];
+  assert(rev !== undefined, 'Expected reviewer.md');
+  assert(rev.includes('No T3 rules apply'), 'Expected "No T3 rules apply" when zero survive');
+
+  rmSync(tmp, { recursive: true, force: true });
+});
+
+// ─── Test: overflow-skipped.jsonl record format ─────────────────
+
+test('overflow-skipped.jsonl has correct record format', () => {
+  const rules = generateReviewerRules(100, { priorityFn: (i) => i < 40 ? 0 : 3 });
+  const tmp = makeTempProject({ '.claude/rules/test.md': rules });
+  setupGitWithDiff(tmp, 'src/foo.ts', 'x', 'y');
+
+  const flagged = [];
+  for (let i = 0; i < 100; i++) flagged.push(`rev-${i}`);
+  const triageFile = join(tmp, 'triage-results.json');
+  writeFileSync(triageFile, JSON.stringify(flagged));
+
+  const { exitCode } = runApplyT3(tmp, ['ticket-04', 'HEAD~1', `--triage-results=${triageFile}`]);
+  assert(exitCode === 0, `Expected exit 0, got ${exitCode}`);
+
+  const overflowPath = join(tmp, '.sandcastle', 'payloads', 'ticket-04', 'overflow-skipped.jsonl');
+  assert(existsSync(overflowPath), 'Expected overflow-skipped.jsonl');
+  const line = JSON.parse(readFileSync(overflowPath, 'utf8').trim().split('\n')[0]);
+  assert(line.ruleId !== undefined, 'Expected ruleId field');
+  assert(line.agent === 'reviewer', `Expected agent=reviewer, got ${line.agent}`);
+  assert(line.reason === 'triage-phase2-cap', `Expected reason=triage-phase2-cap, got ${line.reason}`);
+  assert(line.runId !== undefined, 'Expected runId field');
+
+  rmSync(tmp, { recursive: true, force: true });
+});
+
 // ─── Summary ────────────────────────────────────────────────────────
 
 console.log('');

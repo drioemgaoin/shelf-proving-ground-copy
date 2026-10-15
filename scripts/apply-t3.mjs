@@ -5,11 +5,12 @@
  * against the git diff, validates budget limits, and writes payload files
  * for injection into agent prompt templates.
  *
- * Usage: node apply-t3.mjs <issueId> <diffRef>
+ * Usage: node apply-t3.mjs <issueId> <diffRef> [--triage-results=<path>]
  *
  * Exit 0 = payloads produced
  * Exit 1 = budget exceeded (group > 80 or total > 300)
  * Exit 2 = missing arguments / infrastructure failure
+ * Exit 3 = triage needed (Phase 1 payload written, awaiting Haiku results)
  */
 import { readFileSync, mkdirSync, writeFileSync, rmSync, existsSync } from 'node:fs';
 import { join, relative } from 'node:path';
@@ -20,12 +21,17 @@ const projectDir = process.env.CLAUDE_PROJECT_DIR ?? process.cwd();
 
 // ─── Argument validation ──────────────────────────────────────────
 
-const [issueId, diffRef] = process.argv.slice(2);
+const args = process.argv.slice(2);
+const triageResultsArg = args.find((a) => a.startsWith('--triage-results='));
+const positionalArgs = args.filter((a) => !a.startsWith('--'));
+const [issueId, diffRef] = positionalArgs;
 
 if (!issueId || !diffRef) {
-  process.stderr.write('apply-t3: usage: node apply-t3.mjs <issueId> <diffRef>\n');
+  process.stderr.write('apply-t3: usage: node apply-t3.mjs <issueId> <diffRef> [--triage-results=<path>]\n');
   process.exit(2);
 }
+
+const triageResultsPath = triageResultsArg ? triageResultsArg.split('=').slice(1).join('=') : null;
 
 const VALID_AGENTS = new Set(['visual-qa', 'reviewer']);
 
@@ -129,9 +135,14 @@ function buildVqaPayloads() {
     }
   }
 
-  // total ≤ 80 → one payload; total > 80 → one per group
+  // total ≤ 80 → one payload (check token limit); total > 80 → one per group (1:1, never merged)
   if (vqaBlocks.length <= 80) {
-    return [{ name: 'visual-qa.md', content: formatPayload(vqaBlocks) }];
+    const content = formatPayload(vqaBlocks);
+    if (estimateTokens(content) <= TOKEN_LIMIT) {
+      return [{ name: 'visual-qa.md', content }];
+    }
+    // Token overflow even under 80 rules → split by group (1:1)
+    process.stderr.write(`apply-t3: visual-qa payload exceeds ${TOKEN_LIMIT} tokens, splitting by group\n`);
   }
 
   const payloads = [];
@@ -141,7 +152,20 @@ function buildVqaPayloads() {
   return payloads;
 }
 
+// ─── Token estimation ────────────────────────────────────────────
+
+const TOKEN_LIMIT = 30000;
+
+function estimateTokens(text) {
+  const wordCount = text.split(/\s+/).filter(Boolean).length;
+  return Math.ceil(wordCount * 1.3);
+}
+
 // ─── Reviewer path ───────────────────────────────────────────────
+
+function isExempt(block) {
+  return block.triage_exempt === 'true' || block.triage_exempt === true;
+}
 
 function buildReviewerPayloads() {
   if (reviewerBlocks.length === 0) return null;
@@ -151,12 +175,10 @@ function buildReviewerPayloads() {
 
   for (const block of reviewerBlocks) {
     if (!block.scope || block.scope === '*' || diffFailed) {
-      // No scope, wildcard scope, or diff failed → include
       surviving.push(block);
       continue;
     }
 
-    // Scope-gate: intersect with diff files
     const scopes = block.scope.split(',').map((s) => s.trim()).filter(Boolean);
     const matches = diffFiles.some((f) => scopes.some((s) => globMatch(s, f)));
 
@@ -179,14 +201,181 @@ function buildReviewerPayloads() {
 
   if (surviving.length === 0) return null;
 
-  // Budget: non-exempt surviving > 80 → exit 1 if not fitting
-  const nonExempt = surviving.filter((b) => b.triage_exempt !== 'true' && b.triage_exempt !== true);
+  const exempt = surviving.filter((b) => isExempt(b));
+  const nonExempt = surviving.filter((b) => !isExempt(b));
+
+  // ─── Two-phase triage when non-exempt > 80 ───────────────────
   if (nonExempt.length > 80) {
-    process.stderr.write(`apply-t3: budget exceeded: reviewer has ${nonExempt.length} non-exempt rules (> 80)\n`);
-    process.exit(1);
+    return buildTriagedReviewerPayloads(nonExempt, exempt);
   }
 
-  return [{ name: 'reviewer.md', content: formatPayload(surviving) }];
+  return buildReviewerPayloadChunks([...nonExempt, ...exempt]);
+}
+
+function buildTriagedReviewerPayloads(nonExempt, exempt) {
+  // If --triage-results provided, read Phase 1 results
+  if (triageResultsPath) {
+    return applyPhase2(nonExempt, exempt);
+  }
+
+  // No triage results → produce Phase 1 payload and signal triage needed
+  writePhase1Payload(nonExempt);
+  triageNeeded = true;
+  // Return exempt-only payload as fallback (Phase 1 payload written separately)
+  if (exempt.length === 0) return null;
+  return buildReviewerPayloadChunks(exempt);
+}
+
+function writePhase1Payload(nonExempt) {
+  const hints = nonExempt.map((b) => ({
+    id: b.id,
+    triage_hint: b.triage_hint ?? '',
+    group: b.group ?? null,
+    priority: b.priority ?? 2,
+  }));
+  const content = JSON.stringify({ rules: hints, instruction: 'When uncertain, include the rule.' }, null, 2);
+  writeFileSync(join(payloadDir, 'triage-phase1.json'), content);
+  process.stderr.write(`apply-t3: triage Phase 1 payload written (${nonExempt.length} non-exempt rules)\n`);
+}
+
+function applyPhase2(nonExempt, exempt) {
+  let flaggedIds;
+  try {
+    const raw = readFileSync(triageResultsPath, 'utf8').trim();
+    flaggedIds = new Set(JSON.parse(raw));
+  } catch (err) {
+    process.stderr.write(`apply-t3: failed to read triage results: ${err.message}\n`);
+    process.exit(2);
+  }
+
+  // Phase 1 flagged zero rules → anomaly warning, proceed with exempt only
+  if (flaggedIds.size === 0) {
+    process.stderr.write('apply-t3: triage anomaly: Phase 1 flagged zero rules\n');
+    if (exempt.length === 0) return null;
+    return buildReviewerPayloadChunks(exempt);
+  }
+
+  // Collect directly flagged rules
+  const flagged = new Set();
+  for (const b of nonExempt) {
+    if (flaggedIds.has(b.id)) {
+      flagged.add(b);
+    }
+  }
+
+  // Group expansion: for each flagged rule with a group, pull in all rules from that group
+  const groupsToExpand = new Set();
+  for (const b of flagged) {
+    if (b.group) groupsToExpand.add(b.group);
+  }
+
+  for (const b of nonExempt) {
+    if (b.group && groupsToExpand.has(b.group)) {
+      flagged.add(b);
+    }
+  }
+
+  let expandedNonExempt = [...flagged];
+
+  // Phase 2 cap: expanded set > 80 → take top 80 by priority (tiebreak: rule ID lexicographic)
+  if (expandedNonExempt.length > 80) {
+    expandedNonExempt.sort((a, b) => {
+      const pDiff = (a.priority ?? 2) - (b.priority ?? 2);
+      if (pDiff !== 0) return pDiff;
+      return (a.id ?? '').localeCompare(b.id ?? '');
+    });
+
+    const skipped = expandedNonExempt.slice(80);
+    expandedNonExempt = expandedNonExempt.slice(0, 80);
+
+    for (const b of skipped) {
+      overflowLines.push(JSON.stringify({
+        ruleId: b.id,
+        agent: 'reviewer',
+        reason: 'triage-phase2-cap',
+        runId: issueId,
+      }));
+    }
+  }
+
+  // Log triage exclusions for rules not flagged at all
+  for (const b of nonExempt) {
+    if (!flagged.has(b)) {
+      triageExclusionLines.push(JSON.stringify({
+        ruleId: b.id,
+        runId: issueId,
+        diffRef,
+        ticketId: issueId,
+      }));
+    }
+  }
+
+  // Combine non-exempt + exempt (exempt bypass both phases)
+  const combined = [...expandedNonExempt, ...exempt];
+  return buildReviewerPayloadChunks(combined);
+}
+
+function buildReviewerPayloadChunks(blocks) {
+  if (blocks.length === 0) return null;
+
+  const content = formatPayload(blocks);
+  const tokens = estimateTokens(content);
+
+  if (tokens <= TOKEN_LIMIT) {
+    return [{ name: 'reviewer.md', content }];
+  }
+
+  // Token overflow → chunk by priority respecting group boundaries
+  process.stderr.write(`apply-t3: reviewer payload exceeds ${TOKEN_LIMIT} tokens (${tokens}), chunking\n`);
+  return chunkReviewerByPriority(blocks);
+}
+
+function chunkReviewerByPriority(blocks) {
+  const sorted = [...blocks].sort((a, b) => (a.priority ?? 2) - (b.priority ?? 2));
+
+  // Group blocks by their group field (preserving group boundaries)
+  const groupBuckets = new Map();
+  for (const b of sorted) {
+    const g = b.group ?? `__ungrouped_${b.id}`;
+    if (!groupBuckets.has(g)) groupBuckets.set(g, []);
+    groupBuckets.get(g).push(b);
+  }
+
+  // Sort group buckets by best (lowest) priority in each group
+  const sortedBuckets = [...groupBuckets.entries()].sort((a, b) => {
+    const aPri = Math.min(...a[1].map((r) => r.priority ?? 2));
+    const bPri = Math.min(...b[1].map((r) => r.priority ?? 2));
+    return aPri - bPri;
+  });
+
+  // Greedy chunking: add group buckets until token limit
+  const chunks = [];
+  let currentChunkBlocks = [];
+  let currentTokens = 0;
+
+  for (const [, bucketBlocks] of sortedBuckets) {
+    const bucketContent = formatPayload(bucketBlocks);
+    const bucketTokens = estimateTokens(bucketContent);
+
+    if (currentChunkBlocks.length > 0 && currentTokens + bucketTokens > TOKEN_LIMIT) {
+      chunks.push({ name: `reviewer-${chunks.length + 1}.md`, content: formatPayload(currentChunkBlocks) });
+      currentChunkBlocks = [];
+      currentTokens = 0;
+    }
+
+    currentChunkBlocks.push(...bucketBlocks);
+    currentTokens += bucketTokens;
+  }
+
+  if (currentChunkBlocks.length > 0) {
+    if (chunks.length === 0) {
+      chunks.push({ name: 'reviewer.md', content: formatPayload(currentChunkBlocks) });
+    } else {
+      chunks.push({ name: `reviewer-${chunks.length + 1}.md`, content: formatPayload(currentChunkBlocks) });
+    }
+  }
+
+  return chunks;
 }
 
 // ─── Format payload content ──────────────────────────────────────
@@ -208,6 +397,9 @@ function formatPayload(blocks) {
 
 const payloadDir = join(projectDir, '.sandcastle', 'payloads', issueId);
 const exclusionLines = [];
+const overflowLines = [];
+const triageExclusionLines = [];
+let triageNeeded = false;
 
 // Clear target directory
 if (existsSync(payloadDir)) {
@@ -236,10 +428,28 @@ if (reviewerPayloads) {
   writeFileSync(join(payloadDir, 'reviewer.md'), 'No T3 rules apply to this evaluation.\n');
 }
 
-// Write triage exclusions
+// Write scope-gating exclusions
 if (exclusionLines.length > 0) {
   writeFileSync(join(payloadDir, 'triage-exclusions.jsonl'), exclusionLines.join('\n') + '\n');
 }
 
+// Write triage exclusions (rules not flagged by Phase 1)
+if (triageExclusionLines.length > 0) {
+  const excPath = join(payloadDir, 'triage-exclusions.jsonl');
+  const existing = existsSync(excPath) ? readFileSync(excPath, 'utf8') : '';
+  writeFileSync(excPath, existing + triageExclusionLines.join('\n') + '\n');
+}
+
+// Write overflow-skipped log
+if (overflowLines.length > 0) {
+  writeFileSync(join(payloadDir, 'overflow-skipped.jsonl'), overflowLines.join('\n') + '\n');
+}
+
 process.stderr.write(`apply-t3: payloads written to ${payloadDir}\n`);
+
+if (triageNeeded) {
+  process.stderr.write('apply-t3: triage needed — Phase 1 payload ready, awaiting Haiku results\n');
+  process.exit(3);
+}
+
 process.exit(0);
