@@ -509,6 +509,8 @@ const copyToWorktree: string[] = OVERLAY
       ...readdirSync(".sandcastle", { withFileTypes: true })
         .filter((e) => e.isFile())
         .map((e) => `.sandcastle/${e.name}`),
+      // Prompt templates
+      ".sandcastle/prompts",
       // Agent instruction files — these control implementer behavior and
       // must match the host to avoid stale instructions (e.g. "delegate to
       // visual-qa" vs "the builder does not spawn these itself").
@@ -658,12 +660,12 @@ for (let iteration = 1; iteration <= MAX_ITERATIONS; iteration++) {
           LABEL_TASK_COMMAND: LABEL_TASK_COMMAND.replace("<ID>", issue.id),
           CREATE_BUG_COMMAND: CREATE_BUG_COMMAND,
         };
-        expandAndSave(".sandcastle/implement-prompt.md", implArgs, promptPath("implementer", issue.id));
+        expandAndSave(".sandcastle/prompts/implementer.prompt.md", implArgs, promptPath("implementer", issue.id));
         const impl = await timedSandboxRun(`Implementer [${issue.id}]`, IMPLEMENTER, sandbox, {
           name: "implementer",
           maxIterations: 100,
           logging: loggingConfig("implementer", issue.id),
-          promptFile: "./.sandcastle/implement-prompt.md",
+          promptFile: "./.sandcastle/prompts/implementer.prompt.md",
           promptArgs: implArgs,
         });
         log(`  Implementer done for ${issue.id}. ${impl.commits.length} commit(s).`);
@@ -681,12 +683,12 @@ for (let iteration = 1; iteration <= MAX_ITERATIONS; iteration++) {
               archiveTestResults(worktree, `visual-qa-r${round}`);
               setPhase(worktree, "visual-qa");
               const vqaArgs = { BRANCH: issue.branch, ISSUE_DETAILS: issueDetails.get(issue.id)!, FINDINGS_FILE: visualFile };
-              expandAndSave(".sandcastle/visual-qa-prompt.md", vqaArgs, promptPath(`visual-qa-r${round}`, issue.id));
+              expandAndSave(".sandcastle/prompts/visual-qa.prompt.md", vqaArgs, promptPath(`visual-qa-r${round}`, issue.id));
               await timedSandboxRun(`Visual-QA [${issue.id}] r${round}`, VISUAL_QA, sandbox, {
                 name: `visual-qa-r${round}`,
                 maxIterations: 10,
                 logging: loggingConfig(`visual-qa-r${round}`, issue.id),
-                promptFile: "./.sandcastle/visual-qa-prompt.md",
+                promptFile: "./.sandcastle/prompts/visual-qa.prompt.md",
                 promptArgs: vqaArgs,
               });
 
@@ -718,12 +720,12 @@ for (let iteration = 1; iteration <= MAX_ITERATIONS; iteration++) {
                 FINDINGS_FILE: visualFile,
                 VERIFY_COMMAND: `npm run ui:qa -- --grep "@visual.*@${escapedId}"`,
               };
-              expandAndSave(".sandcastle/fix-prompt.md", vfixArgs, promptPath(`visual-fixer-r${round}`, issue.id));
+              expandAndSave(".sandcastle/prompts/fixer.prompt.md", vfixArgs, promptPath(`visual-fixer-r${round}`, issue.id));
               await timedSandboxRun(`Visual-Fixer [${issue.id}] r${round}`, VISUAL_FIXER, sandbox, {
                 name: `visual-fixer-r${round}`,
                 maxIterations: 50,
                 logging: loggingConfig(`visual-fixer-r${round}`, issue.id),
-                promptFile: "./.sandcastle/fix-prompt.md",
+                promptFile: "./.sandcastle/prompts/fixer.prompt.md",
                 promptArgs: vfixArgs,
               });
             }
@@ -747,12 +749,12 @@ for (let iteration = 1; iteration <= MAX_ITERATIONS; iteration++) {
               FINDINGS_FILE: reviewFile,
               FIX_HISTORY: fixHistory,
             };
-            expandAndSave(".sandcastle/review-prompt.md", revArgs, promptPath(`reviewer-r${round}`, issue.id));
+            expandAndSave(".sandcastle/prompts/reviewer.prompt.md", revArgs, promptPath(`reviewer-r${round}`, issue.id));
             await timedSandboxRun(`Reviewer [${issue.id}] r${round}`, REVIEWER, sandbox, {
               name: `reviewer-r${round}`,
               maxIterations: 1,
               logging: loggingConfig(`reviewer-r${round}`, issue.id),
-              promptFile: "./.sandcastle/review-prompt.md",
+              promptFile: "./.sandcastle/prompts/reviewer.prompt.md",
               promptArgs: revArgs,
             });
 
@@ -804,12 +806,12 @@ for (let iteration = 1; iteration <= MAX_ITERATIONS; iteration++) {
               FINDINGS_FILE: reviewFile,
               VERIFY_COMMAND: `npm run typecheck && npm run lint && npm run test && npx playwright test --grep "@${cEscapedId}" --grep-invert "@visual"`,
             };
-            expandAndSave(".sandcastle/fix-prompt.md", cfixArgs, promptPath(`code-fixer-r${round}`, issue.id));
+            expandAndSave(".sandcastle/prompts/fixer.prompt.md", cfixArgs, promptPath(`code-fixer-r${round}`, issue.id));
             await timedSandboxRun(`Code-Fixer [${issue.id}] r${round}`, CODE_FIXER, sandbox, {
               name: `code-fixer-r${round}`,
               maxIterations: 50,
               logging: loggingConfig(`code-fixer-r${round}`, issue.id),
-              promptFile: "./.sandcastle/fix-prompt.md",
+              promptFile: "./.sandcastle/prompts/fixer.prompt.md",
               promptArgs: cfixArgs,
             });
 
