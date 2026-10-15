@@ -240,39 +240,142 @@ runHook(ZI, 'Edit', edit('src/api.ts', 'z-index: 100;'), false,
   'zindex: allow non-CSS file');
 
 // ─── apply-t1.mjs (generic T1 enforcement engine) ─────────────────
+// All apply-t1 tests use controlled temp projects with explicit rules,
+// not real rules files, so tests are deterministic and self-contained.
 
 const T1 = 'apply-t1.mjs';
 
-runHook(T1, 'Edit', edit('src/components/Card.css', 'margin: 16px;'), true,
-  'apply-t1: block raw 16px');
+// Controlled rules: raw spacing, raw z-index, no-any-type, with exclude for tokens.css
+const T1_TEST_RULES = `# Test rules
 
-runHook(T1, 'Edit', edit('src/components/Card.css', 'padding: var(--shelf-space-400);'), false,
-  'apply-t1: allow token ref');
+- No raw spacing values in CSS.
 
-runHook(T1, 'Write', write('src/components/Card.css', '.card {\n  gap: 24px;\n}'), true,
-  'apply-t1: block via Write tool');
+  \`\`\`enforcement
+  id: "no-raw-spacing"
+  tier: T1
+  - pattern: "[0-9]+(px|rem|em|ms|s|%)"
+    assert: absent
+    scope: "src/**/*.css"
+    exclude: "src/styles/tokens.css"
+    strip: comments
+    fix: "Use a --shelf-* token"
+  \`\`\`
 
-runHook(T1, 'Edit', edit('src/components/Card.css', 'z-index: 100;'), true,
-  'apply-t1: block raw z-index');
+- No raw z-index values in CSS.
 
-runHook(T1, 'Edit', edit('src/components/Card.css', 'z-index: var(--shelf-z-sticky);'), false,
-  'apply-t1: allow z-index token');
+  \`\`\`enforcement
+  id: "no-raw-zindex"
+  tier: T1
+  - pattern: "z-index:\\\\s*[0-9]"
+    assert: absent
+    scope: "src/**/*.css"
+    exclude: "src/styles/tokens.css"
+    fix: "Use a --shelf-z-* token"
+  \`\`\`
 
-runHook(T1, 'Edit', edit('src/api.ts', 'const x: any = 5;'), true,
-  'apply-t1: block any type');
+- No any types in TypeScript.
 
-runHook(T1, 'Edit', edit('src/api.ts', 'const x: unknown = 5;'), false,
-  'apply-t1: allow unknown type');
+  \`\`\`enforcement
+  id: "no-any-type"
+  tier: T1
+  - pattern: ":\\\\s*any\\\\b"
+    assert: absent
+    scope: "src/**/*.{ts,tsx}"
+    fix: "Use unknown and narrow"
+  - pattern: "\\\\bas\\\\s+any\\\\b"
+    assert: absent
+    scope: "src/**/*.{ts,tsx}"
+    fix: "Use a type guard instead of as any"
+  \`\`\`
+`;
 
-runHook(T1, 'Edit', edit('src/styles/tokens.css', 'color: #ff0000;'), false,
-  'apply-t1: allow tokens.css (excluded)');
+function makeT1TempProject(rules) {
+  const tmp = mkdtempSync(join(tmpdir(), 'hooks-t1-test-'));
+  mkdirSync(join(tmp, '.claude', 'rules'), { recursive: true });
+  writeFileSync(join(tmp, '.claude', 'rules', 'test.md'), rules);
+  return tmp;
+}
 
-runHook(T1, 'Edit', edit('src/api.ts', 'padding: 16px;'), false,
-  'apply-t1: allow non-CSS file for spacing rule');
+function runT1Hook(tmpDir, toolName, toolInput, expectBlock, label) {
+  const json = JSON.stringify({ tool_name: toolName, tool_input: toolInput });
+  try {
+    execFileSync('node', [join(HOOKS, T1)], {
+      input: json,
+      env: { ...process.env, CLAUDE_PROJECT_DIR: tmpDir },
+      stdio: ['pipe', 'pipe', 'pipe'],
+    });
+    if (expectBlock) {
+      failed++;
+      failures.push(`FAIL: ${label} — expected BLOCK but got ALLOW`);
+    } else {
+      passed++;
+    }
+  } catch (e) {
+    if (e.status === 2) {
+      if (expectBlock) {
+        passed++;
+      } else {
+        failed++;
+        failures.push(`FAIL: ${label} — expected ALLOW but got BLOCK: ${e.stderr}`);
+      }
+    } else {
+      failed++;
+      failures.push(`FAIL: ${label} — unexpected error (exit ${e.status}): ${e.stderr}`);
+    }
+  }
+}
 
-// Binary content (null byte in first 8192 bytes → skip).
-runHook(T1, 'Write', write('src/components/Card.css', 'padding: 16px;\x00binary'), false,
-  'apply-t1: allow binary file');
+{
+  const tmp = makeT1TempProject(T1_TEST_RULES);
+
+  runT1Hook(tmp, 'Edit',
+    { file_path: join(tmp, 'src/components/Card.css'), new_string: 'margin: 16px;' },
+    true, 'apply-t1: block raw 16px');
+
+  runT1Hook(tmp, 'Edit',
+    { file_path: join(tmp, 'src/components/Card.css'), new_string: 'padding: var(--shelf-space-400);' },
+    false, 'apply-t1: allow token ref');
+
+  runT1Hook(tmp, 'Write',
+    { file_path: join(tmp, 'src/components/Card.css'), content: '.card {\n  gap: 24px;\n}' },
+    true, 'apply-t1: block via Write tool');
+
+  runT1Hook(tmp, 'Edit',
+    { file_path: join(tmp, 'src/components/Card.css'), new_string: 'z-index: 100;' },
+    true, 'apply-t1: block raw z-index');
+
+  runT1Hook(tmp, 'Edit',
+    { file_path: join(tmp, 'src/components/Card.css'), new_string: 'z-index: var(--shelf-z-sticky);' },
+    false, 'apply-t1: allow z-index token');
+
+  runT1Hook(tmp, 'Edit',
+    { file_path: join(tmp, 'src/api.ts'), new_string: 'const x: any = 5;' },
+    true, 'apply-t1: block any type');
+
+  runT1Hook(tmp, 'Edit',
+    { file_path: join(tmp, 'src/api.ts'), new_string: 'const x: unknown = 5;' },
+    false, 'apply-t1: allow unknown type');
+
+  runT1Hook(tmp, 'Edit',
+    { file_path: join(tmp, 'src/styles/tokens.css'), new_string: 'color: #ff0000;' },
+    false, 'apply-t1: allow tokens.css (excluded)');
+
+  runT1Hook(tmp, 'Edit',
+    { file_path: join(tmp, 'src/api.ts'), new_string: 'padding: 16px;' },
+    false, 'apply-t1: allow non-CSS file for spacing rule');
+
+  // Binary content (null byte in first 8192 bytes → skip).
+  runT1Hook(tmp, 'Write',
+    { file_path: join(tmp, 'src/components/Card.css'), content: 'padding: 16px;\x00binary' },
+    false, 'apply-t1: allow binary file');
+
+  // Comments stripped → allow raw value inside CSS comment
+  runT1Hook(tmp, 'Edit',
+    { file_path: join(tmp, 'src/components/Card.css'), new_string: '/* padding: 24px; */' },
+    false, 'apply-t1: allow raw value inside CSS comment');
+
+  rmSync(tmp, { recursive: true, force: true });
+}
 
 // --- Malformed YAML → fail-closed ---
 {
@@ -289,7 +392,6 @@ runHook(T1, 'Write', write('src/components/Card.css', 'padding: 16px;\x00binary'
       env: { ...process.env, CLAUDE_PROJECT_DIR: tmp },
       stdio: ['pipe', 'pipe', 'pipe'],
     });
-    // exit 0 = allowed — this should have blocked
     failed++;
     failures.push('FAIL: apply-t1: malformed YAML — expected BLOCK but got ALLOW');
   } catch (e) {
@@ -303,14 +405,9 @@ runHook(T1, 'Write', write('src/components/Card.css', 'padding: 16px;\x00binary'
   rmSync(tmp, { recursive: true, force: true });
 }
 
-// --- Comments stripped → allow hex in CSS comment ---
-runHook(T1, 'Edit', edit('src/components/Card.css', '/* padding: 24px; */'), false,
-  'apply-t1: allow raw value inside CSS comment');
-
 // --- Zero rules files → fail-open ---
 {
   const tmp = mkdtempSync(join(tmpdir(), 'hooks-test-'));
-  // No .claude/rules/ or any rules files at all.
   const json = JSON.stringify({
     tool_name: 'Edit',
     tool_input: { file_path: join(tmp, 'src/components/Card.css'), new_string: 'margin: 16px;' },
@@ -321,7 +418,6 @@ runHook(T1, 'Edit', edit('src/components/Card.css', '/* padding: 24px; */'), fal
       env: { ...process.env, CLAUDE_PROJECT_DIR: tmp },
       stdio: ['pipe', 'pipe', 'pipe'],
     });
-    // exit 0 = allowed — correct for zero rules.
     passed++;
   } catch (e) {
     failed++;
