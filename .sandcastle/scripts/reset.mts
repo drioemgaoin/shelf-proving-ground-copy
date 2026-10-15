@@ -8,7 +8,7 @@
 //   4. Prunes stale git worktrees
 //
 // Usage:
-//   npx tsx .sandcastle/reset.mts <issue-id>
+//   npx tsx .sandcastle/scripts/reset.mts <issue-id>
 //   npm run sandcastle:reset -- <issue-id>
 
 import { execSync } from "child_process";

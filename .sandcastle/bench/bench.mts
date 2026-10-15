@@ -5,9 +5,9 @@
 // throwaway branch. Nothing is merged or committed to main.
 //
 // Usage:
-//   npx tsx .sandcastle/bench.mts                 # run all 3
-//   npx tsx .sandcastle/bench.mts simple           # run one
-//   npx tsx .sandcastle/bench.mts simple medium     # run specific ones
+//   npx tsx .sandcastle/bench/bench.mts                 # run all 3
+//   npx tsx .sandcastle/bench/bench.mts simple           # run one
+//   npx tsx .sandcastle/bench/bench.mts simple medium     # run specific ones
 //
 // Logs go to .sandcastle/logs/bench-<case>.log with timestamps on every
 // event. A summary is printed at the end.
@@ -24,17 +24,17 @@ import { join } from "path";
 
 const USE_CASES = {
   simple: {
-    promptFile: "./.sandcastle/bench-prompts/simple.md",
+    promptFile: "./.sandcastle/bench/prompts/simple.md",
     maxIterations: 10,
     description: "Add a CSS token (single file edit, typecheck only)",
   },
   medium: {
-    promptFile: "./.sandcastle/bench-prompts/medium.md",
+    promptFile: "./.sandcastle/bench/prompts/medium.md",
     maxIterations: 30,
     description: "Create EmptyState component with unit tests",
   },
   complex: {
-    promptFile: "./.sandcastle/bench-prompts/complex.md",
+    promptFile: "./.sandcastle/bench/prompts/complex.md",
     maxIterations: 100,
     description: "Full shelf grid with acceptance tests + visual QA",
   },
@@ -57,7 +57,7 @@ if (selectedCases.length === 0) {
 }
 
 // ── Warm image ──
-const warmImage = execSync("bash .sandcastle/build-warm.sh")
+const warmImage = execSync("bash .sandcastle/docker/build-warm.sh")
   .toString()
   .trim()
   .split("\n")

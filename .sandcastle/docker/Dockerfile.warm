@@ -1,0 +1,19 @@
+# Warm image — pre-bakes project deps so containers start in 2-3s.
+# Rebuilt automatically by build-warm.sh when package-lock.json or
+# .beads/issues.jsonl changes.
+#
+# Build context must be the repo root (build-warm.sh handles this).
+
+ARG BASE_IMAGE=sandcastle:shelf-proving-ground
+FROM ${BASE_IMAGE}
+
+# ── Pre-install project dependencies (Linux-native) ──────────
+COPY --chown=agent:agent package.json package-lock.json /warm/
+RUN cd /warm && npm ci && rm -f package.json package-lock.json
+
+# ── Pre-cache repomix for codemap generation ─────────────────
+RUN cd /warm && npx -q repomix --version
+
+# ── Pre-initialize beads state ────────────────────────────────
+COPY --chown=agent:agent .beads/ /warm/.beads/
+RUN chmod 700 /warm/.beads
