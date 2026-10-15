@@ -75,6 +75,15 @@
     background-color: var(--shelf-bgColor-accent-active);
   }
 
+  /* Empty filtered state (books exist, none match the active filter) ---- */
+  .shelf-empty-filter {
+    margin: 0;
+    padding-block: var(--shelf-space-2xl);
+    color: var(--shelf-fgColor-muted);
+    font-size: var(--shelf-font-size-sm);
+    text-align: center;
+  }
+
   /* Card grid ----------------------------------------------------------- */
   .shelf-grid {
     display: grid;
