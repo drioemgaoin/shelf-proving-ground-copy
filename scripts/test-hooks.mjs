@@ -8,6 +8,8 @@
  */
 import { execFileSync } from 'node:child_process';
 import { join } from 'node:path';
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 
 const PROJECT = process.cwd();
 const HOOKS = join(PROJECT, '.claude/hooks');
@@ -236,6 +238,97 @@ runHook(ZI, 'Edit', edit('src/components/Card.css', 'z-index: inherit;'), false,
 
 runHook(ZI, 'Edit', edit('src/api.ts', 'z-index: 100;'), false,
   'zindex: allow non-CSS file');
+
+// ─── apply-t1.mjs (generic T1 enforcement engine) ─────────────────
+
+const T1 = 'apply-t1.mjs';
+
+runHook(T1, 'Edit', edit('src/components/Card.css', 'margin: 16px;'), true,
+  'apply-t1: block raw 16px');
+
+runHook(T1, 'Edit', edit('src/components/Card.css', 'padding: var(--shelf-space-400);'), false,
+  'apply-t1: allow token ref');
+
+runHook(T1, 'Write', write('src/components/Card.css', '.card {\n  gap: 24px;\n}'), true,
+  'apply-t1: block via Write tool');
+
+runHook(T1, 'Edit', edit('src/components/Card.css', 'z-index: 100;'), true,
+  'apply-t1: block raw z-index');
+
+runHook(T1, 'Edit', edit('src/components/Card.css', 'z-index: var(--shelf-z-sticky);'), false,
+  'apply-t1: allow z-index token');
+
+runHook(T1, 'Edit', edit('src/api.ts', 'const x: any = 5;'), true,
+  'apply-t1: block any type');
+
+runHook(T1, 'Edit', edit('src/api.ts', 'const x: unknown = 5;'), false,
+  'apply-t1: allow unknown type');
+
+runHook(T1, 'Edit', edit('src/styles/tokens.css', 'color: #ff0000;'), false,
+  'apply-t1: allow tokens.css (excluded)');
+
+runHook(T1, 'Edit', edit('src/api.ts', 'padding: 16px;'), false,
+  'apply-t1: allow non-CSS file for spacing rule');
+
+// Binary content (null byte in first 8192 bytes → skip).
+runHook(T1, 'Write', write('src/components/Card.css', 'padding: 16px;\x00binary'), false,
+  'apply-t1: allow binary file');
+
+// --- Malformed YAML → fail-closed ---
+{
+  const tmp = mkdtempSync(join(tmpdir(), 'hooks-test-'));
+  mkdirSync(join(tmp, '.claude', 'rules'), { recursive: true });
+  writeFileSync(join(tmp, '.claude', 'rules', 'bad.md'), '```enforcement\n{{{not yaml at all\n```\n');
+  const json = JSON.stringify({
+    tool_name: 'Edit',
+    tool_input: { file_path: join(tmp, 'src/components/Card.css'), new_string: 'margin: 16px;' },
+  });
+  try {
+    execFileSync('node', [join(HOOKS, T1)], {
+      input: json,
+      env: { ...process.env, CLAUDE_PROJECT_DIR: tmp },
+      stdio: ['pipe', 'pipe', 'pipe'],
+    });
+    // exit 0 = allowed — this should have blocked
+    failed++;
+    failures.push('FAIL: apply-t1: malformed YAML — expected BLOCK but got ALLOW');
+  } catch (e) {
+    if (e.status === 2) {
+      passed++;
+    } else {
+      failed++;
+      failures.push(`FAIL: apply-t1: malformed YAML — unexpected error (exit ${e.status}): ${e.stderr}`);
+    }
+  }
+  rmSync(tmp, { recursive: true, force: true });
+}
+
+// --- Comments stripped → allow hex in CSS comment ---
+runHook(T1, 'Edit', edit('src/components/Card.css', '/* padding: 24px; */'), false,
+  'apply-t1: allow raw value inside CSS comment');
+
+// --- Zero rules files → fail-open ---
+{
+  const tmp = mkdtempSync(join(tmpdir(), 'hooks-test-'));
+  // No .claude/rules/ or any rules files at all.
+  const json = JSON.stringify({
+    tool_name: 'Edit',
+    tool_input: { file_path: join(tmp, 'src/components/Card.css'), new_string: 'margin: 16px;' },
+  });
+  try {
+    execFileSync('node', [join(HOOKS, T1)], {
+      input: json,
+      env: { ...process.env, CLAUDE_PROJECT_DIR: tmp },
+      stdio: ['pipe', 'pipe', 'pipe'],
+    });
+    // exit 0 = allowed — correct for zero rules.
+    passed++;
+  } catch (e) {
+    failed++;
+    failures.push(`FAIL: apply-t1: zero rules — expected ALLOW but got BLOCK (exit ${e.status})`);
+  }
+  rmSync(tmp, { recursive: true, force: true });
+}
 
 // ─── Summary ────────────────────────────────────────────────────────
 
