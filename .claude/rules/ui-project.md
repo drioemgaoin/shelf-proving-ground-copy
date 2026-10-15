@@ -76,10 +76,70 @@ Breakpoints: 768px (tablet layout), 1024px (desktop layout). Card grid: 1 column
 ## Product patterns
 
 - **Toasts**: bottom-center, 4 seconds, auto-dismiss. Used to confirm success (e.g. "Book added").
+
+  ```enforcement
+  id: "toast-pattern"
+  tier: T3
+  agent: visual-qa
+  scope: "*"
+  group: patterns
+  instruction: "When a toast notification is visible, verify it appears at bottom-center of the viewport, auto-dismisses after approximately 4 seconds, and is used only for success confirmations (e.g., 'Book added'). A violation is a toast that appears in any other position, does not auto-dismiss, or is used for errors or warnings. Correct: toast appears bottom-center, disappears after ~4 seconds without user interaction."
+  ```
+
+  > **Agent:** `visual-qa` — toast positioning and auto-dismiss timing are visible behaviors that cannot be verified from source code alone.
+
 - **Destructive confirmations**: inline undo via toast, not a confirmation dialog. Toast carries the undo action.
+
+  ```enforcement
+  id: "destructive-confirmation-pattern"
+  tier: T3
+  agent: reviewer
+  scope: "src/components/**/*.{ts,tsx}"
+  group: patterns
+  triage_hint: "Flag when: delete, remove, destroy, confirm, window.confirm, confirmation dialog, modal confirm"
+  instruction: "For each destructive action (delete, remove, clear), check that the UI uses an inline undo via toast — not a confirmation dialog or window.confirm(). A violation is any destructive action that shows a confirmation dialog before executing. Correct: the action executes immediately and a toast with an undo button appears, allowing the user to reverse it."
+  ```
+
+  > **Agent:** `reviewer` — the violation is a code pattern (confirm dialog vs toast undo); it is detectable in source by looking for confirm modals or window.confirm on destructive handlers.
+
 - **Form validation**: validate on blur and on submit. Error text below the field, uses `--shelf-fgColor-danger`.
+
+  ```enforcement
+  id: "form-validation-pattern"
+  tier: T3
+  agent: visual-qa
+  scope: "*"
+  group: patterns
+  instruction: "For each form field, verify that validation runs on blur (tab away from an invalid field shows error) and on submit (submitting with invalid fields shows all errors). Error text must appear below the field, not above or inline. A violation is a form that only validates on submit, only on blur, shows errors in the wrong position, or shows no error for invalid input. Correct: blur triggers per-field validation, submit triggers full-form validation, error text renders directly below its field."
+  ```
+
+  > **Agent:** `visual-qa` — validation timing (blur vs submit) and error text positioning are runtime behaviors visible in rendered output; code review alone cannot verify when errors appear.
+
 - **Drawer**: slides from right on desktop, from bottom on mobile. Uses `--shelf-bgColor-raised` and `--shelf-shadow-lg`. Backdrop uses `--shelf-bgColor-overlay`.
+
+  ```enforcement
+  id: "drawer-slide-direction"
+  tier: T3
+  agent: visual-qa
+  scope: "*"
+  group: patterns
+  instruction: "Open the drawer on desktop (>=1024px) and verify it slides in from the right edge. Open the drawer on mobile (<768px) and verify it slides up from the bottom as a bottom sheet. A violation is a drawer that slides from the wrong direction for the viewport, or appears without a slide animation. Correct: desktop drawer enters from the right, mobile drawer enters from the bottom."
+  ```
+
+  > **Agent:** `visual-qa` — slide direction is a visual behavior that requires rendering at different viewports; code review cannot verify the perceived animation direction.
+
 - **Dialog**: centered, focus-trapped, Escape closes. Uses `--shelf-bgColor-raised` and `--shelf-shadow-lg`.
+
+  ```enforcement
+  id: "dialog-pattern"
+  tier: T3
+  agent: visual-qa
+  scope: "*"
+  group: patterns
+  instruction: "When a dialog is open, verify it is visually centered both horizontally and vertically in the viewport. A violation is a dialog that is off-center, aligned to an edge, or positioned inconsistently across viewports. Correct: the dialog is centered in the viewport on all screen sizes."
+  ```
+
+  > **Agent:** `visual-qa` — visual centering requires rendered output; the focus-trap and Escape-close behavior are covered by the focus-management T2 block.
 
 ## Vocabulary
 
