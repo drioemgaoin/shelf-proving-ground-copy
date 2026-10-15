@@ -283,6 +283,26 @@ export async function expectFocusVisibleOnTab(page: Page, opts: { maxTabs?: numb
 }
 
 
+/** Fails if any interactive element is smaller than minPx × minPx CSS pixels. */
+export async function expectMinTargetSize(page: Page, minPx = 24) {
+  const smalls = await page.evaluate((min) => {
+    const selectors = 'a,button,input,select,textarea,[role="button"],[role="link"],[role="checkbox"],[role="radio"],[role="tab"],[role="switch"],[role="menuitem"]';
+    const problems: string[] = [];
+    for (const el of Array.from(document.querySelectorAll(selectors))) {
+      const r = el.getBoundingClientRect();
+      if (r.width === 0 && r.height === 0) continue; // hidden
+      if (r.width < min || r.height < min) {
+        const tag = el.tagName.toLowerCase();
+        const name = el.getAttribute('aria-label') ?? el.textContent?.trim().slice(0, 30) ?? '';
+        problems.push(`${tag} "${name}" ${Math.round(r.width)}×${Math.round(r.height)}px`);
+        if (problems.length >= 10) break;
+      }
+    }
+    return problems;
+  }, minPx);
+  expect(smalls, `pointer targets must be >= ${minPx}×${minPx}px`).toEqual([]);
+}
+
 /** Fails with a compact list of violations (one line each), to protect agent context. */
 export async function expectNoA11yViolations(page: Page, include?: string) {
   // Cast: @axe-core/playwright resolved a newer playwright-core than @playwright/test.

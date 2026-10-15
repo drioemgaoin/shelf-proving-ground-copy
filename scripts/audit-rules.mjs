@@ -478,7 +478,7 @@ function validateT2(block, file) {
       try {
         const invariantsContent = readFileSync(invariantsPath, 'utf8');
         // Extract the callable part of assert (before " --")
-        const callable = block.assert.split('--')[0].trim();
+        const callable = block.assert.split('—')[0].trim();
         if (!invariantsContent.includes(callable)) {
           warning(file, `T2 block "${id}" assert "${callable}" not found in invariants.spec.ts (drift)`);
         }

@@ -8,6 +8,8 @@ import { test, expect } from '../support/fixtures';
 import {
   expectNoA11yViolations,
   expectNoHorizontalOverflow,
+  expectMinTargetSize,
+  measureFrames,
   recordLayoutShifts,
   resetLayoutShifts,
   layoutShift,
@@ -102,6 +104,48 @@ test.describe('T2 global: cls-budget', () => {
         await page.waitForTimeout(500);
         const shift = await layoutShift(page);
         expect(shift.total).toBeLessThan(0.01);
+      });
+    }
+  }
+});
+
+// ---------------------------------------------------------------------------
+// T2 global: pointer-target-size
+// assert: expectMinTargetSize(page, 24)
+// ---------------------------------------------------------------------------
+
+test.describe('T2 global: pointer-target-size', () => {
+  for (const fixture of FIXTURES) {
+    for (const vp of VIEWPORTS) {
+      const label = `${fixtureName(fixture)} @ ${vp.name} (${vp.width}px)`;
+
+      test(`pointer-target-size: ${label}`, async ({ page }) => {
+        await page.setViewportSize({ width: vp.width, height: vp.height });
+        await loadFixture(page, fixture);
+        await expectMinTargetSize(page, 24);
+      });
+    }
+  }
+});
+
+// ---------------------------------------------------------------------------
+// T2 global: motion-smoothness
+// assert: measureFrames(page, trigger, durationMs)
+// ---------------------------------------------------------------------------
+
+test.describe('T2 global: motion-smoothness', () => {
+  for (const fixture of FIXTURES) {
+    for (const vp of VIEWPORTS) {
+      const label = `${fixtureName(fixture)} @ ${vp.name} (${vp.width}px)`;
+
+      test(`motion-smoothness: ${label}`, async ({ page }) => {
+        await page.setViewportSize({ width: vp.width, height: vp.height });
+        const result = await measureFrames(
+          page,
+          async () => { await loadFixture(page, fixture); },
+          500, // covers slowest motion token (400ms) + margin
+        );
+        expect(result.longFrames).toBeLessThanOrEqual(2);
       });
     }
   }
