@@ -292,6 +292,69 @@ const VERBOSE = process.argv.includes("--verbose");
 // Useful during sandcastle development — iterate on prompts without committing.
 const OVERLAY = process.argv.includes("--overlay");
 
+// --tickets [dir]: read issues from markdown files instead of beads.
+// Default directory: ./tickets. Files must follow the format:
+//   # NN: Title — subtitle
+//   **Blocked by:** None | NN (description)
+//   **Status:** ready-for-agent
+//   - [ ] Acceptance criteria...
+const TICKETS_FLAG = process.argv.includes("--tickets");
+const TICKETS_DIR = (() => {
+  const idx = process.argv.indexOf("--tickets");
+  const next = idx >= 0 ? process.argv[idx + 1] : undefined;
+  return next && !next.startsWith("--") ? next : "./tickets";
+})();
+
+interface TicketFile {
+  id: string;
+  title: string;
+  content: string;
+  blockedBy: string[];
+  filename: string;
+}
+
+function readTicketFiles(dir: string): TicketFile[] {
+  const files = readdirSync(dir)
+    .filter((f) => f.endsWith(".md"))
+    .sort();
+  return files.map((filename) => {
+    const content = readFileSync(join(dir, filename), "utf8");
+    // ID from filename prefix: "01-foo-bar.md" → "01"
+    const id = filename.match(/^(\d+)/)?.[1] ?? filename.replace(/\.md$/, "");
+    // Title from first heading: "# 01: Title — subtitle"
+    const titleMatch = content.match(/^#\s+\d+:\s+(.+)/m);
+    const title = titleMatch?.[1]?.trim() ?? filename;
+    // Blocked by: parse numeric IDs
+    const blockedMatch = content.match(/\*\*Blocked by:\*\*\s*(.+)/);
+    const blockedBy: string[] = [];
+    if (blockedMatch && !/none/i.test(blockedMatch[1])) {
+      for (const m of Array.from(blockedMatch[1].matchAll(/(\d+)/g))) {
+        blockedBy.push(m[1]);
+      }
+    }
+    return { id, title, content, blockedBy, filename };
+  });
+}
+
+function ticketsToReadyJson(tickets: TicketFile[]): string {
+  const issues = tickets.map((t) => ({
+    id: `ticket-${t.id}`,
+    title: t.title,
+    description: t.content,
+    status: "open",
+    priority: 2,
+    issue_type: "task",
+    labels: ["Sandcastle"],
+    dependencies: t.blockedBy.map((dep) => ({
+      issue_id: `ticket-${t.id}`,
+      depends_on_id: `ticket-${dep}`,
+      type: "blocks",
+    })),
+    dependency_count: t.blockedBy.length,
+  }));
+  return JSON.stringify(issues, null, 2);
+}
+
 // ── Agent assignments ──
 // Change the model/provider here; stats and pricing follow automatically.
 const PLANNER       = claude("claude-opus-4-8");
@@ -362,12 +425,20 @@ function expandAndSave(
 //   Beads:  "bd show <ID>" / "bd ready --json --label=Sandcastle" / "bd close <ID>"
 //   GitHub: "gh issue view <ID>" / "gh issue list ..." / "gh issue close <ID>"
 //   Custom: whatever the user configured
-const VIEW_TASK_COMMAND = "bd show <ID>";
-const LIST_READY_COMMAND = "bd ready --json --label=Sandcastle";
-const CLOSE_TASK_COMMAND = 'bd close <ID> --reason="Completed by Sandcastle"';
-const COMMENT_TASK_COMMAND = 'bd update <ID> --notes "<COMMENT>"';
-const CREATE_BUG_COMMAND = 'bd create --type=bug --label=ready-for-human --title="<TITLE>" --description="<DESCRIPTION>"';
-const LABEL_TASK_COMMAND = 'bd label add <ID> ready-for-human';
+const VIEW_TASK_COMMAND = TICKETS_FLAG ? "" : "bd show <ID>";
+const LIST_READY_COMMAND = TICKETS_FLAG ? "" : "bd ready --json --label=Sandcastle";
+const CLOSE_TASK_COMMAND = TICKETS_FLAG
+  ? 'echo "ticket <ID> complete"'
+  : 'bd close <ID> --reason="Completed by Sandcastle"';
+const COMMENT_TASK_COMMAND = TICKETS_FLAG
+  ? 'echo "ticket <ID>: <COMMENT>"'
+  : 'bd update <ID> --notes "<COMMENT>"';
+const CREATE_BUG_COMMAND = TICKETS_FLAG
+  ? 'echo "bug: <TITLE>"'
+  : 'bd create --type=bug --label=ready-for-human --title="<TITLE>" --description="<DESCRIPTION>"';
+const LABEL_TASK_COMMAND = TICKETS_FLAG
+  ? 'echo "label <ID>"'
+  : 'bd label add <ID> ready-for-human';
 
 // ── Warm image: pre-baked deps so containers start in 2-3s ───
 // build-warm.sh is idempotent — rebuilds only when deps/beads change.
@@ -470,7 +541,16 @@ for (let iteration = 1; iteration <= MAX_ITERATIONS; iteration++) {
   // -------------------------------------------------------------------------
   // Pre-expand issue list on the host (tracker DB may not be portable to Docker)
   log("Pre-expanding issue list on host...");
-  const readyIssues = execSync(LIST_READY_COMMAND, { encoding: "utf8" }).trim();
+  let readyIssues: string;
+  let ticketFiles: Map<string, TicketFile> | undefined;
+  if (TICKETS_FLAG) {
+    const tickets = readTicketFiles(TICKETS_DIR);
+    ticketFiles = new Map(tickets.map((t) => [`ticket-${t.id}`, t]));
+    readyIssues = ticketsToReadyJson(tickets);
+    log(`  Read ${tickets.length} ticket(s) from ${TICKETS_DIR}`);
+  } else {
+    readyIssues = execSync(LIST_READY_COMMAND, { encoding: "utf8" }).trim();
+  }
 
   log("Phase 1: Planner starting...");
   const plannerArgs = { READY_ISSUES: readyIssues };
@@ -519,8 +599,13 @@ for (let iteration = 1; iteration <= MAX_ITERATIONS; iteration++) {
   log("Pre-expanding issue details on host...");
   const issueDetails = new Map<string, string>();
   for (const issue of issues) {
-    const cmd = VIEW_TASK_COMMAND.replace("<ID>", issue.id);
-    issueDetails.set(issue.id, execSync(cmd, { encoding: "utf8" }).trim());
+    if (TICKETS_FLAG && ticketFiles) {
+      const ticket = ticketFiles.get(issue.id);
+      issueDetails.set(issue.id, ticket?.content ?? "");
+    } else {
+      const cmd = VIEW_TASK_COMMAND.replace("<ID>", issue.id);
+      issueDetails.set(issue.id, execSync(cmd, { encoding: "utf8" }).trim());
+    }
   }
 
   // Generate codemaps on the host (Python + repomix available here)
