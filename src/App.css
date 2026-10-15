@@ -67,7 +67,6 @@
 
   .shelf-chip[aria-pressed='true']:hover {
     border-color: var(--shelf-bgColor-accent-hover);
-    background-color: var(--shelf-bgColor-accent-hover);
   }
 
   .shelf-chip[aria-pressed='true']:active {
@@ -95,7 +94,7 @@
     border: 1px solid var(--shelf-borderColor-subtle);
     border-radius: var(--shelf-radius-md);
     background-color: var(--shelf-bgColor-raised);
-    box-shadow: var(--shelf-shadow-sm);
+    box-shadow: var(--shelf-shadow-md);
   }
 
   .shelf-badge {
