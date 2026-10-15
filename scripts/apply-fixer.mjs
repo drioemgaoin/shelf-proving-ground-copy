@@ -413,30 +413,62 @@ async function processSingleFinding({
     return;
   }
 
+  // Gap 7: Multi-target support — collect targets to apply.
+  const targets = finding.targets && Array.isArray(finding.targets)
+    ? finding.targets
+    : [{ fileLine: finding.fileLine, current: finding.current, fix: finding.fix }];
+
   // T1 retry loop: up to T1_REJECTION_CAP attempts
   for (let attempt = 0; attempt <= T1_REJECTION_CAP; attempt++) {
-    // Read file (re-read each attempt in case T1 hook modified it)
-    const fileContent = readFileSync(absPath, 'utf8');
+    // Save originals for revert (per file).
+    const originals = new Map(); // absPath -> original content
+    const affectedFiles = [];
+    let blocked = false;
 
-    // Find current text
-    const matchIdx = findCurrentInFile(fileContent, finding.current, lineHint);
-    if (matchIdx === -1) {
-      writeState(statesPath, {
-        runId, findingId: findingKey, ruleId: extractRuleId(finding.cause),
-        fileLine: finding.fileLine, state: 'blocked', previousState: null,
-        round, gate, timestamp: new Date().toISOString(),
-        detail: 'Current text not found in file',
-      });
-      results.blocked++;
-      return;
+    for (const target of targets) {
+      const tFilePath = target.fileLine.split(':')[0];
+      const tLineHint = parseInt(target.fileLine.split(':')[1], 10);
+      const tAbsPath = join(cwd, tFilePath);
+
+      if (!existsSync(tAbsPath)) {
+        writeState(statesPath, {
+          runId, findingId: findingKey, ruleId: extractRuleId(finding.cause),
+          fileLine: finding.fileLine, state: 'blocked', previousState: null,
+          round, gate, timestamp: new Date().toISOString(),
+          detail: `file not found on disk: ${tFilePath}`,
+        });
+        results.blocked++;
+        // Revert any already-applied targets in this finding.
+        for (const [p, orig] of originals) writeFileSync(p, orig);
+        return;
+      }
+
+      if (!originals.has(tAbsPath)) {
+        originals.set(tAbsPath, readFileSync(tAbsPath, 'utf8'));
+      }
+
+      const fileContent = readFileSync(tAbsPath, 'utf8');
+      const matchIdx = findCurrentInFile(fileContent, target.current, tLineHint);
+      if (matchIdx === -1) {
+        writeState(statesPath, {
+          runId, findingId: findingKey, ruleId: extractRuleId(finding.cause),
+          fileLine: finding.fileLine, state: 'blocked', previousState: null,
+          round, gate, timestamp: new Date().toISOString(),
+          detail: `Current text not found in ${tFilePath}`,
+        });
+        results.blocked++;
+        // Revert any already-applied targets.
+        for (const [p, orig] of originals) writeFileSync(p, orig);
+        return;
+      }
+
+      const patched = applyPatch(fileContent, target.current, target.fix, matchIdx);
+      writeFileSync(tAbsPath, patched);
+      if (!affectedFiles.includes(tFilePath)) affectedFiles.push(tFilePath);
     }
 
-    // Save original for revert
-    const originalContent = fileContent;
-
-    // Apply patch
-    const patched = applyPatch(fileContent, finding.current, finding.fix, matchIdx);
-    writeFileSync(absPath, patched);
+    // For single-target compat, keep using the primary file path for tracking.
+    const originalContent = originals.get(absPath) ?? readFileSync(absPath, 'utf8');
 
     // Track state as applied
     writeState(statesPath, {
@@ -457,7 +489,7 @@ async function processSingleFinding({
     const verifyResult = await runVerify(finding.verify, { timeout: verifyTimeout, cwd });
 
     if (verifyResult.timedOut) {
-      writeFileSync(absPath, originalContent);
+      for (const [p, orig] of originals) writeFileSync(p, orig);
       writeState(statesPath, {
         runId, findingId: findingKey, ruleId: extractRuleId(finding.cause),
         fileLine: finding.fileLine, state: 'reverted', previousState: 'applied',
@@ -481,7 +513,7 @@ async function processSingleFinding({
         t1Rejections.set(findingKey, count);
 
         // Revert the attempted fix
-        writeFileSync(absPath, originalContent);
+        for (const [p, orig] of originals) writeFileSync(p, orig);
 
         if (count >= T1_REJECTION_CAP) {
           // Escalate t1-conflict → settled
@@ -507,7 +539,7 @@ async function processSingleFinding({
       }
 
       // Non-T1 verify failure → revert
-      writeFileSync(absPath, originalContent);
+      for (const [p, orig] of originals) writeFileSync(p, orig);
       writeState(statesPath, {
         runId, findingId: findingKey, ruleId: extractRuleId(finding.cause),
         fileLine: finding.fileLine, state: 'reverted', previousState: 'applied',
@@ -523,7 +555,7 @@ async function processSingleFinding({
 
     // Verify passed → commit
     const commitMsg = `fix(${gate}-r${round}): ${extractOneLiner(finding.cause)}`;
-    const commitResult = gitCommitWithRetry(commitMsg, cwd, [filePath]);
+    const commitResult = gitCommitWithRetry(commitMsg, cwd, affectedFiles.length > 0 ? affectedFiles : [filePath]);
 
     if (!commitResult.success) {
       writeState(statesPath, {
@@ -591,8 +623,34 @@ export async function processFindings({
     return { status, exitCode: 0, applied: 0, skipped: 0, blocked: 0, reverted: 0 };
   }
 
+  // Gap 10: Unparseable output → treat as DEFER.
+  // If the report doesn't start with a recognized status word and has no findings markers,
+  // treat it as unparseable.
+  const hasFindings = /^\s*FINDINGS\s*$/m.test(reportText);
+  const hasStatus = /^\s*(PASS|CLEAN|DEFER|FINDINGS)\s*$/m.test(reportText);
+  if (!hasStatus) {
+    return {
+      status: 'DEFER',
+      escalation: 'gate-defer',
+      exitCode: 0,
+      applied: 0, skipped: 0, blocked: 0, reverted: 0,
+      detail: 'unparseable gate output',
+    };
+  }
+
   // Parse findings
   const rawFindings = parseFindings(reportText);
+
+  // Gap 9: FAIL/FINDINGS header with zero findings parsed → malformed-report.
+  if (rawFindings.length === 0 && hasFindings) {
+    return {
+      escalation: 'malformed-report',
+      exitCode: 1,
+      applied: 0, skipped: 0, blocked: 0, reverted: 0,
+      detail: 'FINDINGS header present but zero findings parsed',
+    };
+  }
+
   if (rawFindings.length === 0) {
     return { error: 'no findings parsed', exitCode: 0, applied: 0, skipped: 0, blocked: 0, reverted: 0 };
   }

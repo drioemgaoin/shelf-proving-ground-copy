@@ -1,12 +1,12 @@
 import { defineConfig, devices } from '@playwright/test';
-import { VIEWPORTS } from './e2e/support/viewports';
+import { VIEWPORTS } from './qa/support/viewports';
 
 const PORT = Number(process.env.UI_PORT ?? 5173);
 const BASE_URL = process.env.UI_BASE_URL ?? `http://localhost:${PORT}`;
 const chromium = devices['Desktop Chrome'];
 
 export default defineConfig({
-  testDir: './e2e',
+  testDir: './tests',
   timeout: 30_000,
   retries: 1, // fail-then-pass is reported as flaky, not hidden
   // One baseline per test, screenshot name and project. Committed to git.

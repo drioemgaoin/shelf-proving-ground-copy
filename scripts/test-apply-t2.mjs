@@ -126,7 +126,7 @@ test('zero T2 global blocks → exit 0 + warning', () => {
   fix: "Remove it"
   \`\`\`
 `,
-    'e2e/global/invariants.spec.ts': '// empty test file',
+    'qa/invariants/invariants.spec.ts': '// empty test file',
   });
 
   const { exitCode, stderr } = runApplyT2(tmp);
@@ -143,7 +143,7 @@ test('zero T2 global blocks → exit 0 + warning', () => {
 test('missing test file → exit 2', () => {
   const tmp = makeTempProject({
     '.claude/rules/test.md': RULES_WITH_T2_GLOBAL,
-    // No e2e/global/invariants.spec.ts
+    // No qa/invariants/invariants.spec.ts
   });
 
   const { exitCode, stderr } = runApplyT2(tmp);
@@ -160,7 +160,7 @@ test('missing test file → exit 2', () => {
 test('drift detection → warning when block missing from test file', () => {
   const tmp = makeTempProject({
     '.claude/rules/test.md': RULES_WITH_T2_GLOBAL,
-    'e2e/global/invariants.spec.ts': TEST_FILE_MISSING_ONE,
+    'qa/invariants/invariants.spec.ts': TEST_FILE_MISSING_ONE,
   });
 
   // Script will find blocks, check drift, then try dev server (which fails).
@@ -178,7 +178,7 @@ test('drift detection → warning when block missing from test file', () => {
 test('no drift when all blocks have matching assertions', () => {
   const tmp = makeTempProject({
     '.claude/rules/test.md': RULES_WITH_T2_GLOBAL,
-    'e2e/global/invariants.spec.ts': TEST_FILE_WITH_BOTH,
+    'qa/invariants/invariants.spec.ts': TEST_FILE_WITH_BOTH,
   });
 
   const { stderr } = runApplyT2(tmp);
@@ -204,7 +204,7 @@ test('T2 per-component blocks are ignored (only global)', () => {
   assert: "Focus moves into dialog on open"
   \`\`\`
 `,
-    'e2e/global/invariants.spec.ts': '// empty test file',
+    'qa/invariants/invariants.spec.ts': '// empty test file',
   });
 
   const { exitCode, stderr } = runApplyT2(tmp);
@@ -233,7 +233,7 @@ test('T3 blocks are ignored', () => {
   instruction: "Check tokens."
   \`\`\`
 `,
-    'e2e/global/invariants.spec.ts': '// empty test file',
+    'qa/invariants/invariants.spec.ts': '// empty test file',
   });
 
   const { exitCode, stderr } = runApplyT2(tmp);
@@ -250,7 +250,7 @@ test('T3 blocks are ignored', () => {
 test('dev server timeout → exit 2', () => {
   const tmp = makeTempProject({
     '.claude/rules/test.md': RULES_WITH_T2_GLOBAL,
-    'e2e/global/invariants.spec.ts': TEST_FILE_WITH_BOTH,
+    'qa/invariants/invariants.spec.ts': TEST_FILE_WITH_BOTH,
   });
 
   // Use unreachable URL with very short timeout (1s)
@@ -268,7 +268,7 @@ test('dev server timeout → exit 2', () => {
 test('block count reported to stderr', () => {
   const tmp = makeTempProject({
     '.claude/rules/test.md': RULES_WITH_T2_GLOBAL,
-    'e2e/global/invariants.spec.ts': TEST_FILE_WITH_BOTH,
+    'qa/invariants/invariants.spec.ts': TEST_FILE_WITH_BOTH,
   });
 
   const { stderr } = runApplyT2(tmp);

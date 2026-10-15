@@ -29,7 +29,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ['vite.config.*', 'vitest.config.*', 'playwright.config.*'],
+    files: ['vite.config.*', 'vitest.config.*', 'playwright.config.*', '**/playwright.config.*'],
     rules: {
       'no-restricted-syntax': 'off',
     },

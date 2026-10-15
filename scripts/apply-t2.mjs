@@ -4,7 +4,7 @@
  *
  * Reads T2 global enforcement blocks from rules files, validates
  * drift against the test file, starts the dev server, and runs
- * e2e/global/invariants.spec.ts via Playwright.
+ * qa/invariants/invariants.spec.ts via Playwright.
  *
  * Usage: node apply-t2.mjs
  *
@@ -18,7 +18,7 @@ import { spawn, spawnSync } from 'node:child_process';
 import { discoverRulesFiles, parseEnforcementBlocks } from '../.claude/hooks/lib/rules.mjs';
 
 const projectDir = process.env.CLAUDE_PROJECT_DIR ?? process.cwd();
-const TEST_FILE = join(projectDir, 'e2e', 'global', 'invariants.spec.ts');
+const TEST_FILE = join(projectDir, 'qa', 'invariants', 'invariants.spec.ts');
 const DEV_SERVER_URL = process.env.DEV_SERVER_URL ?? 'http://localhost:5173';
 const STARTUP_TIMEOUT_MS = parseInt(process.env.STARTUP_TIMEOUT_MS ?? '30000', 10);
 const HEALTH_CHECK_INTERVAL_MS = 500;

@@ -23,6 +23,7 @@ import {
   CREATE_BUG_COMMAND,
   TICKET_OVERRIDES,
 } from "./config/tracker.mjs";
+import { acquireLock, releaseLock } from "./lib/pipeline-lock.mjs";
 
 // ---------------------------------------------------------------------------
 // CLI flags
@@ -45,6 +46,15 @@ const TICKETS_DIR = (() => {
 const tracker = TICKETS_FLAG
   ? TICKET_OVERRIDES
   : { VIEW_TASK_COMMAND, LIST_READY_COMMAND, CLOSE_TASK_COMMAND, COMMENT_TASK_COMMAND, LABEL_TASK_COMMAND, CREATE_BUG_COMMAND };
+
+// ---------------------------------------------------------------------------
+// Gap 11: Concurrent run prevention
+// ---------------------------------------------------------------------------
+
+const RUN_ID = `run-${new Date().toISOString().slice(0, 10)}-${String(Date.now()).slice(-3)}`;
+if (!acquireLock(process.cwd(), RUN_ID)) {
+  process.exit(0);
+}
 
 // ---------------------------------------------------------------------------
 // Infrastructure
@@ -180,4 +190,5 @@ for (let iteration = 1; iteration <= MAX_ITERATIONS; iteration++) {
   }
 }
 
+releaseLock(process.cwd());
 log("All done.");

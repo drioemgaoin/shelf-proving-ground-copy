@@ -5,6 +5,25 @@ import * as sandcastle from "@ai-hero/sandcastle";
 import { log, fmt } from "./logging.mjs";
 import { MODEL_PRICING, FALLBACK_PRICING, SMART_ZONE_LIMIT } from "../config/pricing.mjs";
 
+// Gap 12: Cost ceiling enforcement.
+let cumulativeCostUsd = 0;
+let costCeilingUsd = 50; // default, overridable via setCostCeiling()
+
+export function setCostCeiling(ceiling: number): void {
+  costCeilingUsd = ceiling;
+}
+
+export function getCumulativeCost(): number {
+  return cumulativeCostUsd;
+}
+
+export class CostCeilingExceededError extends Error {
+  constructor(cost: number, ceiling: number) {
+    super(`Pipeline cost ceiling exceeded: $${cost.toFixed(2)} >= $${ceiling}`);
+    this.name = "CostCeilingExceededError";
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
@@ -123,6 +142,15 @@ function logRunStats(
     (totalCacheWrite / 1_000_000) * pricing.cacheWrite +
     (totalOutput / 1_000_000) * pricing.output;
   const costPart = cost > 0 ? ` | ~$${cost.toFixed(2)}` : "";
+
+  // Gap 12: Accumulate cost and check ceiling.
+  if (cost > 0) {
+    cumulativeCostUsd += cost;
+    if (cumulativeCostUsd >= costCeilingUsd) {
+      log(`  ⛔ Cost ceiling reached: $${cumulativeCostUsd.toFixed(2)} >= $${costCeilingUsd}`);
+      throw new CostCeilingExceededError(cumulativeCostUsd, costCeilingUsd);
+    }
+  }
 
   const cacheParts =
     totalCacheRead || totalCacheWrite

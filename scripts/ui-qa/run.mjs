@@ -16,7 +16,7 @@ const JSON_OUT = '.ui-qa/playwright.json';
 const MAX_LISTED = 20;
 const base = resolveBase();
 
-// Check if any spec files exist under e2e/. Playwright errors when there are none.
+// Check if any spec files exist under tests/. Playwright errors when there are none.
 function hasSpecs(dir) {
   try {
     for (const entry of readdirSync(dir, { withFileTypes: true, recursive: true })) {
@@ -26,7 +26,7 @@ function hasSpecs(dir) {
   return false;
 }
 
-if (!hasSpecs(join(root, 'e2e'))) {
+if (!hasSpecs(join(root, 'tests'))) {
   const report = {
     version: 1,
     base,

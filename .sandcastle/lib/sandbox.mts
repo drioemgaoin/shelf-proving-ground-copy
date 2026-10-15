@@ -62,7 +62,7 @@ export function createHooks(overlay: boolean): SandboxHooks {
           ? [
               {
                 command:
-                  "git ls-files -z CLAUDE.md AGENTS.md .claude/ .sandcastle/ e2e/ | " +
+                  "git ls-files -z CLAUDE.md AGENTS.md .claude/ .sandcastle/ tests/ | " +
                   "xargs -0 git update-index --skip-worktree 2>/dev/null; true",
               },
             ]

@@ -12,8 +12,8 @@ import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const ROOT = resolve(__dirname, '../..');
-const SPEC_PATH = resolve(ROOT, 'e2e/acceptance/shelf-grid.spec.ts');
+const ROOT = resolve(__dirname, '../../..');
+const SPEC_PATH = resolve(ROOT, 'tests/acceptance/shelf-grid/shelf-grid.spec.ts');
 
 // ---------------------------------------------------------------------------
 // Helpers
