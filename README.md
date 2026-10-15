@@ -22,7 +22,6 @@ To try it end to end, the kit doubles as the starter for **Shelf**, a small test
 | ui:qa | Script | `scripts/ui-qa/` | Run all UI tests, print a short summary, write the report |
 | Test helpers | Test code | `e2e/support/` | Console guard, screenshots, tokens, motion, layout, focus, axe |
 | Playwright config | Test config | `playwright.config.ts` | Viewports, dark, 200% zoom, WebKit; tag routing |
-| Sandcastle overlay | Loop config | `.sandcastle-overlay/` | Implement + review loop with the UI guard on |
 | Bootstrap | Script | `scripts/bootstrap.sh` | One-time setup of the Shelf test app |
 
 ### Matt Pocock's (unchanged, MIT licensed, see `THIRD_PARTY_LICENSE-mattpocock-skills.txt`)
