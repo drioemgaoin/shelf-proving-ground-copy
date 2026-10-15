@@ -201,7 +201,7 @@ for (const filePath of rulesFiles) {
       if (!allIds.has(block.id)) {
         allIds.set(block.id, []);
       }
-      allIds.get(block.id).push({ file: rel, tier: block.tier });
+      allIds.get(block.id).push({ file: rel, tier: block.tier, multiEntry: !!block._multiEntry });
     }
 
     // --- Per-tier validation ---
@@ -230,14 +230,17 @@ for (const [id, entries] of allIds) {
   if (files.size > 1) {
     error('(cross-file)', `Duplicate id "${id}" found in: ${[...files].join(', ')}`);
   }
-  // Within same file, same id in same fence = OK (multi-tier), different fences = error
-  // For simplicity, if same file has same id with same tier, it's a duplicate
+  // Within same file, same id in same fence = OK (multi-tier), different fences = error.
+  // Multi-entry expansions (e.g., T1 with multiple - pattern: entries) share the same
+  // id and tier — these are NOT duplicates, they are entries within one logical block.
   for (const file of files) {
     const fileEntries = entries.filter((e) => e.file === file);
     const tierSet = new Set(fileEntries.map((e) => e.tier));
-    // If same tier appears more than once for same id in same file, that's a duplicate
     for (const tier of tierSet) {
-      const count = fileEntries.filter((e) => e.tier === tier).length;
+      const tierEntries = fileEntries.filter((e) => e.tier === tier);
+      // Skip if all entries are from the same multi-entry expansion
+      const nonMulti = tierEntries.filter((e) => !e.multiEntry);
+      const count = nonMulti.length > 0 ? nonMulti.length : (tierEntries.length > 0 ? 1 : 0);
       if (count > 1) {
         error(file, `Duplicate id "${id}" with tier ${tier} (${count} occurrences)`);
       }
@@ -439,8 +442,11 @@ function validateT1(block, file) {
     error(file, `T1 block "${id}" has unrecognized strip value: "${block.strip}"`);
   }
 
-  // Scope without extension filter (may match binaries)
-  if (block.scope && !hasExtensionFilter(block.scope)) {
+  // Scope without extension filter (may match binaries).
+  // Lock rules (pattern ".*", assert "absent") intentionally match all files —
+  // apply-t1 enforces them before the binary skip, so no gap exists.
+  const isLock = block.pattern === '.*' && block.assert === 'absent';
+  if (block.scope && !isLock && !hasExtensionFilter(block.scope)) {
     warning(file, `T1 block "${id}" scope lacks extension filter — may match binary files`);
   }
 }
