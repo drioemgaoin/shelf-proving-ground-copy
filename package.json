@@ -24,6 +24,7 @@
     "sandcastle:review": "[ -d node_modules/@ai-hero/sandcastle ] || npm install && npx tsx .sandcastle/replay-review.mts",
     "sandcastle:fix": "[ -d node_modules/@ai-hero/sandcastle ] || npm install && npx tsx .sandcastle/replay-fix.mts",
     "audit:rules": "node scripts/audit-rules.mjs",
+    "review": "node scripts/review.mjs",
     "sandcastle:watch": "bash .sandcastle/watch.sh",
     "postinstall": "playwright install --with-deps 2>/dev/null || true"
   },
