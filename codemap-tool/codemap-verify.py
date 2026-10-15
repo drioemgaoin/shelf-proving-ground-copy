@@ -50,7 +50,7 @@ PROMPT_TEMPLATE_FILES = [
     "CLAUDE.md",
     "AGENTS.md",
     ".claude/rules/",
-    ".sandcastle/implement-prompt.md",
+    ".sandcastle/prompts/implementer.prompt.md",
     ".sandcastle/CODING_STANDARDS.md",
     "GLOSSARY.md",
 ]

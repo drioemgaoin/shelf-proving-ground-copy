@@ -77,7 +77,7 @@ try {
 // ---------------------------------------------------------------------------
 // Expand prompt
 // ---------------------------------------------------------------------------
-const promptTemplate = readFileSync(".sandcastle/visual-qa-prompt.md", "utf8");
+const promptTemplate = readFileSync(".sandcastle/prompts/visual-qa.prompt.md", "utf8");
 const prompt = promptTemplate
   .replace(/\{\{\s*BRANCH\s*\}\}/g, branch)
   .replace(/\{\{\s*ISSUE_DETAILS\s*\}\}/g, issueDetails);

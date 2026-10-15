@@ -113,7 +113,7 @@ log(`Findings preview: ${readFileSync(findingsPath, "utf8").trim().split("\n")[0
 // ---------------------------------------------------------------------------
 // Expand prompt
 // ---------------------------------------------------------------------------
-let prompt = readFileSync(".sandcastle/fix-prompt.md", "utf8");
+let prompt = readFileSync(".sandcastle/prompts/fixer.prompt.md", "utf8");
 
 const promptArgs: Record<string, string> = {
   BRANCH: branch,

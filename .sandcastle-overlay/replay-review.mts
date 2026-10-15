@@ -79,7 +79,7 @@ try {
 // ---------------------------------------------------------------------------
 // Expand prompt
 // ---------------------------------------------------------------------------
-let prompt = readFileSync(".sandcastle/review-prompt.md", "utf8");
+let prompt = readFileSync(".sandcastle/prompts/reviewer.prompt.md", "utf8");
 
 // Stage 1: substitute {{VAR}} placeholders
 const promptArgs: Record<string, string> = {

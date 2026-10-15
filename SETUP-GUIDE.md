@@ -65,16 +65,15 @@ The overlay replaces the stock `main.mts` and prompts with the full UI-workflow 
 
 ```bash
 cp .sandcastle-overlay/main.mts .sandcastle/main.mts
-cp .sandcastle-overlay/implement-prompt.md .sandcastle/implement-prompt.md
-cp .sandcastle-overlay/review-prompt.md .sandcastle/review-prompt.md
-cp .sandcastle-overlay/visual-qa-prompt.md .sandcastle/visual-qa-prompt.md
+cp -r .sandcastle-overlay/prompts .sandcastle/prompts
 cp .sandcastle-overlay/CODING_STANDARDS.md .sandcastle/CODING_STANDARDS.md
 cp .sandcastle-overlay/Dockerfile.warm .sandcastle/Dockerfile.warm
 cp .sandcastle-overlay/build-warm.sh .sandcastle/build-warm.sh
-cp .sandcastle-overlay/fix-prompt.md .sandcastle/fix-prompt.md
 cp .sandcastle-overlay/reset.mts .sandcastle/reset.mts
 cp .sandcastle-overlay/replay.mts .sandcastle/replay.mts
 cp .sandcastle-overlay/replay-visual-qa.mts .sandcastle/replay-visual-qa.mts
+cp .sandcastle-overlay/replay-review.mts .sandcastle/replay-review.mts
+cp .sandcastle-overlay/replay-fix.mts .sandcastle/replay-fix.mts
 chmod +x .sandcastle/build-warm.sh
 node .sandcastle-overlay/patch-dockerfile.mjs 1.52.0
 ```
