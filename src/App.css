@@ -1,0 +1,178 @@
+/* Shelf grid: page frame, filter chips, responsive card grid, and skeletons.
+   Token values live in src/styles/tokens.css; this file only references them.
+   Layout literals (grid min column, card reservation, skeleton bar sizes) have
+   no token and are commented where they appear. */
+
+@layer foundation, tokens, base, layout, components, utilities;
+
+@layer components {
+  /* Page frame — Center layout primitive (max-width + auto inline margin). */
+  .shelf {
+    display: flex;
+    flex-direction: column;
+    gap: var(--shelf-space-lg);
+    max-width: 1280px; /* caps the grid at 4 columns */
+    margin-inline: auto;
+    padding: var(--shelf-space-md);
+    font-family: var(--shelf-font-family-base);
+    color: var(--shelf-fgColor-default);
+  }
+
+  @media (width >= 768px) {
+    .shelf {
+      padding: var(--shelf-space-lg);
+    }
+  }
+
+  /* Filter chip bar ----------------------------------------------------- */
+  .shelf-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--shelf-space-sm);
+  }
+
+  .shelf-chip {
+    display: inline-flex;
+    align-items: center;
+    padding-block: var(--shelf-space-sm);
+    padding-inline: var(--shelf-space-md);
+    border: 1px solid var(--shelf-borderColor-subtle);
+    border-radius: var(--shelf-radius-full);
+    background-color: transparent;
+    color: var(--shelf-fgColor-default);
+    font-family: inherit;
+    font-size: var(--shelf-font-size-sm);
+    font-weight: var(--shelf-font-weight-medium);
+    cursor: pointer;
+  }
+
+  .shelf-chip:hover {
+    border-color: var(--shelf-borderColor-default);
+  }
+
+  .shelf-chip:focus-visible {
+    outline: var(--shelf-focusRing);
+    outline-offset: var(--shelf-focusRing-offset);
+  }
+
+  .shelf-chip:active {
+    background-color: var(--shelf-bgColor-default);
+  }
+
+  .shelf-chip[aria-pressed='true'] {
+    border-color: var(--shelf-bgColor-accent);
+    background-color: var(--shelf-bgColor-accent);
+    color: var(--shelf-fgColor-on-accent);
+  }
+
+  .shelf-chip[aria-pressed='true']:hover {
+    border-color: var(--shelf-bgColor-accent-hover);
+    background-color: var(--shelf-bgColor-accent-hover);
+  }
+
+  .shelf-chip[aria-pressed='true']:active {
+    border-color: var(--shelf-bgColor-accent-active);
+    background-color: var(--shelf-bgColor-accent-active);
+  }
+
+  /* Card grid ----------------------------------------------------------- */
+  .shelf-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); /* 280px: spec */
+    gap: var(--shelf-space-lg);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .shelf-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--shelf-space-sm);
+    min-height: 11rem; /* reserves space so skeleton -> card never shifts layout */
+    padding: var(--shelf-space-lg);
+    border: 1px solid var(--shelf-borderColor-subtle);
+    border-radius: var(--shelf-radius-md);
+    background-color: var(--shelf-bgColor-raised);
+    box-shadow: var(--shelf-shadow-sm);
+  }
+
+  .shelf-badge {
+    position: absolute;
+    top: var(--shelf-space-lg);
+    right: var(--shelf-space-lg);
+    padding-block: var(--shelf-space-xs);
+    padding-inline: var(--shelf-space-sm);
+    border-radius: var(--shelf-radius-full);
+    background-color: var(--shelf-bgColor-default);
+    color: var(--shelf-fgColor-muted);
+    font-size: var(--shelf-font-size-xs);
+    font-weight: var(--shelf-font-weight-medium);
+  }
+
+  .shelf-title {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    padding-right: var(--shelf-space-2xl); /* clears the badge */
+    font-size: var(--shelf-font-size-lg);
+    font-weight: var(--shelf-font-weight-semibold);
+  }
+
+  .shelf-author {
+    overflow: hidden;
+    font-size: var(--shelf-font-size-sm);
+    color: var(--shelf-fgColor-muted);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  /* Skeleton placeholders ---------------------------------------------- */
+  .shelf-card-skeleton {
+    animation: shelf-shimmer var(--shelf-motion-duration-slow) var(--shelf-motion-easing-enter) infinite;
+  }
+
+  .shelf-skeleton {
+    display: block;
+    border-radius: var(--shelf-radius-sm);
+    background-color: var(--shelf-borderColor-subtle);
+  }
+
+  .shelf-skeleton-badge {
+    position: absolute;
+    top: var(--shelf-space-lg);
+    right: var(--shelf-space-lg);
+    width: 3.5rem; /* pill placeholder */
+    height: 1.25rem;
+    border-radius: var(--shelf-radius-full);
+  }
+
+  .shelf-skeleton-title {
+    width: 80%;
+    height: var(--shelf-font-size-lg); /* title-height bar */
+  }
+
+  .shelf-skeleton-author {
+    width: 50%;
+    height: var(--shelf-font-size-sm); /* author-height bar */
+  }
+
+  @keyframes shelf-shimmer {
+    0%,
+    100% {
+      opacity: 1;
+    }
+
+    50% {
+      opacity: 0.5;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .shelf-card-skeleton {
+      animation: none;
+    }
+  }
+}
