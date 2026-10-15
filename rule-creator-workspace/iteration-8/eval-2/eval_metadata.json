@@ -1,6 +1,0 @@
-{
-  "eval_id": 2,
-  "eval_name": "eval-2",
-  "prompt": "My Go project has rules in .claude/rules/go-standards.md. Look at the rules under 'Types' and 'Error handling'. Some of them look like they need code understanding but actually have syntactic shortcuts. Classify them all with enforcement blocks.",
-  "assertions": ["interface{} vs any rule is classified as T1", "Unchecked errors rule is classified as T1 (go vet / errcheck catches this)", "Error message casing rule is classified as T1 (regex on string literals)", "Error wrapping rule is classified as T1 and the skill surfaces that context message quality is not covered by the T1 check, suggesting it as a candidate for a separate rule if the team cares", "The skill references specific Go tooling (e.g., errcheck, wrapcheck, nakedret) where applicable", "Blocks are placed correctly after each rule in the bulleted list format"]
-}
