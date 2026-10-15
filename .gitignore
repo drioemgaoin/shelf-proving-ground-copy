@@ -63,3 +63,6 @@ playwright-report/
 
 # QA findings (written by visual-qa and review prompts, read by fix prompt)
 .qa/
+
+# Temporary tickets
+tickets/
