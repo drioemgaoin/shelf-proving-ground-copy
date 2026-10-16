@@ -83,7 +83,7 @@
     border: var(--shelf-borderWidth-thin) solid var(--shelf-borderColor-subtle);
     border-radius: var(--shelf-radius-md);
     background: var(--shelf-bgColor-raised);
-    box-shadow: var(--shelf-shadow-sm);
+    box-shadow: var(--shelf-shadow-md);
     overflow: hidden;
   }
 
