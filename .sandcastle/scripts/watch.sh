@@ -5,65 +5,100 @@
 # and node_modules from the repo root, so Vite can serve the UI without
 # touching Docker's node_modules inside the worktree.
 #
+# Loops: waits for a worktree to appear, serves it with Vite, and when the
+# worktree disappears (sandcastle run finishes) it tears down and waits again.
+#
 # Usage:
 #   npm run sandcastle:watch                          # auto-detect worktree
-#   npm run sandcastle:watch -- <worktree-dir-name>   # explicit worktree
+#   npm run sandcastle:watch -- <worktree-dir-name>   # explicit worktree (no loop)
 set -euo pipefail
 
-REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 WORKTREES_DIR="$REPO_ROOT/.sandcastle/worktrees"
 WATCH_DIR="$REPO_ROOT/.sandcastle/watch"
 
-# ── Find worktree ────────────────────────────────────────────────────────────
-if [[ $# -gt 0 ]]; then
-  WORKTREE="$WORKTREES_DIR/$1"
-else
-  # Pick the only (or most recently modified) worktree
-  WORKTREE=$(find "$WORKTREES_DIR" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | head -1)
-fi
+# ── Helpers ──────────────────────────────────────────────────────────────────
 
-if [[ -z "${WORKTREE:-}" || ! -d "$WORKTREE" ]]; then
-  if [[ $# -gt 0 ]]; then
-    # Explicit worktree requested but missing — no point waiting
-    echo "error: worktree '$1' not found in $WORKTREES_DIR"
-    exit 1
-  fi
-  echo "⏳ No worktree yet — waiting for sandcastle to create one..."
+cleanup() { rm -rf "$WATCH_DIR"; }
+trap cleanup EXIT
+
+find_worktree() {
+  find "$WORKTREES_DIR" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | head -1
+}
+
+wait_for_worktree() {
+  echo "⏳ Waiting for a sandcastle worktree..."
   while true; do
-    WORKTREE=$(find "$WORKTREES_DIR" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | head -1)
-    [[ -n "${WORKTREE:-}" && -d "$WORKTREE" ]] && break
+    local wt
+    wt=$(find_worktree)
+    [[ -n "${wt:-}" && -d "$wt" ]] && { echo "$wt"; return; }
     sleep 2
   done
-  echo "✅ Found: $(basename "$WORKTREE")"
-fi
+}
 
-echo "👁  Watching: $(basename "$WORKTREE")"
+setup_watch_dir() {
+  local worktree="$1"
+  rm -rf "$WATCH_DIR"
+  mkdir -p "$WATCH_DIR"
 
-# ── Check host deps ──────────────────────────────────────────────────────────
+  # Source from worktree (agent's changes appear in real time)
+  ln -sf "$worktree/index.html" "$WATCH_DIR/index.html"
+  ln -sf "$worktree/src"        "$WATCH_DIR/src"
+  [[ -d "$worktree/public" ]] && ln -sf "$worktree/public" "$WATCH_DIR/public"
+
+  # Deps from repo root (host-native, not Docker's linux binaries)
+  ln -sf "$REPO_ROOT/node_modules" "$WATCH_DIR/node_modules"
+
+  # Config files — copy (Vite resolves relative to config location)
+  cp "$REPO_ROOT/vite.config.ts" "$WATCH_DIR/"
+  [[ -f "$REPO_ROOT/tsconfig.json" ]] && cp "$REPO_ROOT/tsconfig.json" "$WATCH_DIR/"
+}
+
+# ── Check host deps ─────────────────────────────────────────────────────────
 if [[ ! -d "$REPO_ROOT/node_modules/vite" ]]; then
   echo "error: repo root has no node_modules. Run 'npm install' first."
   exit 1
 fi
 
-# ── Build watch directory ────────────────────────────────────────────────────
-rm -rf "$WATCH_DIR"
-mkdir -p "$WATCH_DIR"
-cleanup() { rm -rf "$WATCH_DIR"; }
-trap cleanup EXIT
+# ── Explicit worktree mode (no loop) ────────────────────────────────────────
+if [[ $# -gt 0 ]]; then
+  WORKTREE="$WORKTREES_DIR/$1"
+  if [[ ! -d "$WORKTREE" ]]; then
+    echo "error: worktree '$1' not found in $WORKTREES_DIR"
+    exit 1
+  fi
+  echo "👁  Watching: $(basename "$WORKTREE")"
+  setup_watch_dir "$WORKTREE"
+  cd "$WATCH_DIR"
+  exec npx vite --host
+fi
 
-# Source from worktree (agent's changes appear in real time)
-ln -sf "$WORKTREE/index.html" "$WATCH_DIR/index.html"
-ln -sf "$WORKTREE/src"        "$WATCH_DIR/src"
-[[ -d "$WORKTREE/public" ]] && ln -sf "$WORKTREE/public" "$WATCH_DIR/public"
+# ── Loop mode (auto-detect) ─────────────────────────────────────────────────
+while true; do
+  WORKTREE=$(find_worktree)
+  if [[ -z "${WORKTREE:-}" || ! -d "$WORKTREE" ]]; then
+    WORKTREE=$(wait_for_worktree)
+  fi
 
-# Deps from repo root (host-native, not Docker's linux binaries)
-ln -sf "$REPO_ROOT/node_modules" "$WATCH_DIR/node_modules"
+  echo "👁  Watching: $(basename "$WORKTREE")"
+  setup_watch_dir "$WORKTREE"
 
-# Config files — copy (Vite resolves relative to config location)
-cp "$REPO_ROOT/vite.config.ts" "$WATCH_DIR/"
-[[ -f "$REPO_ROOT/tsconfig.json" ]] && cp "$REPO_ROOT/tsconfig.json" "$WATCH_DIR/"
+  # Run Vite in the foreground; kill it when the worktree disappears
+  cd "$WATCH_DIR"
+  npx vite --host &
+  VITE_PID=$!
 
-# ── Start Vite ───────────────────────────────────────────────────────────────
-echo "Starting dev server..."
-cd "$WATCH_DIR"
-exec npx vite --host
+  # Poll until the worktree is removed (sandcastle finished)
+  while [[ -d "$WORKTREE" ]]; do
+    sleep 3
+  done
+
+  echo ""
+  echo "🔄 Worktree gone — stopping Vite..."
+  kill "$VITE_PID" 2>/dev/null || true
+  wait "$VITE_PID" 2>/dev/null || true
+  rm -rf "$WATCH_DIR"
+  cd "$REPO_ROOT"
+
+  echo "🔄 Ready for next sandcastle run."
+done
