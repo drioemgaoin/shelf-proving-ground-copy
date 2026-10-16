@@ -55,8 +55,8 @@ setup_watch_dir() {
 }
 
 # ── Check host deps ─────────────────────────────────────────────────────────
-if [[ ! -d "$REPO_ROOT/node_modules/vite" ]]; then
-  echo "error: repo root has no node_modules. Run 'npm install' first."
+if ! command -v npx &>/dev/null; then
+  echo "error: npx not found. Node.js must be installed."
   exit 1
 fi
 
