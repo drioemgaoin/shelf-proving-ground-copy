@@ -19,6 +19,7 @@ const CHIPS: { id: ChipId; label: string }[] = [
 export function App(): React.JSX.Element {
   // null while the API is in flight — drives the skeleton/populated swap.
   const [books, setBooks] = useState<Book[] | null>(null);
+  const [selectedChip, setSelectedChip] = useState<ChipId>('all');
 
   useEffect(() => {
     let active = true;
@@ -45,7 +46,8 @@ export function App(): React.JSX.Element {
             key={c.id}
             type="button"
             className="shelf-chip"
-            aria-pressed={c.id === 'all'}
+            aria-pressed={c.id === selectedChip}
+            onClick={() => setSelectedChip(c.id)}
           >
             {c.label}
           </button>
