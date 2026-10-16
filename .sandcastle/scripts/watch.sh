@@ -23,9 +23,18 @@ else
 fi
 
 if [[ -z "${WORKTREE:-}" || ! -d "$WORKTREE" ]]; then
-  echo "error: no sandcastle worktree found."
-  echo "  Run 'npm run sandcastle' first, or pass the worktree name explicitly."
-  exit 1
+  if [[ $# -gt 0 ]]; then
+    # Explicit worktree requested but missing — no point waiting
+    echo "error: worktree '$1' not found in $WORKTREES_DIR"
+    exit 1
+  fi
+  echo "⏳ No worktree yet — waiting for sandcastle to create one..."
+  while true; do
+    WORKTREE=$(find "$WORKTREES_DIR" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | head -1)
+    [[ -n "${WORKTREE:-}" && -d "$WORKTREE" ]] && break
+    sleep 2
+  done
+  echo "✅ Found: $(basename "$WORKTREE")"
 fi
 
 echo "👁  Watching: $(basename "$WORKTREE")"
