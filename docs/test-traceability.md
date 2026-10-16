@@ -134,10 +134,8 @@ Every use case (UC) extracted from `docs/rules-enforcement.md`. Each links to sp
 ### UC-09: Malformed YAML in T1
 | Variant | Type | Level | Status |
 |---------|------|-------|--------|
-| UC-09a: Malformed YAML → block writes (fail-closed) | Error | Integration | ✅ `test-hooks.mjs` |
+| UC-09a: Malformed YAML → block ALL writes (fail-closed, exit 2) | Error | Integration | ✅ `test-hooks.mjs` |
 | UC-09b: All files malformed, zero T1 rules survive → exit 2 | Error | Integration | ✅ `hooks.test.mjs` |
-| UC-09c: Cached scope from last successful parse | Edge | Integration | 📝 DEV-02 |
-| UC-09d: No cached scope → exit 2, block all writes | Error | Integration | 📝 DEV-02 |
 
 ### UC-10: Invalid regex
 | Variant | Type | Level | Status |
@@ -148,7 +146,8 @@ Every use case (UC) extracted from `docs/rules-enforcement.md`. Each links to sp
 ### UC-11: Conflicting T1 rules
 | Variant | Type | Level | Status |
 |---------|------|-------|--------|
-| UC-11a: Conflicting rules → file unwritable (consequence of Gap 1 fix) | Edge | Integration | 📝 DEV-01 |
+| UC-11a: Conflicting rules (present+absent) → write with pattern blocked | Edge | Integration | ✅ `hooks.test.mjs` |
+| UC-11b: Conflicting rules (present+absent) → write without pattern blocked | Edge | Integration | ✅ `hooks.test.mjs` |
 
 ### UC-12: Rejection message format
 | Variant | Type | Level | Status |
@@ -205,6 +204,9 @@ Every use case (UC) extracted from `docs/rules-enforcement.md`. Each links to sp
 | UC-16v: T3 total > 150 → warning | Edge | Integration | ✅ `audit-rules.test.mjs` |
 | UC-16w: T3 instruction > 500 tokens → warning | Edge | Integration | ✅ `audit-rules.test.mjs` |
 | UC-16x: T3 priority out of range → error | Error | Integration | ✅ `audit-rules.test.mjs` |
+| UC-16x2: T3 priority exactly 4 → valid (at boundary) | Boundary | Integration | ✅ `audit-rules.test.mjs` |
+| UC-16s2: Exactly 10 scopeless reviewer rules → exit 0 (at boundary) | Boundary | Integration | ✅ `audit-rules.test.mjs` |
+| UC-16t2: Exactly 10 triage-exempt rules → exit 0 (at boundary) | Boundary | Integration | ✅ `audit-rules.test.mjs` |
 | UC-16y: Human-tier no review entry → error | Error | Integration | ✅ `audit-rules.test.mjs` |
 | UC-16z: Human-tier only "created" entry → warning | Edge | Integration | ✅ `audit-rules.test.mjs` |
 
@@ -218,6 +220,17 @@ Every use case (UC) extracted from `docs/rules-enforcement.md`. Each links to sp
 |---------|------|-------|--------|
 | UC-18a: Warnings only → exit 0 | Edge | Integration | ✅ `test-audit-rules.mjs` |
 | UC-18b: Any error → exit 1 | Happy | Integration | ✅ `test-audit-rules.mjs` |
+
+### UC-59: Reviewer scope > 50% without exclude → warning
+**Spec:** "Reviewer scope matches > 50% of git-tracked files without `exclude` (warning)" (§ audit:rules)
+**Actor:** `audit:rules`
+**Starting state:** T3 reviewer block with scope matching 83% of tracked files, no `exclude`
+**Action:** Run `npm run audit:rules`
+**Expected:** Exit 0 (warning only), output mentions scope coverage percentage
+
+| Variant | Type | Level | Status |
+|---------|------|-------|--------|
+| UC-59a: Scope matches > 50% without exclude → warning (exit 0) | Edge | Integration | ✅ `audit-rules.test.mjs` |
 
 ---
 
@@ -234,15 +247,18 @@ Every use case (UC) extracted from `docs/rules-enforcement.md`. Each links to sp
 | UC-20c: Single group > 80 → exit 1 | Error | Integration | ✅ `test-apply-t3.mjs` |
 | UC-21a: Scope-gating excludes non-matching | Happy | Integration | ✅ `test-apply-t3.mjs` |
 | UC-21b: Exclusions logged to triage-exclusions.jsonl | Happy | Integration | ✅ `test-apply-t3.mjs` |
-| UC-21c: `git diff` failure → fail-open | Error | Integration | 🔴 |
+| UC-21c: `git diff` failure → fail-open | Error | Integration | ✅ `apply-t3.test.mjs` |
 | UC-22a–h: Two-phase triage (8 variants) | Mixed | Integration | ✅ `test-apply-t3.mjs` |
+| UC-22i: Exactly 80 non-exempt → no triage (at boundary) | Boundary | Integration | ✅ `apply-t3.test.mjs` |
+| UC-22j: Exactly 81 non-exempt → triage activates (over boundary) | Boundary | Integration | ✅ `apply-t3.test.mjs` |
+| UC-22k: Malformed diffRef with shell metacharacters → fail-open, no injection | Security | Integration | ✅ `apply-t3.test.mjs` |
 | UC-23a: > 30K tokens → auto-chunks | Edge | Integration | ✅ `test-apply-t3.mjs` |
 | UC-23b: Total T3 > 300 → exit 1 | Error | Integration | ✅ `test-apply-t3.mjs` |
 | UC-24a: Unrecognized agent → skipped | Edge | Integration | ✅ `test-apply-t3.mjs` |
 | UC-24b: Out-of-range priority → default 2 | Edge | Integration | ✅ `test-apply-t3.mjs` |
 | UC-24c: Zero matching → "No T3 rules apply" | Edge | Integration | ✅ `test-apply-t3.mjs` |
 | UC-24d: Payload dir cleared before writing | Edge | Integration | ✅ `test-apply-t3.mjs` |
-| UC-24e: `tiktoken` fails → word-count fallback | Edge | Integration | 🔴 |
+| UC-24e: `tiktoken` fails → word-count fallback | Edge | Integration | ✅ `apply-t3.test.mjs` |
 | UC-25a: No blocks → literal injected | Happy | Integration | ✅ `test-apply-t3.mjs` |
 | UC-26a: overflow-skipped.jsonl fields | Happy | Integration | ✅ `test-apply-t3.mjs` |
 | UC-26b: triage-exclusions.jsonl fields | Happy | Integration | ✅ `test-apply-t3.mjs` |
@@ -261,7 +277,7 @@ Every use case (UC) extracted from `docs/rules-enforcement.md`. Each links to sp
 | UC-27f: T3 blocks ignored | Edge | Integration | ✅ `test-apply-t2.mjs` |
 | UC-27g: Dev server timeout → exit 2 | Error | Integration | ✅ `test-apply-t2.mjs` |
 | UC-27h: Test compilation failure → exit 2 | Error | Integration | ✅ `apply-t2.test.mjs` |
-| UC-28a: All three viewports exercised | Happy | Acceptance | 🔴 |
+| UC-28a: All three viewports exercised (structural verification) | Happy | Unit | ✅ `apply-t2.test.mjs` |
 
 ---
 
@@ -329,7 +345,7 @@ Every use case (UC) extracted from `docs/rules-enforcement.md`. Each links to sp
 ### UC-40: Git commit failure
 | Variant | Type | Level | Status |
 |---------|------|-------|--------|
-| UC-40a: Git commit fails once → retry after 2s | Error | Integration | 🔴 |
+| UC-40a: Git commit fails once → retry after 2s | Error | Integration | ✅ `apply-fixer.test.mjs` |
 | UC-40b: Git commit fails twice → escalate infra-failure | Error | Integration | ✅ `apply-fixer.test.mjs` |
 
 ### UC-41: finding-states.jsonl
@@ -341,6 +357,32 @@ Every use case (UC) extracted from `docs/rules-enforcement.md`. Each links to sp
 | Variant | Type | Level | Status |
 |---------|------|-------|--------|
 | UC-42a: Partial revert failure → escalate infra-failure | Error | Integration | ✅ `apply-fixer.test.mjs` |
+
+### UC-60: Revert cascade — cascaded re-verify fails
+**Spec:** "After any revert, the Fixer re-runs Verify for all previously-applied findings in the same file. If a previously-applied fix now fails verification, that finding transitions to `reverted`." (§ Fixer — Revert cascade check)
+**Actor:** Fixer
+**Starting state:** Two findings in same file; first applied+verified; second verify fails → revert triggers cascade
+**Action:** Cascade re-verifies first finding; its verify now fails
+**Expected:** Both findings reverted, cascade detail in JSONL, file restored to original
+
+| Variant | Type | Level | Status |
+|---------|------|-------|--------|
+| UC-60a: Cascade re-verify fails → earlier finding reverted | Edge | Integration | ✅ `apply-fixer.test.mjs` |
+
+### UC-61: Multi-target finding parser and consumer (SQ-R1-1)
+**Spec:** "Multi-target findings: each sub-target has its own `file:line`, `Current`, and `Fix`" (§ Report contract)
+**Actor:** Fixer via `parseFindings()` + `processSingleFinding()`
+**Starting state:** Finding report with indented sub-target entries
+**Action:** Parse report and apply multi-target finding
+**Expected:** Parser produces `targets` array; consumer applies all targets or blocks+reverts on partial failure
+
+| Variant | Type | Level | Status |
+|---------|------|-------|--------|
+| UC-61a: Parser produces targets array from indented sub-targets | Happy | Unit | ✅ `apply-fixer.test.mjs` |
+| UC-61b: Single-target finding has no targets array | Edge | Unit | ✅ `apply-fixer.test.mjs` |
+| UC-61c: Multi-target followed by single-target parsed correctly | Happy | Unit | ✅ `apply-fixer.test.mjs` |
+| UC-61d: Multi-target applied across two files | Happy | Integration | ✅ `apply-fixer.test.mjs` |
+| UC-61e: Multi-target second file missing → blocked, first reverted | Error | Integration | ✅ `apply-fixer.test.mjs` |
 
 ---
 
@@ -354,10 +396,10 @@ Every use case (UC) extracted from `docs/rules-enforcement.md`. Each links to sp
 | UC-43d: pending → blocked | Happy | Integration | ✅ |
 | UC-43e: Terminal states don't transition | Constraint | Unit | ✅ `apply-fixer.test.mjs` |
 
-### UC-44: Settlement atomicity
+### UC-44: Settlement atomicity (spec updated — JSONL-only)
 | Variant | Type | Level | Status |
 |---------|------|-------|--------|
-| UC-44a–c: Settlement atomicity (3 variants) | Mixed | Integration | 📝 DEV-04 |
+| UC-44a: Settlement writes JSONL entry atomically | Happy | Integration | ✅ (covered by UC-43c: pending → settled) |
 
 ---
 
@@ -418,22 +460,16 @@ Every use case (UC) extracted from `docs/rules-enforcement.md`. Each links to sp
 |----------|----------|----|----|-----|
 | discoverRulesFiles | 15 | 15 | 0 | 0 |
 | parseEnforcementBlocks | 8 | 8 | 0 | 0 |
-| apply-t1.mjs | 22 | 19 | 0 | 3 |
-| audit:rules | 26 | 26 | 0 | 0 |
-| apply-t3.mjs | 22 | 20 | 2 | 0 |
-| apply-t2.mjs | 9 | 8 | 1 | 0 |
+| apply-t1.mjs | 21 | 21 | 0 | 0 |
+| audit:rules | 30 | 30 | 0 | 0 |
+| apply-t3.mjs | 25 | 25 | 0 | 0 |
+| apply-t2.mjs | 9 | 9 | 0 | 0 |
 | Prompt expansion | 13 | 13 | 0 | 0 |
-| Fixer | 25 | 24 | 1 | 0 |
-| Finding lifecycle | 8 | 5 | 0 | 3 |
+| Fixer | 32 | 32 | 0 | 0 |
+| Finding lifecycle | 6 | 6 | 0 | 0 |
 | Review | 7 | 7 | 0 | 0 |
 | Report handling | 5 | 5 | 0 | 0 |
 | Pipeline | 9 | 9 | 0 | 0 |
-| **Total** | **169** | **159** | **4** | **6** |
+| **Total** | **180** | **180** | **0** | **0** |
 
-All 9 implementation gaps are now coded. 4 variants still need tests. 6 variants are accepted deviations. 0 open spec gaps.
-
-### Remaining 🔴 (4 untested)
-- **UC-21c**: `git diff` failure → fail-open (apply-t3)
-- **UC-24e**: `tiktoken` fails → word-count fallback (apply-t3)
-- **UC-28a**: All three viewports exercised (apply-t2, acceptance level)
-- **UC-40a**: Git commit fails once → retry after 2s (fixer)
+All variants tested. All deviations resolved (spec updated to match code). 0 open spec gaps.

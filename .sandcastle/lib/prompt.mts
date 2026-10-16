@@ -1,11 +1,30 @@
-// Prompt expansion — two-stage template engine used by main and all replays.
+// Prompt expansion — three-stage template engine used by main and all replays.
 //
 // Stage 1: {{VAR}} substitution (same regex as sandcastle SDK)
 // Stage 2: !`cmd` shell expansion (runs on the host — same git history)
+// Stage 3: T3 rule payload injection ({{T3_VISUAL_CHECKS}}, {{T3_REVIEW_CHECKS}})
 
 import { execSync } from "child_process";
-import { mkdirSync, readFileSync, writeFileSync } from "fs";
-import { dirname } from "path";
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  writeFileSync,
+} from "fs";
+import { dirname, join } from "path";
+
+// Recognized VAR whitelist — Stage 1 substitutes only these.
+// {{T3_VISUAL_CHECKS}} and {{T3_REVIEW_CHECKS}} are reserved for Stage 3.
+const STAGE1_WHITELIST = new Set([
+  "ISSUE_ID",
+  "ISSUE_TITLE",
+  "ISSUE_BODY",
+  "ISSUE_LABELS",
+  "CODEMAP",
+  "DIFF_REF",
+  "FIX_HISTORY",
+]);
 
 /** Substitute {{VAR}} placeholders in a template string. */
 export function substituteVars(
@@ -14,7 +33,8 @@ export function substituteVars(
 ): string {
   return template.replace(
     /\{\{\s*([A-Za-z_][A-Za-z0-9_]*)\s*\}\}/g,
-    (match, key) => (key in vars ? vars[key] : match),
+    (match, key) =>
+      STAGE1_WHITELIST.has(key) && key in vars ? vars[key] : match,
   );
 }
 
@@ -24,22 +44,72 @@ export function expandShellExpressions(template: string): string {
     try {
       return execSync(cmd, { encoding: "utf8", timeout: 30_000 }).trimEnd();
     } catch {
-      return `<!-- shell expansion failed: ${cmd} -->`;
+      console.warn(`[prompt] shell expansion failed: ${cmd}`);
+      return "";
     }
   });
 }
 
+/** Options for Stage 3 T3 payload injection. */
+export interface ExpandOptions {
+  /** Ticket ID — resolves to .sandcastle/payloads/{ticketId}/ */
+  ticketId?: string;
+  /** Override T3 payload directory (takes precedence over ticketId) */
+  payloadDir?: string;
+}
+
 /**
- * Full two-stage expansion: substitute vars, then expand shell expressions.
+ * Load T3 payload files for a given agent from the payload directory.
+ * Returns concatenated content, or empty string if no payloads exist.
+ */
+function loadT3Payload(payloadDir: string, agentPrefix: string): string {
+  if (!existsSync(payloadDir)) return "";
+  try {
+    const files = readdirSync(payloadDir)
+      .filter((f) => f.startsWith(agentPrefix) && f.endsWith(".md"))
+      .sort();
+    if (files.length === 0) return "";
+    return files
+      .map((f) => readFileSync(join(payloadDir, f), "utf8"))
+      .join("\n\n");
+  } catch {
+    return "";
+  }
+}
+
+/** Stage 3: replace T3 placeholders with payload content. */
+function injectT3Payloads(text: string, options: ExpandOptions): string {
+  const effectiveDir =
+    options.payloadDir ??
+    (options.ticketId
+      ? join(".sandcastle", "payloads", options.ticketId)
+      : null);
+
+  if (!effectiveDir) return text;
+
+  const t3Visual = loadT3Payload(effectiveDir, "visual-qa");
+  const t3Review = loadT3Payload(effectiveDir, "reviewer");
+  return text
+    .replace(/\{\{\s*T3_VISUAL_CHECKS\s*\}\}/g, t3Visual)
+    .replace(/\{\{\s*T3_REVIEW_CHECKS\s*\}\}/g, t3Review);
+}
+
+/**
+ * Full three-stage expansion: shell → vars → T3 injection.
  * Reads the template from disk, writes the expanded result to outputPath.
  */
 export function expandAndSave(
   promptFile: string,
   promptArgs: Record<string, string>,
   outputPath: string,
+  options: ExpandOptions = {},
 ): void {
   const raw = readFileSync(promptFile, "utf8");
-  const expanded = expandShellExpressions(substituteVars(raw, promptArgs));
+  const afterStages1and2 = substituteVars(
+    expandShellExpressions(raw),
+    promptArgs,
+  );
+  const expanded = injectT3Payloads(afterStages1and2, options);
   mkdirSync(dirname(outputPath), { recursive: true });
   writeFileSync(outputPath, expanded);
 }
@@ -51,7 +121,12 @@ export function expandAndSave(
 export function expandPrompt(
   promptFile: string,
   promptArgs: Record<string, string>,
+  options: ExpandOptions = {},
 ): string {
   const raw = readFileSync(promptFile, "utf8");
-  return expandShellExpressions(substituteVars(raw, promptArgs));
+  const afterStages1and2 = substituteVars(
+    expandShellExpressions(raw),
+    promptArgs,
+  );
+  return injectT3Payloads(afterStages1and2, options);
 }

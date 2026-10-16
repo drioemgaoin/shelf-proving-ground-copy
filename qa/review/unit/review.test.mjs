@@ -132,32 +132,83 @@ test('report includes item count', () => {
   }
 });
 
-test('t1-conflict entries surfaced when bd available', () => {
-  // Run against real project. If bd is available and returns t1-conflict items, they appear.
-  // If bd is not available, this section is empty — test passes vacuously.
-  const result = runReview(process.cwd());
-  // We just verify the script doesn't crash when processing T1/T3 conflicts section
-  assert(result.exitCode === 0 || result.exitCode === 1, `unexpected exit code: ${result.exitCode}`);
+test('t1-conflict entries appear in report with ticket IDs', () => {
+  const tmp = makeTempProject({ 'placeholder.txt': '' });
+  // Create a mock bd that returns issues with t1-conflict notes
+  const mockBd = join(tmp, 'mock-bin', 'bd');
+  mkdirSync(join(tmp, 'mock-bin'), { recursive: true });
+  const mockResponse = JSON.stringify([
+    {
+      id: 'beads-042',
+      title: 'Fix button color',
+      notes: 'settled t1-conflict no-raw-colors fixer\nsome other note',
+    },
+    {
+      id: 'beads-099',
+      title: 'Layout shift',
+      notes: 't1-conflict spacing-tokens reviewer',
+    },
+  ]);
+  writeFileSync(mockBd, `#!/usr/bin/env node\nconsole.log(${JSON.stringify(mockResponse)});\n`, { mode: 0o755 });
+
+  const env = { ...process.env, PATH: `${join(tmp, 'mock-bin')}:${process.env.PATH}` };
+  try {
+    const stdout = (() => {
+      try {
+        return execFileSync('node', [SCRIPT], { encoding: 'utf8', cwd: tmp, env, stdio: ['pipe', 'pipe', 'pipe'] }).toString();
+      } catch (e) {
+        return e.stdout ?? '';
+      }
+    })();
+    assert(stdout.includes('T1/T3 conflicts'), 'expected T1/T3 conflicts section title');
+    assert(stdout.includes('beads-042'), 'expected first ticket ID in output');
+    assert(stdout.includes('t1-conflict no-raw-colors fixer'), 'expected first conflict line content');
+    assert(stdout.includes('beads-099'), 'expected second ticket ID in output');
+    assert(stdout.includes('t1-conflict spacing-tokens reviewer'), 'expected second conflict line content');
+  } finally {
+    rmSync(tmp, { recursive: true, force: true });
+  }
 });
 
-test('screenshot baselines reported', () => {
+test('screenshot baselines reported from e2e/__screenshots__/', () => {
   const tmp = makeTempProject({ 'placeholder.txt': '' });
-  // Set up git repo with a screenshot change
+  // Set up git repo with a screenshot change at the spec-correct path
   execFileSync('git', ['init'], { cwd: tmp, stdio: 'pipe' });
   execFileSync('git', ['-C', tmp, 'config', 'user.name', 'Test'], { stdio: 'pipe' });
   execFileSync('git', ['-C', tmp, 'config', 'user.email', 'test@test.com'], { stdio: 'pipe' });
   execFileSync('git', ['-C', tmp, 'config', 'commit.gpgsign', 'false'], { stdio: 'pipe' });
-  mkdirSync(join(tmp, 'tests/__screenshots__'), { recursive: true });
-  writeFileSync(join(tmp, 'tests/__screenshots__/old.png'), 'old');
+  mkdirSync(join(tmp, 'e2e/__screenshots__'), { recursive: true });
+  writeFileSync(join(tmp, 'e2e/__screenshots__/old.png'), 'old');
   execFileSync('git', ['add', '.'], { cwd: tmp, stdio: 'pipe' });
   execFileSync('git', ['commit', '-m', 'init'], { cwd: tmp, stdio: 'pipe' });
   // Modify screenshot
-  writeFileSync(join(tmp, 'tests/__screenshots__/old.png'), 'new');
+  writeFileSync(join(tmp, 'e2e/__screenshots__/old.png'), 'new');
   try {
     const result = runReview(tmp);
     assert(result.exitCode === 1, `expected exit 1, got ${result.exitCode}`);
     assert(result.stdout.includes('Screenshot baselines'), 'expected Screenshot baselines section');
     assert(result.stdout.includes('old.png'), 'expected screenshot filename');
+  } finally {
+    rmSync(tmp, { recursive: true, force: true });
+  }
+});
+
+test('untracked screenshots in e2e/__screenshots__/ reported as new', () => {
+  const tmp = makeTempProject({ 'placeholder.txt': '' });
+  execFileSync('git', ['init'], { cwd: tmp, stdio: 'pipe' });
+  execFileSync('git', ['-C', tmp, 'config', 'user.name', 'Test'], { stdio: 'pipe' });
+  execFileSync('git', ['-C', tmp, 'config', 'user.email', 'test@test.com'], { stdio: 'pipe' });
+  execFileSync('git', ['-C', tmp, 'config', 'commit.gpgsign', 'false'], { stdio: 'pipe' });
+  execFileSync('git', ['add', '.'], { cwd: tmp, stdio: 'pipe' });
+  execFileSync('git', ['commit', '-m', 'init'], { cwd: tmp, stdio: 'pipe' });
+  // Add untracked screenshot at spec-correct path
+  mkdirSync(join(tmp, 'e2e/__screenshots__'), { recursive: true });
+  writeFileSync(join(tmp, 'e2e/__screenshots__/new-shot.png'), 'data');
+  try {
+    const result = runReview(tmp);
+    assert(result.exitCode === 1, `expected exit 1, got ${result.exitCode}`);
+    assert(result.stdout.includes('new-shot.png'), 'expected new screenshot filename');
+    assert(result.stdout.includes('(new)'), 'expected (new) marker for untracked');
   } finally {
     rmSync(tmp, { recursive: true, force: true });
   }

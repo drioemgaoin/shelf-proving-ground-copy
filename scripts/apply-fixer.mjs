@@ -25,6 +25,30 @@ const DEFAULT_VERIFY_TIMEOUT = 120_000;
 const T1_REJECTION_CAP = 3;
 const COMMIT_RETRY_DELAY_MS = 2000;
 
+/**
+ * Load fixer configuration from .sandcastle/config.json.
+ * Returns an object with any fixer-specific overrides found.
+ *
+ * @param {string} cwd - project root directory
+ * @returns {{ verifyTimeout?: number }}
+ */
+export function loadFixerConfig(cwd) {
+  const configPath = join(cwd, '.sandcastle', 'config.json');
+  if (!existsSync(configPath)) return {};
+  try {
+    const raw = JSON.parse(readFileSync(configPath, 'utf8'));
+    const fixer = raw?.fixer;
+    if (!fixer || typeof fixer !== 'object') return {};
+    const result = {};
+    if (typeof fixer.verifyTimeout === 'number') {
+      result.verifyTimeout = fixer.verifyTimeout;
+    }
+    return result;
+  } catch {
+    return {};
+  }
+}
+
 // ─── Finding validation ─────────────────────────────────────────
 
 const FILE_LINE_RE = /^.+:\d+$/;
@@ -119,6 +143,7 @@ export function parseFindings(text) {
 
   let current = null;
   let currentField = null;
+  let subTarget = null; // tracks an in-progress sub-target
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
@@ -133,9 +158,10 @@ export function parseFindings(text) {
 
     if (!inFindings) continue;
 
-    // New finding: starts with "- <path>:<line>"
+    // New finding: starts with "- <path>:<line>" at column 0 (no leading whitespace)
     const findingMatch = line.match(/^-\s+(.+:\d+)\s*(.*)/);
     if (findingMatch) {
+      if (subTarget) { flushSubTarget(current, subTarget); subTarget = null; }
       if (current) findings.push(current);
       current = {
         fileLine: findingMatch[1].trim(),
@@ -152,9 +178,40 @@ export function parseFindings(text) {
 
     if (!current) continue;
 
-    // Field lines
+    // Sub-target: indented "- <path>:<line>" (2+ leading spaces before the dash)
+    const subTargetMatch = line.match(/^\s{2,}-\s+(.+:\d+)\s*(.*)/);
+    if (subTargetMatch) {
+      if (subTarget) flushSubTarget(current, subTarget);
+      subTarget = {
+        fileLine: subTargetMatch[1].trim(),
+        selector: subTargetMatch[2]?.replace(/`/g, '').trim() || '',
+        current: '',
+        fix: '',
+      };
+      currentField = null;
+      continue;
+    }
+
+    // Sub-target field lines (deeper indent: 4+ spaces)
+    if (subTarget) {
+      const stCurrentMatch = line.match(/^\s{4,}Current:\s+(.*)/);
+      if (stCurrentMatch) {
+        subTarget.current = stCurrentMatch[1].trim();
+        currentField = 'st-current';
+        continue;
+      }
+      const stFixMatch = line.match(/^\s{4,}Fix:\s+(.*)/);
+      if (stFixMatch) {
+        subTarget.fix = stFixMatch[1].trim();
+        currentField = 'st-fix';
+        continue;
+      }
+    }
+
+    // Field lines (top-level finding)
     const causeMatch = line.match(/^\s+Cause:\s+(.*)/);
     if (causeMatch) {
+      if (subTarget) { flushSubTarget(current, subTarget); subTarget = null; }
       current.cause = causeMatch[1].trim();
       currentField = 'cause';
       continue;
@@ -162,6 +219,7 @@ export function parseFindings(text) {
 
     const currentMatch = line.match(/^\s+Current:\s+(.*)/);
     if (currentMatch) {
+      if (subTarget) { flushSubTarget(current, subTarget); subTarget = null; }
       current.current = currentMatch[1].trim();
       currentField = 'current';
       continue;
@@ -169,6 +227,7 @@ export function parseFindings(text) {
 
     const fixMatch = line.match(/^\s+Fix:\s+(.*)/);
     if (fixMatch) {
+      if (subTarget) { flushSubTarget(current, subTarget); subTarget = null; }
       current.fix = fixMatch[1].trim();
       currentField = 'fix';
       continue;
@@ -176,6 +235,7 @@ export function parseFindings(text) {
 
     const verifyMatch = line.match(/^\s+Verify:\s+(.*)/);
     if (verifyMatch) {
+      if (subTarget) { flushSubTarget(current, subTarget); subTarget = null; }
       current.verify = verifyMatch[1].trim();
       currentField = 'verify';
       continue;
@@ -183,6 +243,7 @@ export function parseFindings(text) {
 
     const priorityMatch = line.match(/^\s+Priority:\s+(\d+)/);
     if (priorityMatch) {
+      if (subTarget) { flushSubTarget(current, subTarget); subTarget = null; }
       current.priority = parseInt(priorityMatch[1], 10);
       currentField = null;
       continue;
@@ -190,13 +251,35 @@ export function parseFindings(text) {
 
     // Continuation line for multi-line fields
     if (currentField && line.match(/^\s{4,}/) && line.trim() !== '') {
-      current[currentField] += '\n' + line.trim();
+      if (currentField === 'st-current') {
+        subTarget.current += '\n' + line.trim();
+      } else if (currentField === 'st-fix') {
+        subTarget.fix += '\n' + line.trim();
+      } else {
+        current[currentField] += '\n' + line.trim();
+      }
     }
   }
 
+  if (subTarget) flushSubTarget(current, subTarget);
   if (current) findings.push(current);
 
   return findings;
+}
+
+function flushSubTarget(finding, subTarget) {
+  if (!finding || !subTarget) return;
+  if (!finding.targets) {
+    // First sub-target: initialize targets array with the primary target
+    finding.targets = [
+      { fileLine: finding.fileLine, current: finding.current, fix: finding.fix },
+    ];
+  }
+  finding.targets.push({
+    fileLine: subTarget.fileLine,
+    current: subTarget.current,
+    fix: subTarget.fix,
+  });
 }
 
 /**
@@ -305,6 +388,29 @@ export function writeState(statesPath, entry) {
   appendFileSync(statesPath, JSON.stringify(entry) + '\n');
 }
 
+/**
+ * Read settled findingIds from the states JSONL file.
+ * Returns a Set of findingId strings whose latest state is 'settled'.
+ *
+ * @param {string} statesPath
+ * @returns {Set<string>}
+ */
+export function readSettledIds(statesPath) {
+  const settled = new Set();
+  if (!existsSync(statesPath)) return settled;
+  const lines = readFileSync(statesPath, 'utf8').trim().split('\n');
+  for (const line of lines) {
+    if (!line) continue;
+    try {
+      const entry = JSON.parse(line);
+      if (entry.state === 'settled') {
+        settled.add(entry.findingId);
+      }
+    } catch { /* skip malformed lines */ }
+  }
+  return settled;
+}
+
 // ─── Verify runner ──────────────────────────────────────────────
 
 /**
@@ -399,13 +505,13 @@ async function processSingleFinding({
   const filePath = finding.fileLine.split(':')[0];
   const lineHint = parseInt(finding.fileLine.split(':')[1], 10);
   const absPath = join(cwd, filePath);
-  const findingKey = finding.fileLine;
+  const findingKey = finding.fileLine + '|' + extractRuleId(finding.cause);
 
   // File not found → blocked
   if (!existsSync(absPath)) {
     writeState(statesPath, {
       runId, findingId: findingKey, ruleId: extractRuleId(finding.cause),
-      fileLine: finding.fileLine, state: 'blocked', previousState: null,
+      fileLine: finding.fileLine, state: 'blocked', previousState: 'pending',
       round, gate, timestamp: new Date().toISOString(),
       detail: 'file not found on disk',
     });
@@ -433,7 +539,7 @@ async function processSingleFinding({
       if (!existsSync(tAbsPath)) {
         writeState(statesPath, {
           runId, findingId: findingKey, ruleId: extractRuleId(finding.cause),
-          fileLine: finding.fileLine, state: 'blocked', previousState: null,
+          fileLine: finding.fileLine, state: 'blocked', previousState: 'pending',
           round, gate, timestamp: new Date().toISOString(),
           detail: `file not found on disk: ${tFilePath}`,
         });
@@ -452,7 +558,7 @@ async function processSingleFinding({
       if (matchIdx === -1) {
         writeState(statesPath, {
           runId, findingId: findingKey, ruleId: extractRuleId(finding.cause),
-          fileLine: finding.fileLine, state: 'blocked', previousState: null,
+          fileLine: finding.fileLine, state: 'blocked', previousState: 'pending',
           round, gate, timestamp: new Date().toISOString(),
           detail: `Current text not found in ${tFilePath}`,
         });
@@ -473,7 +579,7 @@ async function processSingleFinding({
     // Track state as applied
     writeState(statesPath, {
       runId, findingId: findingKey, ruleId: extractRuleId(finding.cause),
-      fileLine: finding.fileLine, state: 'applied', previousState: null,
+      fileLine: finding.fileLine, state: 'applied', previousState: 'pending',
       round, gate, timestamp: new Date().toISOString(), detail: null,
     });
 
@@ -667,11 +773,11 @@ export async function processFindings({
       malformed.push({ finding: f, reason: result.reason });
       writeState(effectiveStatesPath, {
         runId,
-        findingId: f.fileLine ?? 'unknown',
+        findingId: (f.fileLine ?? 'unknown') + '|' + extractRuleId(f.cause),
         ruleId: extractRuleId(f.cause),
         fileLine: f.fileLine ?? 'unknown',
         state: 'malformed',
-        previousState: null,
+        previousState: 'pending',
         round,
         gate,
         timestamp: new Date().toISOString(),
@@ -693,8 +799,20 @@ export async function processFindings({
     };
   }
 
+  // Pre-filter: suppress findings already settled in prior rounds
+  const settledIds = readSettledIds(effectiveStatesPath);
+  const unsettled = valid.filter((f) => {
+    const fid = f.fileLine + '|' + extractRuleId(f.cause);
+    return !settledIds.has(fid);
+  });
+
+  if (unsettled.length === 0 && valid.length > 0) {
+    // All valid findings were settled — nothing to process
+    return { status: 'settled-suppressed', exitCode: 0, applied: 0, skipped: malformed.length, blocked: 0, reverted: 0, settled: 0 };
+  }
+
   // Sort valid findings
-  const sorted = sortFindings(valid);
+  const sorted = sortFindings(unsettled);
 
   // Track applied findings per file for revert cascade
   const appliedPerFile = new Map(); // file -> [{ finding, originalContent }]
@@ -746,7 +864,7 @@ async function runRevertCascade({
       writeFileSync(absPath, entry.originalContent);
       writeState(statesPath, {
         runId,
-        findingId: entry.finding.fileLine,
+        findingId: entry.finding.fileLine + '|' + extractRuleId(entry.finding.cause),
         ruleId: extractRuleId(entry.finding.cause),
         fileLine: entry.finding.fileLine,
         state: 'reverted',
@@ -807,7 +925,11 @@ if (isDirectRun) {
   const gate = getOpt('gate') ?? 'review';
   const round = parseInt(getOpt('round') ?? '1', 10);
   const runId = getOpt('run-id') ?? `fixer-${Date.now()}`;
-  const verifyTimeout = parseInt(getOpt('verify-timeout') ?? String(DEFAULT_VERIFY_TIMEOUT), 10);
+  const cliTimeout = getOpt('verify-timeout');
+  const config = loadFixerConfig(process.cwd());
+  const verifyTimeout = parseInt(
+    cliTimeout ?? String(config.verifyTimeout ?? DEFAULT_VERIFY_TIMEOUT), 10,
+  );
   const dryRun = args.includes('--dry-run');
 
   processFindings({

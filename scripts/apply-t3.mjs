@@ -14,7 +14,7 @@
  */
 import { readFileSync, mkdirSync, writeFileSync, rmSync, existsSync } from 'node:fs';
 import { join, relative } from 'node:path';
-import { execSync } from 'node:child_process';
+import { execSync, execFileSync } from 'node:child_process';
 import { discoverRulesFiles, parseEnforcementBlocks, globMatch } from '../.claude/hooks/lib/rules.mjs';
 
 const projectDir = process.env.CLAUDE_PROJECT_DIR ?? process.cwd();
@@ -99,7 +99,7 @@ let diffFiles = null;
 let diffFailed = false;
 
 try {
-  const output = execSync(`git diff --name-only ${diffRef}`, {
+  const output = execFileSync('git', ['diff', '--name-only', diffRef], {
     cwd: projectDir,
     encoding: 'utf8',
     stdio: ['pipe', 'pipe', 'pipe'],

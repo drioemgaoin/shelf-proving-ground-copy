@@ -14,7 +14,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "e2e": "playwright test",
-    "test:scripts": "node qa/fixer/unit/apply-fixer.test.mjs && node qa/rules-enforcement/unit/apply-t2.test.mjs && node qa/rules-enforcement/unit/apply-t3.test.mjs && node qa/rules-enforcement/unit/audit-rules.test.mjs && node qa/prompt-expansion/unit/expand-prompt.test.mjs && node qa/review/unit/review.test.mjs && node qa/hooks/unit/hooks.test.mjs && node qa/linting/unit/eslint.test.mjs && node qa/linting/unit/stylelint.test.mjs && node qa/rules-enforcement/unit/rules-lib.test.mjs && node qa/pipeline/unit/pipeline-lock.test.mjs && node qa/pipeline/unit/budget.test.mjs && node qa/pipeline/unit/config.test.mjs",
+    "test:scripts": "node scripts/run-qa-scripts.mjs",
     "test:app": "npm run check && npm run test && npm run test:scripts && npm run e2e",
     "qa": "playwright test --config qa/playwright.config.ts",
     "qa:judge": "node qa/ticket-flow/acceptance/pipeline-judge.mjs",

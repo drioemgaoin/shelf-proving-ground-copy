@@ -1,6 +1,6 @@
 // Sandcastle Orchestrator
 //
-// Three-phase loop: Plan → Execute (with QA gates) → Merge.
+// Four-phase loop: Plan → Execute (with QA gates) → Merge → Global T2.
 // Repeats until no unblocked issues remain or MAX_ITERATIONS is reached.
 //
 // Usage:
@@ -13,6 +13,7 @@ import { hasFlag, flag } from "./lib/cli.mjs";
 import { buildWarmImage, createHooks, buildOverlayFileList } from "./lib/sandbox.mjs";
 import { readTicketFiles, ticketsToReadyJson } from "./lib/tickets.mjs";
 import { planIteration, executeInParallel, mergeCompleted } from "./lib/phases.mjs";
+import { CostCeilingExceededError } from "./lib/tagged-agent.mjs";
 import { MAX_ITERATIONS } from "./config/constants.mjs";
 import {
   VIEW_TASK_COMMAND,
@@ -21,9 +22,12 @@ import {
   COMMENT_TASK_COMMAND,
   LABEL_TASK_COMMAND,
   CREATE_BUG_COMMAND,
+  SEARCH_BUGS_COMMAND,
+  CLOSE_BUG_COMMAND,
   TICKET_OVERRIDES,
 } from "./config/tracker.mjs";
 import { acquireLock, releaseLock } from "./lib/pipeline-lock.mjs";
+import { runGlobalT2, createT2Runner, createT2Tracker } from "./lib/global-t2.mjs";
 
 // ---------------------------------------------------------------------------
 // CLI flags
@@ -122,71 +126,93 @@ function fetchIssueDetails(
 // Main loop
 // ---------------------------------------------------------------------------
 
-for (let iteration = 1; iteration <= MAX_ITERATIONS; iteration++) {
-  log(`=== Iteration ${iteration}/${MAX_ITERATIONS} ===`);
+try {
+  for (let iteration = 1; iteration <= MAX_ITERATIONS; iteration++) {
+    log(`=== Iteration ${iteration}/${MAX_ITERATIONS} ===`);
 
-  // Phase 1: Plan
-  log("Pre-expanding issue list on host...");
-  const { readyIssues, ticketFiles } = fetchReadyIssues();
-  let issues = await planIteration({ readyIssues, warmImage, hooks, verbose: VERBOSE });
+    // Phase 1: Plan
+    log("Pre-expanding issue list on host...");
+    const { readyIssues, ticketFiles } = fetchReadyIssues();
+    let issues = await planIteration({ readyIssues, warmImage, hooks, verbose: VERBOSE });
 
-  if (SINGLE_MODE && issues.length > 1) {
-    log(`Single mode: picking only ${issues[0]!.id}, skipping ${issues.length - 1} other(s).`);
-    issues = [issues[0]!];
+    if (SINGLE_MODE && issues.length > 1) {
+      log(`Single mode: picking only ${issues[0]!.id}, skipping ${issues.length - 1} other(s).`);
+      issues = [issues[0]!];
+    }
+
+    if (issues.length === 0) {
+      log("No unblocked issues to work on. Exiting.");
+      break;
+    }
+
+    log(`Planning complete. ${issues.length} issue(s) to work in parallel:`);
+    for (const issue of issues) {
+      log(`  ${issue.id}: ${issue.title} → ${issue.branch}`);
+    }
+
+    // Pre-expand issue details + codemaps on the host
+    log("Pre-expanding issue details on host...");
+    const { details, codemaps } = fetchIssueDetails(issues, ticketFiles);
+    log("Generating codemaps...");
+
+    // Phase 2: Execute + QA Gates
+    const completedIssues = await executeInParallel(issues, {
+      warmImage,
+      hooks,
+      copyToWorktree,
+      verbose: VERBOSE,
+      issueDetails: details,
+      codemaps,
+      trackerCommands: {
+        COMMENT_TASK_COMMAND: tracker.COMMENT_TASK_COMMAND,
+        LABEL_TASK_COMMAND: tracker.LABEL_TASK_COMMAND,
+        CREATE_BUG_COMMAND: tracker.CREATE_BUG_COMMAND,
+      },
+    });
+
+    log(`Phase 2 done. ${completedIssues.length} branch(es) with commits:`);
+    for (const issue of completedIssues) {
+      log(`  ${issue.branch}`);
+    }
+
+    if (completedIssues.length === 0) {
+      log("No commits produced. Nothing to merge.");
+      if (SINGLE_MODE) break;
+      continue;
+    }
+
+    // Phase 3: Merge
+    await mergeCompleted(completedIssues, {
+      warmImage,
+      hooks,
+      verbose: VERBOSE,
+      closeTaskCommand: tracker.CLOSE_TASK_COMMAND,
+    });
+
+    // Global T2 suite — post-merge
+    log("Global T2 suite starting...");
+    const t2result = await runGlobalT2({
+      runner: createT2Runner(),
+      tracker: createT2Tracker({
+        searchCommand: SEARCH_BUGS_COMMAND,
+        createBugCommand: tracker.CREATE_BUG_COMMAND,
+        closeBugCommand: CLOSE_BUG_COMMAND,
+        labelCommand: tracker.LABEL_TASK_COMMAND,
+      }),
+    });
+    log(`Global T2 suite done. ${t2result.rounds} round(s), green=${t2result.green}.`);
+
+    if (SINGLE_MODE) {
+      log("Single mode: stopping after one issue.");
+      break;
+    }
   }
-
-  if (issues.length === 0) {
-    log("No unblocked issues to work on. Exiting.");
-    break;
-  }
-
-  log(`Planning complete. ${issues.length} issue(s) to work in parallel:`);
-  for (const issue of issues) {
-    log(`  ${issue.id}: ${issue.title} → ${issue.branch}`);
-  }
-
-  // Pre-expand issue details + codemaps on the host
-  log("Pre-expanding issue details on host...");
-  const { details, codemaps } = fetchIssueDetails(issues, ticketFiles);
-  log("Generating codemaps...");
-
-  // Phase 2: Execute + QA Gates
-  const completedIssues = await executeInParallel(issues, {
-    warmImage,
-    hooks,
-    copyToWorktree,
-    verbose: VERBOSE,
-    issueDetails: details,
-    codemaps,
-    trackerCommands: {
-      COMMENT_TASK_COMMAND: tracker.COMMENT_TASK_COMMAND,
-      LABEL_TASK_COMMAND: tracker.LABEL_TASK_COMMAND,
-      CREATE_BUG_COMMAND: tracker.CREATE_BUG_COMMAND,
-    },
-  });
-
-  log(`Phase 2 done. ${completedIssues.length} branch(es) with commits:`);
-  for (const issue of completedIssues) {
-    log(`  ${issue.branch}`);
-  }
-
-  if (completedIssues.length === 0) {
-    log("No commits produced. Nothing to merge.");
-    if (SINGLE_MODE) break;
-    continue;
-  }
-
-  // Phase 3: Merge
-  await mergeCompleted(completedIssues, {
-    warmImage,
-    hooks,
-    verbose: VERBOSE,
-    closeTaskCommand: tracker.CLOSE_TASK_COMMAND,
-  });
-
-  if (SINGLE_MODE) {
-    log("Single mode: stopping after one issue.");
-    break;
+} catch (e) {
+  if (e instanceof CostCeilingExceededError) {
+    // Spec line 1255: labeling already done in executeInParallel; halt pipeline
+    log("⛔ Pipeline halted: cost ceiling exceeded.");
+  } else {
+    throw e;
   }
 }
 

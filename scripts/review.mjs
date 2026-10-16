@@ -170,7 +170,7 @@ function collectOverflowSkipped() {
 function collectScreenshotBaselines() {
   const items = [];
   try {
-    const diff = execSync('git diff --name-only -- tests/__screenshots__/', {
+    const diff = execSync('git diff --name-only -- e2e/__screenshots__/', {
       encoding: 'utf8',
       cwd: projectDir,
       stdio: ['pipe', 'pipe', 'pipe'],
@@ -183,7 +183,7 @@ function collectScreenshotBaselines() {
     }
 
     // Also check untracked new screenshots
-    const untracked = execSync('git ls-files --others --exclude-standard -- tests/__screenshots__/', {
+    const untracked = execSync('git ls-files --others --exclude-standard -- e2e/__screenshots__/', {
       encoding: 'utf8',
       cwd: projectDir,
       stdio: ['pipe', 'pipe', 'pipe'],

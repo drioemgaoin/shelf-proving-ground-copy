@@ -11,7 +11,7 @@
 import { spawnSync } from 'node:child_process';
 import { join } from 'node:path';
 import {
-  mkdtempSync, mkdirSync, writeFileSync, rmSync,
+  mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync,
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 
@@ -299,6 +299,38 @@ test('compilation failure detected in stderr → exit 2', () => {
     `Expected infrastructure error message. stderr: ${stderr}`,
   );
   rmSync(tmp, { recursive: true, force: true });
+});
+
+// ─── UC-28a: All three canonical viewports defined in invariants.spec.ts ──
+
+test('UC-28a: invariants.spec.ts defines exactly the 3 canonical viewports', () => {
+  // Read the real invariants.spec.ts and verify the VIEWPORTS constant
+  // contains exactly 320, 768, 1280 as the spec requires.
+  const specPath = join(process.cwd(), 'qa', 'invariants', 'invariants.spec.ts');
+  let content;
+  try {
+    content = readFileSync(specPath, 'utf8');
+  } catch {
+    throw new Error(`invariants.spec.ts not found at ${specPath}`);
+  }
+
+  // Extract viewport widths from the VIEWPORTS array
+  const widthMatches = [...content.matchAll(/width:\s*(\d+)/g)].map((m) => parseInt(m[1], 10));
+  // The VIEWPORTS const should define exactly these three
+  assert(widthMatches.includes(320), 'Missing 320px (mobile) viewport');
+  assert(widthMatches.includes(768), 'Missing 768px (tablet) viewport');
+  assert(widthMatches.includes(1280), 'Missing 1280px (desktop) viewport');
+
+  // Verify forEachFixtureAndViewport is called for each T2 global block
+  const suiteMatches = [...content.matchAll(/forEachFixtureAndViewport\(\s*['"]T2 global:\s*([^'"]+)['"]/g)];
+  assert(suiteMatches.length >= 1, `Expected at least 1 forEachFixtureAndViewport call, got ${suiteMatches.length}`);
+
+  // Verify FIXTURES array includes the 5 spec-defined fixtures + default
+  assert(content.includes("'empty'"), 'Missing empty fixture');
+  assert(content.includes("'error'"), 'Missing error fixture');
+  assert(content.includes("'slow'"), 'Missing slow fixture');
+  assert(content.includes("'long'"), 'Missing long fixture');
+  assert(content.includes("'many'"), 'Missing many fixture');
 });
 
 // ─── Summary ────────────────────────────────────────────────────

@@ -844,6 +844,51 @@ function runT1HookFull(tmpDir, toolName, toolInput) {
   rmSync(tmp, { recursive: true, force: true });
 }
 
+// ─── DEV-01: Conflicting T1 rules make file unwritable ──────────────
+
+{
+  // Two T1 rules with same pattern, overlapping scope, opposite assert values.
+  // Any content written to a matching file is blocked by one rule or the other.
+  const CONFLICTING_RULES = `# Conflicting rules
+
+- Must have async.
+
+  \`\`\`enforcement
+  id: "must-have-async"
+  tier: T1
+  - pattern: "async function"
+    assert: present
+    scope: "src/**/*.ts"
+    fix: "Add async keyword"
+  \`\`\`
+
+- Must not have async.
+
+  \`\`\`enforcement
+  id: "must-not-have-async"
+  tier: T1
+  - pattern: "async function"
+    assert: absent
+    scope: "src/**/*.ts"
+    fix: "Remove async keyword"
+  \`\`\`
+`;
+
+  const tmp = makeT1TempProject(CONFLICTING_RULES);
+
+  // Write WITH "async function" → blocked by must-not-have-async (assert: absent)
+  runT1Hook(tmp, 'Write',
+    { file_path: join(tmp, 'src/app.ts'), content: 'async function foo() {}' },
+    true, 'DEV-01: conflicting rules block write with pattern present');
+
+  // Write WITHOUT "async function" → blocked by must-have-async (assert: present)
+  runT1Hook(tmp, 'Write',
+    { file_path: join(tmp, 'src/app.ts'), content: 'function foo() {}' },
+    true, 'DEV-01: conflicting rules block write with pattern absent');
+
+  rmSync(tmp, { recursive: true, force: true });
+}
+
 // ─── Summary ────────────────────────────────────────────────────────
 
 console.log('');

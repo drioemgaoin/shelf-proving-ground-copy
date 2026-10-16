@@ -14,6 +14,7 @@ import {
   LABEL_TASK_COMMAND,
   COMMENT_TASK_COMMAND,
 } from "../config/tracker.mjs";
+import { MAX_GATE_ROUNDS } from "../config/constants.mjs";
 
 // ---------------------------------------------------------------------------
 // Gate descriptor
@@ -65,18 +66,16 @@ export interface GateContext {
 // Gate runner
 // ---------------------------------------------------------------------------
 
-const MAX_ROUNDS = 3;
-
 export async function runGateLoop(
   gate: Gate,
   ctx: GateContext,
   verbose: boolean,
-): Promise<void> {
-  for (let round = 1; round <= MAX_ROUNDS; round++) {
+): Promise<boolean> {
+  for (let round = 1; round <= MAX_GATE_ROUNDS; round++) {
     const findingsFile = gate.findingsFile(round);
     const findingsPath = `${ctx.worktree}/${findingsFile}`;
 
-    log(`  ${gate.name} round ${round}/${MAX_ROUNDS} for ${ctx.issueId}...`);
+    log(`  ${gate.name} round ${round}/${MAX_GATE_ROUNDS} for ${ctx.issueId}...`);
 
     // --- Checker ---
     gate.beforeCheck?.(round, ctx);
@@ -96,19 +95,19 @@ export async function runGateLoop(
     // --- Evaluate result ---
     if (isClean(findingsPath, gate.passWord)) {
       log(`  ${gate.name} clean for ${ctx.issueId} after ${round} round(s).`);
-      return;
+      return false;
     }
 
     if (isClean(findingsPath, "DEFER")) {
       log(`  ${gate.name} deferred for ${ctx.issueId}. Escalating.`);
       escalate(ctx.issueId, `${gate.name} found only deferred issues.`);
-      return;
+      return true;
     }
 
-    if (round === MAX_ROUNDS) {
+    if (round === MAX_GATE_ROUNDS) {
       log(`  ${gate.name} still failing. Escalating ${ctx.issueId}.`);
-      escalate(ctx.issueId, `${gate.name} loop exhausted after ${MAX_ROUNDS} rounds.`);
-      return;
+      escalate(ctx.issueId, `${gate.name} loop exhausted after ${MAX_GATE_ROUNDS} rounds.`);
+      return true;
     }
 
     if (gate.detectOscillation?.(round, ctx)) {
@@ -117,7 +116,7 @@ export async function runGateLoop(
         ctx.issueId,
         `${gate.name} oscillation at round ${round}: findings re-target locations from round ${round - 1}. Needs human tiebreak.`,
       );
-      return;
+      return true;
     }
 
     // --- Fixer ---
@@ -137,6 +136,7 @@ export async function runGateLoop(
     });
     gate.afterFix?.(round, ctx);
   }
+  return false;
 }
 
 // ---------------------------------------------------------------------------
@@ -164,12 +164,18 @@ export function archiveTestResults(worktree: string, label: string): void {
   execSync(`mv ${JSON.stringify(src)} ${JSON.stringify(dest)}`);
 }
 
+/** Escape a string for safe interpolation inside double-quoted shell arguments. */
+function shellEscapeDoubleQuoted(s: string): string {
+  return s.replace(/[\\"`$!]/g, "\\$&");
+}
+
 export function escalate(issueId: string, reason: string): void {
   execSync(LABEL_TASK_COMMAND.replace("<ID>", issueId));
+  const safeComment = shellEscapeDoubleQuoted(`${reason} Needs human review.`);
   execSync(
     COMMENT_TASK_COMMAND.replace("<ID>", issueId).replace(
       "<COMMENT>",
-      `${reason} Needs human review.`,
+      safeComment,
     ),
   );
 }

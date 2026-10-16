@@ -708,6 +708,34 @@ test('T3 triage_exempt > 10 → error', () => {
   rmSync(tmp, { recursive: true, force: true });
 });
 
+// ─── TGF-22: T3 total > 200 → warning (exit 0) ─────────────────────
+
+test('T3 total > 200 → warning (exit 0)', () => {
+  let rules = '# Test rules\n\n';
+  for (let i = 0; i < 201; i++) {
+    rules += `- T3 rule ${i}.
+
+  \`\`\`enforcement
+  id: t3-200-${i}
+  tier: T3
+  agent: reviewer
+  scope: src/**/*.ts
+  instruction: "Check rule ${i}"
+  triage_hint: "rule ${i}"
+  \`\`\`
+
+`;
+  }
+  const tmp = makeTempProject({
+    '.claude/rules/test.md': rules,
+  });
+  const { exitCode, stdout } = runAudit(tmp);
+  assert(exitCode === 0, `Expected exit 0 (warning not error), got ${exitCode}. Output: ${stdout}`);
+  assert(stdout.includes('200'), `Expected mention of 200 limit: ${stdout}`);
+  assert(stdout.includes('suggest narrowing'), `Expected "suggest narrowing" in output: ${stdout}`);
+  rmSync(tmp, { recursive: true, force: true });
+});
+
 // ─── UC-16v: T3 total > 150 → warning (exit 0) ─────────────────────
 
 test('T3 total > 150 → warning', () => {
@@ -835,6 +863,236 @@ test('Human-tier only created entry → warning', () => {
   const { exitCode, stdout } = runAudit(tmp);
   assert(exitCode === 0, `Expected exit 0 (created-only is warning), got ${exitCode}. Output: ${stdout}`);
   assert(stdout.includes('only "created" entry'), `Expected created-only warning: ${stdout}`);
+  rmSync(tmp, { recursive: true, force: true });
+});
+
+// ─── UC-59: T3 reviewer scope > 50% files without exclude → warning ──
+
+test('T3 reviewer scope > 50% without exclude → warning (exit 0)', () => {
+  const tmp = makeTempProject({
+    '.claude/rules/test.md': `# Test rules
+
+- Check things broadly.
+
+  \`\`\`enforcement
+  id: broad-reviewer
+  tier: T3
+  agent: reviewer
+  scope: "src/**/*.ts"
+  group: catch-all
+  instruction: "Check each file for issues."
+  \`\`\`
+`,
+  });
+
+  // Mock git: return a known file list where src/**/*.ts matches >50%.
+  // 5 .ts files out of 6 total = 83% match.
+  const mockBinDir = join(tmp, '.mockbin');
+  mkdirSync(mockBinDir, { recursive: true });
+  writeFileSync(join(mockBinDir, 'git'), `#!/bin/sh
+if [ "$1" = "ls-files" ]; then
+  echo "src/a.ts"
+  echo "src/b.ts"
+  echo "src/c.ts"
+  echo "src/d.ts"
+  echo "src/e.ts"
+  echo "README.md"
+  exit 0
+fi
+exit 0
+`, { mode: 0o755 });
+
+  const origPath = process.env.PATH;
+  try {
+    const { exitCode, stdout } = (() => {
+      try {
+        const out = execFileSync('node', [SCRIPT], {
+          env: { ...process.env, CLAUDE_PROJECT_DIR: tmp, PATH: `${mockBinDir}:${origPath}` },
+          cwd: tmp,
+          stdio: ['pipe', 'pipe', 'pipe'],
+          encoding: 'utf8',
+        });
+        return { exitCode: 0, stdout: out, stderr: '' };
+      } catch (e) {
+        return { exitCode: e.status, stdout: e.stdout ?? '', stderr: e.stderr ?? '' };
+      }
+    })();
+    // Warning only, not error — exit 0
+    assert(exitCode === 0, `Expected exit 0 (warning only), got ${exitCode}. Output: ${stdout}`);
+    assert(stdout.includes('broad-reviewer'), `Expected rule ID in warning: ${stdout}`);
+    assert(stdout.includes('5/6'), `Expected 5/6 match count: ${stdout}`);
+    assert(stdout.includes('without exclude'), `Expected "without exclude" in warning: ${stdout}`);
+  } finally {
+    // no PATH mutation on current process — env override was on child only
+  }
+  rmSync(tmp, { recursive: true, force: true });
+});
+
+// ─── Boundary: exactly 10 scopeless reviewer rules → exit 0 (at limit) ──
+
+test('exactly 10 scopeless reviewer rules → exit 0 (at limit, not over)', () => {
+  let rules = '# Test rules\n\n';
+  for (let i = 0; i < 10; i++) {
+    rules += `- Scopeless rule ${i}.
+
+  \`\`\`enforcement
+  id: scopeless-bnd-${i}
+  tier: T3
+  agent: reviewer
+  instruction: "Check rule ${i}."
+  triage_hint: "rule ${i}"
+  \`\`\`
+
+`;
+  }
+  const tmp = makeTempProject({ '.claude/rules/test.md': rules });
+  const { exitCode, stdout } = runAudit(tmp);
+  assert(exitCode === 0, `Expected exit 0 (10 is at limit), got ${exitCode}. Output: ${stdout}`);
+  rmSync(tmp, { recursive: true, force: true });
+});
+
+// ─── Boundary: exactly 10 triage-exempt rules → exit 0 (at limit) ──
+
+test('exactly 10 triage-exempt rules → exit 0 (at limit, not over)', () => {
+  let rules = '# Test rules\n\n';
+  for (let i = 0; i < 10; i++) {
+    rules += `- Exempt rule ${i}.
+
+  \`\`\`enforcement
+  id: exempt-bnd-${i}
+  tier: T3
+  agent: reviewer
+  scope: "src/**/*.ts"
+  instruction: "Check rule ${i}."
+  triage_hint: "rule ${i}"
+  triage_exempt: true
+  \`\`\`
+
+`;
+  }
+  const tmp = makeTempProject({ '.claude/rules/test.md': rules });
+  const { exitCode, stdout } = runAudit(tmp);
+  assert(exitCode === 0, `Expected exit 0 (10 is at limit), got ${exitCode}. Output: ${stdout}`);
+  rmSync(tmp, { recursive: true, force: true });
+});
+
+// ─── Boundary: priority exactly 4 → valid (at upper limit) ──
+
+test('priority exactly 4 → valid (at upper boundary)', () => {
+  const tmp = makeTempProject({
+    '.claude/rules/test.md': `# Test rules
+
+- Rule with max priority.
+
+  \`\`\`enforcement
+  id: priority-max
+  tier: T3
+  agent: reviewer
+  scope: "src/**/*.ts"
+  instruction: "Check each file."
+  triage_hint: "check"
+  priority: 4
+  \`\`\`
+`,
+  });
+  const { exitCode, stdout } = runAudit(tmp);
+  assert(exitCode === 0, `Expected exit 0 (priority 4 is valid), got ${exitCode}. Output: ${stdout}`);
+  assert(!stdout.includes('priority'), `Expected no priority error/warning. Output: ${stdout}`);
+  rmSync(tmp, { recursive: true, force: true });
+});
+
+// ─── TGF-21: T3 deterministic instruction → promotion-candidate warning ──
+
+test('T3 deterministic instruction → promotion-candidate warning (exit 0)', () => {
+  const tmp = makeTempProject({
+    '.claude/rules/test.md': `# Test rules
+
+- Scan for forbidden pattern.
+
+  \`\`\`enforcement
+  id: deterministic-t3
+  tier: T3
+  agent: reviewer
+  scope: src/**/*.ts
+  instruction: "scan for pattern disallowed_import in each file"
+  triage_hint: "import check"
+  \`\`\`
+`,
+  });
+  const { exitCode, stdout } = runAudit(tmp);
+  assert(exitCode === 0, `Expected exit 0 (warning only), got ${exitCode}. Output: ${stdout}`);
+  assert(stdout.includes('promotion'), `Expected "promotion" in output: ${stdout}`);
+  assert(stdout.includes('deterministic-t3'), `Expected rule ID in warning: ${stdout}`);
+  rmSync(tmp, { recursive: true, force: true });
+});
+
+test('T3 non-deterministic instruction → no promotion warning', () => {
+  const tmp = makeTempProject({
+    '.claude/rules/test.md': `# Test rules
+
+- Check visual consistency.
+
+  \`\`\`enforcement
+  id: non-deterministic-t3
+  tier: T3
+  agent: reviewer
+  scope: src/**/*.ts
+  instruction: "Verify that button labels are descriptive and action-oriented"
+  triage_hint: "button labels"
+  \`\`\`
+`,
+  });
+  const { exitCode, stdout } = runAudit(tmp);
+  assert(exitCode === 0, `Expected exit 0, got ${exitCode}. Output: ${stdout}`);
+  assert(!stdout.includes('promotion'), `Expected no promotion warning for non-deterministic instruction: ${stdout}`);
+  rmSync(tmp, { recursive: true, force: true });
+});
+
+// ─── TGF-23: T3 reviewer missing triage_hint → warning (exit 0) ────
+
+test('T3 reviewer missing triage_hint → warning (exit 0)', () => {
+  const tmp = makeTempProject({
+    '.claude/rules/test.md': `# Test rules
+
+- Review code quality.
+
+  \`\`\`enforcement
+  id: reviewer-no-hint
+  tier: T3
+  agent: reviewer
+  scope: src/**/*.ts
+  instruction: "Check code quality"
+  \`\`\`
+`,
+  });
+  const { exitCode, stdout } = runAudit(tmp);
+  assert(exitCode === 0, `Expected exit 0 (warning only), got ${exitCode}. Output: ${stdout}`);
+  assert(stdout.includes('missing triage_hint'), `Expected "missing triage_hint" in output: ${stdout}`);
+  assert(stdout.includes('reviewer-no-hint'), `Expected rule ID in warning: ${stdout}`);
+  rmSync(tmp, { recursive: true, force: true });
+});
+
+// ─── TGF-24: T3 missing instruction → error (exit 1) ────────────────
+
+test('T3 missing instruction → error (exit 1)', () => {
+  const tmp = makeTempProject({
+    '.claude/rules/test.md': `# Test rules
+
+- T3 rule without instruction.
+
+  \`\`\`enforcement
+  id: t3-no-instruction
+  tier: T3
+  agent: reviewer
+  scope: src/**/*.ts
+  triage_hint: "some hint"
+  \`\`\`
+`,
+  });
+  const { exitCode, stdout } = runAudit(tmp);
+  assert(exitCode === 1, `Expected exit 1, got ${exitCode}. Output: ${stdout}`);
+  assert(stdout.includes('missing required field: instruction'), `Expected missing instruction error: ${stdout}`);
+  assert(stdout.includes('t3-no-instruction'), `Expected rule ID in error: ${stdout}`);
   rmSync(tmp, { recursive: true, force: true });
 });
 

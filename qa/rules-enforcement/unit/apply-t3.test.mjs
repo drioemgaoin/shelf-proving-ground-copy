@@ -940,6 +940,140 @@ test('tiktoken unavailable → word-count fallback produces payloads', () => {
   rmSync(tmp, { recursive: true, force: true });
 });
 
+// ─── Shell injection: malformed diffRef must not execute commands ────
+
+test('malformed diffRef with shell metacharacters → fail-open, no command execution', () => {
+  // One visual-qa rule so the script produces output (not zero-block exit 0)
+  const tmp = makeTempProject({
+    '.claude/rules/test.md': `# Rules
+
+- Check spacing.
+
+  \`\`\`enforcement
+  id: "spacing-check"
+  tier: T3
+  agent: visual-qa
+  scope: "*"
+  group: layout
+  instruction: "Check each element spacing."
+  \`\`\`
+`,
+  });
+  setupGitEmpty(tmp);
+
+  // Inject shell metacharacters via diffRef. If unsanitized, this would
+  // create a marker file. The test asserts the file does NOT exist.
+  const marker = join(tmp, 'INJECTED');
+  const malicious = `HEAD; touch ${JSON.stringify(marker)}`;
+
+  const { exitCode, stderr } = runApplyT3(tmp, ['ticket-inject', malicious]);
+  // Script should either fail-open (git diff error) or exit cleanly.
+  // It must NOT have executed the touch command.
+  assert(!existsSync(marker), 'Shell injection executed — marker file created');
+  // The git diff failure triggers fail-open warning
+  assert(
+    stderr.includes('fail') || stderr.includes('warning') || exitCode === 0,
+    `Expected fail-open or clean exit, got exitCode=${exitCode}. stderr: ${stderr}`,
+  );
+
+  rmSync(tmp, { recursive: true, force: true });
+});
+
+// ─── Boundary: exactly 80 non-exempt → no triage (single payload) ───
+
+test('exactly 80 non-exempt reviewer rules → single payload, no triage', () => {
+  const rules = generateReviewerRules(80);
+  const tmp = makeTempProject({ '.claude/rules/test.md': rules });
+  setupGitWithDiff(tmp, 'src/foo.ts', 'const x = 1;', 'const x = 2;');
+
+  const { exitCode, stderr } = runApplyT3(tmp, ['ticket-bnd-80', 'HEAD~1']);
+  assert(exitCode === 0, `Expected exit 0 (no triage needed), got ${exitCode}. stderr: ${stderr}`);
+  assert(!stderr.includes('triage'), `Expected no triage activation with exactly 80 rules. stderr: ${stderr}`);
+
+  const payloads = readPayloads(tmp, 'ticket-bnd-80');
+  assert(payloads.length >= 1, 'Expected at least 1 payload file');
+
+  rmSync(tmp, { recursive: true, force: true });
+});
+
+// ─── Boundary: exactly 81 non-exempt → triage activates ────────────
+
+test('exactly 81 non-exempt reviewer rules → triage activates (exit 3)', () => {
+  const rules = generateReviewerRules(81);
+  const tmp = makeTempProject({ '.claude/rules/test.md': rules });
+  setupGitWithDiff(tmp, 'src/foo.ts', 'const x = 1;', 'const x = 2;');
+
+  const { exitCode, stderr } = runApplyT3(tmp, ['ticket-bnd-81', 'HEAD~1']);
+  assert(exitCode === 3, `Expected exit 3 (triage needed), got ${exitCode}. stderr: ${stderr}`);
+
+  rmSync(tmp, { recursive: true, force: true });
+});
+
+// ─── TGF-29: payload output format — no raw placeholders, no empty files ───
+
+test('TGF-29: payload files contain no raw {{T3_*}} placeholders and are non-empty', () => {
+  const tmp = makeTempProject({
+    '.claude/rules/test.md': RULES_WITH_BOTH_AGENTS,
+  });
+  setupGitWithDiff(tmp, 'src/foo.css', 'body {}', 'body { color: red; }');
+
+  const { exitCode, stderr } = runApplyT3(tmp, ['ticket-tgf29', 'HEAD~1']);
+  assert(exitCode === 0, `Expected exit 0, got ${exitCode}. stderr: ${stderr}`);
+
+  const dir = join(tmp, '.sandcastle', 'payloads', 'ticket-tgf29');
+  assert(existsSync(dir), 'Expected payload directory to exist');
+
+  const mdFiles = readdirSync(dir).filter((f) => f.endsWith('.md'));
+  assert(mdFiles.length > 0, 'Expected at least one .md payload file');
+
+  for (const f of mdFiles) {
+    const content = readFileSync(join(dir, f), 'utf8');
+    assert(content.length > 0, `Payload file ${f} is empty (0 bytes)`);
+    assert(
+      !/\{\{T3_[A-Z_]+\}\}/.test(content),
+      `Payload file ${f} contains raw {{T3_*}} placeholder: ${content.match(/\{\{T3_[A-Z_]+\}\}/)?.[0]}`,
+    );
+  }
+
+  rmSync(tmp, { recursive: true, force: true });
+});
+
+test('TGF-29: zero-match fallback files also placeholder-free and non-empty', () => {
+  const tmp = makeTempProject({
+    '.claude/rules/test.md': `# Test rules
+
+- A T1 rule only.
+
+  \`\`\`enforcement
+  id: "t1-only"
+  tier: T1
+  scope: "src/**/*.ts"
+  pattern: "badThing"
+  rule: "No bad things"
+  fix: "Remove it"
+  \`\`\`
+`,
+  });
+  setupGitWithDiff(tmp, 'src/foo.ts', 'const x = 1;', 'const x = 2;');
+
+  const { exitCode } = runApplyT3(tmp, ['ticket-tgf29-zero', 'HEAD~1']);
+  assert(exitCode === 0, `Expected exit 0, got ${exitCode}`);
+
+  const dir = join(tmp, '.sandcastle', 'payloads', 'ticket-tgf29-zero');
+  const mdFiles = readdirSync(dir).filter((f) => f.endsWith('.md'));
+
+  for (const f of mdFiles) {
+    const content = readFileSync(join(dir, f), 'utf8');
+    assert(content.length > 0, `Fallback file ${f} is empty`);
+    assert(
+      !/\{\{T3_[A-Z_]+\}\}/.test(content),
+      `Fallback file ${f} contains raw {{T3_*}} placeholder`,
+    );
+  }
+
+  rmSync(tmp, { recursive: true, force: true });
+});
+
 // ─── Summary ────────────────────────────────────────────────────────
 
 console.log('');

@@ -12,8 +12,8 @@ import { z } from "zod";
 import { log } from "./logging.mjs";
 import { expandAndSave } from "./prompt.mjs";
 import { type SandboxHooks, getGuardBase } from "./sandbox.mjs";
-import { timedRun, timedSandboxRun } from "./tagged-agent.mjs";
-import { runGateLoop, type GateContext } from "./qa-gates.mjs";
+import { timedRun, timedSandboxRun, CostCeilingExceededError } from "./tagged-agent.mjs";
+import { runGateLoop, escalate, type GateContext } from "./qa-gates.mjs";
 import { createVisualGate, createReviewGate } from "./gates.mjs";
 import {
   PLANNER,
@@ -149,13 +149,32 @@ export async function executeInParallel(
     }
   }
 
-  // Return only issues that produced commits
+  // Spec line 1255: "Cumulative LLM spend ≥ cost ceiling → pipeline-budget-exceeded:
+  // Full pipeline halt, label all in-flight tickets"
+  const budgetHit = settled.some(
+    (s) => s.status === "rejected" && s.reason instanceof CostCeilingExceededError,
+  );
+  if (budgetHit) {
+    log("  ⛔ Cost ceiling exceeded — labeling all in-flight tickets.");
+    for (const issue of issues) {
+      try {
+        const cmd = labelCmd.replace("<ID>", issue.id).replace("ready-for-human", "pipeline-budget-exceeded");
+        execSync(cmd, { encoding: "utf8" });
+      } catch {
+        log(`  ⚠️  Failed to label ${issue.id} with pipeline-budget-exceeded`);
+      }
+    }
+    throw new CostCeilingExceededError(0, 0); // re-throw to halt the pipeline
+  }
+
+  // Return only issues that produced commits and were not escalated
   return settled
     .map((outcome, i) => ({ outcome, issue: issues[i]! }))
     .filter(
       (entry) =>
         entry.outcome.status === "fulfilled" &&
-        (entry.outcome as PromiseFulfilledResult<{ commits: unknown[] }>).value.commits.length > 0,
+        (entry.outcome as PromiseFulfilledResult<RunResult>).value.commits.length > 0 &&
+        !(entry.outcome as PromiseFulfilledResult<RunResult>).value.escalated,
     )
     .map((entry) => entry.issue);
 }
@@ -163,6 +182,7 @@ export async function executeInParallel(
 interface RunResult {
   commits: Array<{ sha: string }>;
   iterations: ReadonlyArray<unknown>;
+  escalated: boolean;
 }
 
 async function executeIssue(
@@ -185,11 +205,20 @@ async function executeIssue(
     const impl = await runImplementer(issue, sandbox, opts);
     log(`  Implementer done for ${issue.id}. ${impl.commits.length} commit(s).`);
 
-    if (impl.commits.length > 0) {
-      await runQAGates(issue, sandbox, opts);
+    // Spec line 1118: "Exhaustion: 100 iterations → escalate
+    // implementer-exhaustion. Do NOT proceed to gates."
+    if (impl.iterations.length >= IMPLEMENTER_MAX_ITERATIONS) {
+      log(`  ⚠️  Implementer exhausted for ${issue.id} (${impl.iterations.length} iterations). Escalating.`);
+      escalate(issue.id, "implementer-exhaustion");
+      return { ...impl, escalated: true };
     }
 
-    return impl;
+    let escalated = false;
+    if (impl.commits.length > 0) {
+      escalated = await runQAGates(issue, sandbox, opts);
+    }
+
+    return { ...impl, escalated };
   } finally {
     await sandbox.close();
     log(`  Sandbox closed for ${issue.id}.`);
@@ -221,18 +250,20 @@ async function runImplementer(
   );
   return timedSandboxRun(`Implementer [${issue.id}]`, IMPLEMENTER, sandbox, {
     name: "implementer",
-    maxIterations: 100,
+    maxIterations: IMPLEMENTER_MAX_ITERATIONS,
     logging: loggingConfig("implementer", opts.verbose, issue.id),
     promptFile: "./.sandcastle/prompts/implementer.prompt.md",
     promptArgs: implArgs,
   });
 }
 
+const IMPLEMENTER_MAX_ITERATIONS = 100;
+
 async function runQAGates(
   issue: PlannedIssue,
   sandbox: sandcastle.Sandbox,
   opts: ExecuteOptions,
-): Promise<void> {
+): Promise<boolean> {
   const worktree = `.sandcastle/worktrees/sandcastle-issue-${issue.id}`;
   const issueDetails = opts.issueDetails.get(issue.id)!;
 
@@ -254,8 +285,10 @@ async function runQAGates(
   ];
 
   for (const gate of gates) {
-    await runGateLoop(gate, ctx, opts.verbose);
+    const escalated = await runGateLoop(gate, ctx, opts.verbose);
+    if (escalated) return true;
   }
+  return false;
 }
 
 // ---------------------------------------------------------------------------
@@ -284,7 +317,7 @@ export async function mergeCompleted(
     hooks: opts.hooks,
     sandbox: docker({ imageName: opts.warmImage }),
     name: "merger",
-    maxIterations: 1,
+    maxIterations: 3,
     logging: loggingConfig("merger", opts.verbose),
     promptFile: "./.sandcastle/prompts/merger.prompt.md",
     promptArgs: mergerArgs,

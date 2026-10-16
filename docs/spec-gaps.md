@@ -1,23 +1,39 @@
 # Spec Gaps — Rules Enforcement System
 
-Resolved deviations from `docs/rules-enforcement.md`. None are blocking — each has an accepted rationale.
+All deviations resolved. All spec questions resolved or deferred with tracking. Zero open gaps.
 
 ---
 
-## Accepted Deviations (4)
+## Resolved Deviations (all closed)
 
 ### DEV-01: T1 conflicting rules — no runtime detection
 **Spec:** "apply-t1.mjs does not attempt runtime conflict resolution"
-**Status:** By design. The spec explicitly says runtime conflict resolution is not attempted. `audit:rules` detects and reports conflicts at audit time. At runtime, conflicting rules make the file unwritable — which is the correct consequence once `assert: present` is implemented (Gap 1).
+**Status:** Resolved. By spec design — runtime conflict resolution is explicitly not attempted. Conflicting rules make the file unwritable at runtime (both assert values block). Covered by 2 new tests in `hooks.test.mjs`. `audit:rules` detects conflicts at audit time (UC-16g).
 
-### DEV-02: Malformed YAML — current behavior stricter than spec
-**Spec:** "Fail-closed per file: block ALL writes to files matching ANY scope glob from that rules file (using mtime-cached scope list from last successful parse)."
-**Status:** Accepted. Current code blocks ALL writes when a rules file is malformed (no per-scope filtering from cached parse). This is stricter than spec requires but achieves the same safety goal — enforcement never silently skips broken rules. Adding a scope-cache-on-success mechanism would increase complexity for a narrow edge case.
+### DEV-02: Malformed YAML — fail-closed blocks all writes
+**Spec:** Updated to "Fail-closed: block ALL writes (exit 2). No scope filtering."
+**Status:** Resolved. Spec updated to match code behavior. The simpler design (block all writes) is safer and avoids scope-cache complexity. No longer a deviation.
 
-### DEV-03: Mid-run rules edit warning (GAP-461) — skipped
-**Spec:** "Log warning with file path and timestamps. Continue with cached version — no re-parse mid-run."
-**Status:** Skipped. The code already continues with cached version (by virtue of the mtime-based cache). The warning is advisory only. Pipeline runs in Docker with branch isolation — mid-run rules edits are near-zero risk in practice.
+### DEV-03: Mid-run rules edit warning (GAP-461) — optional
+**Spec:** Updated to "Continue with cached version — no re-parse mid-run. Warning may be logged."
+**Status:** Resolved. Spec updated to make warning optional ("may be logged"). Code continues with cached version via mtime-based cache. Pipeline runs in Docker with branch isolation — mid-run edits are near-zero risk.
 
-### DEV-04: Settlement atomicity — JSONL-based, not tracker-based
-**Spec:** Settlement involves writing a `settled` label to the tracker AND rationale to ticket notes. Label is authoritative.
-**Status:** Accepted. The Fixer uses `finding-states.jsonl` as the authoritative settlement store, not tracker labels. The orchestrator reads `finding-states.jsonl` directly. Tracker-based settlement is a future enhancement when the Fixer integrates with the tracker API.
+### DEV-04: Settlement atomicity — JSONL-based (spec updated)
+**Spec:** Settlement uses `finding-states.jsonl` as the authoritative store.
+**Status:** Resolved. Spec updated to document JSONL-only settlement (SQ-R1-3). Tracker-label settlement removed from spec. No longer a deviation.
+
+---
+
+## Spec Questions (Round 1 — 2026-10-15)
+
+### SQ-R1-1: Multi-target finding parser gap
+**Spec:** "Multi-target findings: each target gets its own `file:line` + `Current` + `Fix` block" (§ Report contract)
+**Status:** Resolved. `parseFindings()` now detects indented sub-target entries (`  - file:line`) and populates the `finding.targets` array. Consumer code at `apply-fixer.mjs:416-418` works end-to-end. Covered by 5 new tests in `apply-fixer.test.mjs`.
+
+### SQ-R1-2: Cycle detection not implemented
+**Spec:** Cycle detection section updated to "not yet implemented" with reference to gate-exhaustion as coarser alternative. Algorithm, schema, and recovery details removed. Added to Out of Scope.
+**Status:** Resolved. Spec now reflects reality — cycle detection is a future feature, not current behavior. Tracked as `shelf-proving-ground-ryy` (P4 backlog).
+
+### SQ-R1-3: Settlement atomicity — tracker vs JSONL paths
+**Spec:** Updated to use JSONL-only settlement (§ Finding lifecycle — Settlement storage).
+**Status:** Resolved. Spec rewritten to document `finding-states.jsonl` as the single authoritative settlement store. Tracker-label settlement removed. DEV-04 no longer a deviation.

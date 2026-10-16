@@ -12,6 +12,9 @@ export const CREATE_BUG_COMMAND =
   'bd create --type=bug --label=ready-for-human --title="<TITLE>" --description="<DESCRIPTION>"';
 export const LABEL_TASK_COMMAND = "bd label add <ID> ready-for-human";
 
+export const SEARCH_BUGS_COMMAND = 'bd search "<QUERY>" --status open --json';
+export const CLOSE_BUG_COMMAND = 'bd close <ID> --reason="Auto-closed by Global T2"';
+
 /** Override commands for --tickets mode (no real tracker). */
 export const TICKET_OVERRIDES = {
   VIEW_TASK_COMMAND: "",

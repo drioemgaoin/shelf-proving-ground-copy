@@ -66,3 +66,6 @@ playwright-report/
 
 # Temporary tickets
 tickets/
+
+# Test gap finder working directory
+.test-gap-finder/

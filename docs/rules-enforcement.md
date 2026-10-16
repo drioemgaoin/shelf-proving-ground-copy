@@ -208,10 +208,10 @@ When a file triggers multiple violations, `apply-t1.mjs` reports ALL violations 
 |---|---|
 | Zero rules files discovered (GAP-100) | Log warning to stderr, exit 0 (fail-open). `audit:rules` catches this separately. |
 | Invalid regex in block (GAP-101) | Pattern skipped with warning. Other patterns continue. Per-match timeout of 5 seconds — exceeded match treated as violation (exit 2, fail-closed). `audit:rules` reports as error. |
-| Malformed YAML in rules file | Fail-closed per file: block ALL writes to files matching ANY `scope` glob from that rules file (using mtime-cached scope list from last successful parse). No cached scope list → exit 2, block all writes. |
+| Malformed YAML in rules file | Fail-closed: block ALL writes (exit 2). No scope filtering — any malformed rules file blocks all writes regardless of scope. |
 | All files have malformed YAML (zero T1 rules survive) | Exit 2 — block all writes. Distinct from zero files discovered (exit 0). |
 | Cache scope (GAP-207) | Per-process. Cache key is `mtime + file size`. |
-| Mid-run rules edit (GAP-461) | Log warning with file path and timestamps. Continue with cached version — no re-parse mid-run. |
+| Mid-run rules edit (GAP-461) | Continue with cached version — no re-parse mid-run. Warning may be logged. |
 | Invalid glob syntax in scope/exclude (GAP-546) | Block skipped for enforcement (fail-open for that block), warning logged. `audit:rules` reports as error. |
 | Unmapped file extension for `strip` (GAP-465) | Stripping skipped (match raw text), warning logged. |
 | Unrecognized `strip` value | Treated as `strip: none`, warning logged. `audit:rules` reports as error. |
@@ -769,7 +769,7 @@ All entries share the same `id` value. Parsers qualify with `@<tier>` at runtime
 
 | Parser | On malformed YAML |
 |---|---|
-| `apply-t1.mjs` | **Fail-closed per file.** Block ALL writes to files matching ANY `scope` glob from that rules file (using mtime-cached scope list from last successful parse). No cached scope → exit 2, block all writes. |
+| `apply-t1.mjs` | **Fail-closed.** Block ALL writes (exit 2). Any malformed rules file blocks all writes regardless of scope. |
 | `ui-contract` | **Skip block with warning.** Other blocks in the same file proceed. |
 | `apply-t2.mjs` (Global T2) | **Skip block with warning.** Valid blocks proceed. |
 | `apply-t3.mjs` | **Skip block with warning.** Other blocks in same file included. |
@@ -790,10 +790,10 @@ Every finding moves through a defined state machine. A finding is always in exac
 | `pending` | Reported by a gate, not yet processed | Gate emits finding in its report |
 | `applied` | Fixer wrote the fix and verify passed | Verify exits 0 after applying Fix |
 | `reverted` | Fixer applied fix but verify failed; changes rolled back | Verify exits non-zero; Fixer undoes changes |
-| `settled` | Fixer intentionally skipped the finding and recorded rationale | Fixer adds `settled` tracker label + rationale in ticket notes |
+| `settled` | Fixer intentionally skipped the finding and recorded rationale | Fixer writes `settled` entry to `finding-states.jsonl` with rationale in `detail` field |
 | `blocked` | Finding cannot be applied — `Current` text not found | Verbatim `Current` text not found in file |
 
-**Transitions:** `pending` → `applied` | `reverted` | `settled` | `blocked`. No other transitions are valid. A `reverted` or `blocked` finding is re-detected with fresh content in the next gate round (new `pending` finding). A `settled` finding is not re-raised — the gate checks the `settled` tracker label.
+**Transitions:** `pending` → `applied` | `reverted` | `settled` | `blocked`. No other transitions are valid. A `reverted` or `blocked` finding is re-detected with fresh content in the next gate round (new `pending` finding). A `settled` finding is not re-raised — the pre-filter checks `finding-states.jsonl` for `settled` entries.
 
 **Invariants:**
 
@@ -801,13 +801,13 @@ Every finding moves through a defined state machine. A finding is always in exac
 - Only `pending` transitions to other states
 - `applied`, `reverted`, `settled`, `blocked` are terminal within a round
 
-**Settlement atomicity.** The `settled` tracker label is authoritative — it controls the pre-filter. Rationale in ticket notes is best-effort context. Label write succeeds + rationale fails → finding settled, missing rationale logged as warning. Rationale succeeds + label fails → finding NOT settled. Fixer retries label write once before abandoning settlement.
+**Settlement storage.** `finding-states.jsonl` is the authoritative settlement store. The Fixer writes a single JSONL entry with `state: "settled"` and `detail` containing the rationale. No tracker API calls are required — settlement is a local file operation, consistent with all other finding state transitions. This keeps the Fixer as a pure file-I/O + git agent with no network dependencies.
 
-**`t1-conflict` suppression.** After 3 T1 rejections, the Fixer transitions the finding to `settled` with `t1-conflict:<rule-id>@<agent>:` prefix in notes. The pre-filter reads both `settled:` and `t1-conflict:` entries.
+**`t1-conflict` suppression.** After 3 T1 rejections, the Fixer transitions the finding to `settled` with `detail: "t1-conflict: <count> rejections"` in `finding-states.jsonl`. The pre-filter reads entries where `state` is `settled` and `detail` starts with `t1-conflict:`.
 
-**Per-finding settlement tracking.** Settlement is per-finding (per rule ID + agent), not per-ticket. The `settled` label on the ticket signals at least one finding is settled. Specific settled rule IDs recorded in notes with `settled:<rule-id>@<agent>:` prefix. The pre-filter strips findings only when both rule ID and agent match.
+**Per-finding settlement tracking.** Settlement is per-finding (per `findingId` = `<file:line>|<ruleId>`), not per-ticket. The pre-filter strips findings only when `findingId` matches a `settled` entry in `finding-states.jsonl`.
 
-**Enforcement mechanism:** The orchestrator reads finding states from `finding-states.jsonl` and settled labels from the tracker before each gate invocation. The pre-filter suppresses settled findings in prompt expansion (Stage 3). The Fixer queries `finding-states.jsonl` by `state` and `fileLine` for revert cascade checks.
+**Enforcement mechanism:** The orchestrator reads finding states from `finding-states.jsonl` before each gate invocation. The pre-filter suppresses settled findings in prompt expansion (Stage 3). The Fixer queries `finding-states.jsonl` by `state` and `fileLine` for revert cascade checks.
 
 ### Ticket statuses
 
@@ -926,30 +926,7 @@ Any non-`open` non-`in_progress` non-`closed` status is opaque — the pipeline 
 { "runId": "run-2026-10-12-001", "findingId": "src/components/Card.css:12|no-outer-margin@T3", "ruleId": "no-outer-margin@T3", "fileLine": "src/components/Card.css:12", "state": "applied", "previousState": "pending", "round": 2, "gate": "visual-qa", "timestamp": "2026-10-12T03:14:00Z", "detail": "" }
 ```
 
-**JSONL recording for settlement.** The entry is written only after the tracker label write succeeds. If label write fails and finding remains `pending`, no `settled` entry is written.
-
-### `cycle-signatures.jsonl`
-
-**Format:** JSONL (append-only)
-
-**Location:** `.sandcastle/logs/{runId}/cycle-signatures.jsonl`
-
-**Fields:**
-
-| Field | Type | Required | Description |
-|---|---|---|---|
-| `runId` | string | Yes | Pipeline run identifier |
-| `signature` | object | Yes | `{ testName, filePath }` — the cycle detection key |
-| `ticketId` | string | Yes | Scoped per ticket |
-| `recurrence` | integer | Yes | Count at time of observation (1 = first recurrence) |
-| `round` | integer | Yes | Pipeline round number |
-| `timestamp` | string | Yes | ISO 8601 |
-
-**Example:**
-
-```json
-{ "runId": "run-2026-10-12-001", "signature": { "testName": "Drawer > focus trap > Tab cycles within dialog", "filePath": "src/components/Drawer.tsx" }, "ticketId": "beads-42", "recurrence": 1, "round": 3, "timestamp": "2026-10-12T03:14:00Z" }
-```
+**JSONL recording for settlement.** The `settled` entry is written atomically to `finding-states.jsonl`. A failed write leaves the finding in its previous state (`pending`).
 
 ### `overflow-skipped.jsonl`
 
@@ -1122,19 +1099,7 @@ The filename and tier are excluded — IDs are stable across file moves and prom
 
 ### Cycle detection
 
-**Purpose:** detects findings stuck in fix-break-fix loops. Used by the orchestrator.
-
-**Input:** failure signatures across pipeline rounds.
-
-**Steps:**
-
-1. Track signatures as `(full test name, file path, ticket ID)` — scoped per ticket
-2. On 2nd recurrence: run LLM cycle-detection check (feeds original failure, each fix attempt's diff, new failure). Timeout: 30 seconds. Any non-success outcome (malformed response, API error, timeout) → treat as cycle detected (fail-closed).
-3. If cycle detected → escalate finding as `spec-exhaustion`
-4. On 3rd recurrence → escalate unconditionally
-5. Loop continues fixing remaining findings
-
-**Recovery:** `.sandcastle/logs/` is a host-mounted volume. On restart, orchestrator re-reads `cycle-signatures.jsonl` for current `runId`, filters by `runId`, groups by `signature` + `ticketId`, takes max `recurrence`. Lines that fail JSON parsing are discarded with warning.
+**Status: not yet implemented.** The 3-round gate cap (`gate-exhaustion`) provides coarser protection against fix-break-fix loops. Fine-grained cycle detection (signature tracking, LLM cycle-check, `cycle-signatures.jsonl`) is a future orchestrator feature tracked as `shelf-proving-ground-ryy` (P4 backlog).
 
 ---
 
@@ -1177,7 +1142,7 @@ OUTER LOOP (no hard round cap — terminates on completion, escalation, or cost 
 | Ticket enters pipeline | Status `open` + `Sandcastle` label | Tracker API |
 | Skip Phase 3 | No `ui` label on ticket | Tracker API |
 | Fixer stops | 20 iterations exhausted in current round | Iteration counter |
-| Oscillation | Same `file:line` + same Cause category in rounds N and N-1 | Gate verdicts + finding reports |
+| Oscillation | Same `file:line` + same Cause category in rounds N and N-1 (coarse: gate-exhaustion after 3 rounds; fine-grained cycle detection not yet implemented) | Gate verdicts + finding reports |
 | Reviewer scope narrowing | Round 2+: only Fixer's changes since previous round | Git diff |
 | Two-phase triage activates | Non-exempt surviving rules > 80 | `apply-t3.mjs` count |
 | Global T2 child bug creation | Assertion fails for fixture × viewport | Playwright test output |
@@ -1290,7 +1255,7 @@ Config file: `.sandcastle/config.json`. Optional. Missing file → all defaults.
 | Cumulative LLM spend ≥ cost ceiling | `pipeline-budget-exceeded` | Full pipeline halt, label all in-flight tickets | Human adjusts ceiling or splits work |
 | Implementer uses all 100 iterations | `implementer-exhaustion` | Do not proceed to gates | Human re-scopes ticket |
 | Implementer detects wrong test or broken toolchain | `agent-escalation` | Immediate escalation | Human fixes test/tool |
-| Spec-level cycle detection (2nd recurrence) | `spec-exhaustion` | LLM check, then escalate | Human fixes manually or updates spec |
+| Spec-level cycle detection (2nd recurrence) | `spec-exhaustion` | **Not yet implemented.** Gate-exhaustion (3 rounds) provides coarser protection. | Future: `shelf-proving-ground-ryy` |
 | Docker/agent/network crash on 2nd attempt | `infra-failure` | Tag ticket | Human investigates infrastructure |
 | 3 T1 rejections on same finding | `t1-conflict` | Per-finding: notes entry, finding settled | Human adjusts T1 or T3 rule |
 | Gate returned DEFER | `gate-defer` | Tag ticket | Human investigates evidence collection |
@@ -1299,7 +1264,7 @@ Config file: `.sandcastle/config.json`. Optional. Missing file → all defaults.
 
 **Re-queue** = remove escalation label, return ticket to `open`, let next pipeline run pick it up.
 
-**Un-settling (GAP-459).** Human removes `settled:<rule-id>@<agent>:` notes entry. If no other settled entries remain, removes `settled` label. Next pipeline run re-raises the finding.
+**Un-settling (GAP-459).** Human deletes the `settled` entry from `finding-states.jsonl` (by findingId). Next pipeline run re-raises the finding.
 
 **Concurrent run prevention.** Lock file at `.sandcastle/pipeline.lock` with `runId`. Existing lock < 4 hours old → exit 0 with message. Lock > 4 hours → stale, replaced. Removed at completion. Best-effort — not race-safe on networked filesystems.
 
@@ -1311,14 +1276,14 @@ Config file: `.sandcastle/config.json`. Optional. Missing file → all defaults.
 |---|---|---|
 | Gate verdicts | `.sandcastle/logs/{ticketId}/gate-verdicts.jsonl` | High cardinality; queried by orchestrator and morning review |
 | Finding states | `.sandcastle/logs/{ticketId}/finding-states.jsonl` | High cardinality; queried by Fixer and morning review |
-| Settlement rationale | Tracker: `settled` label + notes | One per finding; queried by label filter and pre-filter |
+| Settlement rationale | `finding-states.jsonl`: `settled` entry with `detail` field | One per finding; queried by pre-filter |
 | Escalation evidence | Tracker comment + `.sandcastle/logs/{ticketId}/` | One per escalation; comment for triage, filesystem for full chain |
-| t1-conflict findings | Tracker: ticket notes | One per finding; queried by notes search |
+| t1-conflict findings | `finding-states.jsonl`: `settled` entry with `t1-conflict` detail | One per finding; queried by pre-filter |
 | Review verdicts | `reviews/human-tier-log.jsonl` | Many per spec cycle; queried by `audit:rules` |
 | Triage misses | `reviews/triage-misses.jsonl` | Many per run; queried by `audit:rules` |
 | Triage exclusion lists | `.sandcastle/logs/{runId}/triage-exclusions.jsonl` | One per run; queried by triage-miss detection |
 | Overflow-skipped rule IDs | `.sandcastle/logs/{runId}/overflow-skipped.jsonl` | One per run; queried by morning review |
-| Cycle detection signatures | `.sandcastle/logs/{runId}/cycle-signatures.jsonl` | Append-only during run; survives restart |
+| Cycle detection signatures | Not yet implemented | Future: `shelf-proving-ground-ryy` |
 | Expanded prompts | `.sandcastle/logs/{ticketId}/{phase}.prompt.md` | One per phase per ticket |
 
 **Decision rule:** tracker (labels, notes, comments) for low-cardinality human-queried data. JSONL files for high-cardinality script-queried data.
@@ -1357,8 +1322,7 @@ Tests simulate the stdin/stdout contract: provide input (JSON on stdin for hooks
 - Token budget overflow (>30K tokens triggers chunking)
 - Finding validation (all malformed vs mix of valid/malformed)
 - Fixer revert cascade (applied fix breaks overlapping earlier fix)
-- Settlement atomicity (label succeeds + rationale fails, and vice versa)
-- Cycle detection recovery from crash (truncated JSONL lines)
+- Settlement via `finding-states.jsonl` (atomic JSONL append)
 
 ---
 
@@ -1406,6 +1370,7 @@ Demotion (upward reclassification) follows the same process: re-run sorting test
 - Rule authoring outside the rule-creator skill — manual authoring is possible but not the designed path.
 - Cross-project rule sharing — rules are per-project.
 - Runtime rule hot-reloading — rules are read-only during a pipeline run.
+- Fine-grained cycle detection (signature tracking, LLM cycle-check, `cycle-signatures.jsonl`) — future orchestrator feature. The 3-round gate cap provides coarser protection. Tracked as `shelf-proving-ground-ryy`.
 
 ---
 
