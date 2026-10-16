@@ -31,7 +31,7 @@ Fix only what the findings describe. No refactoring, no new features, no "while 
 
 ## Completion
 
-Once done, output the completion signal below as the very last thing you write. After emitting this tag, do not make any more tool calls, do not write any more text, do not verify or clean up anything. The signal ends your turn.
+Once done, output the completion signal below as the **very last tokens you generate**. After emitting this tag, do not make any more tool calls, do not write any more text, do not explain what happens next, do not discuss the stop hook, do not verify or clean up anything. The signal is a hard stop — your turn ends the instant it appears.
 
 <promise>COMPLETE</promise>
 
