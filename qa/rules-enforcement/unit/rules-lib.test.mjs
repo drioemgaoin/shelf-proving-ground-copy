@@ -130,15 +130,25 @@ test('UC-02b: config missing → no error, standard paths only', () => {
   rmSync(tmp, { recursive: true, force: true });
 });
 
-// UC-02c: Config has invalid JSON → continues without error (silent catch)
-test('UC-02c: invalid JSON config → silent catch', () => {
+// UC-02c: Config has invalid JSON → exit 2
+test('UC-02c: invalid JSON config → exit 2', () => {
   const tmp = makeTempProject({
     '.sandcastle/config.json': '{{{not valid json',
     '.claude/rules/base.md': '# Base\n',
   });
-  const result = discoverRulesFiles(tmp);
-  assert(result.length === 1, `Expected 1 file, got ${result.length}`);
-  rmSync(tmp, { recursive: true, force: true });
+  const originalExit = process.exit;
+  let exitCode = null;
+  process.exit = (code) => { exitCode = code; throw new Error('EXIT'); };
+  try {
+    discoverRulesFiles(tmp);
+    assert.fail('Expected process.exit(2)');
+  } catch (e) {
+    assert(e.message === 'EXIT', `Unexpected error: ${e.message}`);
+    assert(exitCode === 2, `Expected exit code 2, got ${exitCode}`);
+  } finally {
+    process.exit = originalExit;
+    rmSync(tmp, { recursive: true, force: true });
+  }
 });
 
 // UC-02d: Extra path doesn't exist → skipped with stderr warning

@@ -37,16 +37,25 @@ test('UC-58a: missing config → defaults', () => {
   rmSync(tmp, { recursive: true, force: true });
 });
 
-// UC-58b: Invalid JSON → continues (silent error in discoverRulesFiles)
-test('UC-58b: invalid JSON config → continues without error', () => {
+// UC-58b: Invalid JSON → exit 2
+test('UC-58b: invalid JSON config → exit 2', () => {
   const tmp = makeTempProject({
     '.claude/rules/test.md': '# rules',
     '.sandcastle/config.json': '{not valid json!!!',
   });
-  // Should not throw, should still find standard rules
-  const files = discoverRulesFiles(tmp);
-  assert(files.length >= 1, `Expected at least 1 file, got ${files.length}`);
-  rmSync(tmp, { recursive: true, force: true });
+  const originalExit = process.exit;
+  let exitCode = null;
+  process.exit = (code) => { exitCode = code; throw new Error('EXIT'); };
+  try {
+    discoverRulesFiles(tmp);
+    assert.fail('Expected process.exit(2)');
+  } catch (e) {
+    assert(e.message === 'EXIT', `Unexpected error: ${e.message}`);
+    assert(exitCode === 2, `Expected exit code 2, got ${exitCode}`);
+  } finally {
+    process.exit = originalExit;
+    rmSync(tmp, { recursive: true, force: true });
+  }
 });
 
 // UC-58c: Missing key → default for that key (extraPaths not present)

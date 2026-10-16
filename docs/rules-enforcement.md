@@ -86,13 +86,13 @@ Each parser consumes enforcement blocks produced by the rule-creator skill. The 
 1. Scan `.claude/rules/` (Claude Code native)
 2. Scan `.cursor/rules/` (Cursor native)
 3. Scan for `CODING_STANDARDS.md` at project root
-4. Read additional paths from `.sandcastle/config.json` key `rules.extraPaths` (array of globs)
+4. Read additional paths from `.sandcastle/config.json` key `rules.extraPaths` (array of file paths, resolved relative to project root)
 
 **Path validation.** Every resolved path is validated before inclusion:
 
 1. The path must be a regular file (directories, device nodes, and other non-file entries are skipped with a warning)
 2. The path must resolve to a location within the project root (paths that resolve outside the project root via symlinks or `..` traversal are skipped with a warning)
-3. Duplicate paths (same file reached via different globs or symlink chains) are deduplicated by resolved absolute path
+3. Duplicate paths (same file reached via different entries or symlink chains) are deduplicated by resolved absolute path
 
 **Output contract:**
 
@@ -107,8 +107,7 @@ Each parser consumes enforcement blocks produced by the rule-creator skill. The 
 |---|---|
 | `.sandcastle/config.json` missing | `rules.extraPaths` defaults to `[]` (no additional paths) |
 | `.sandcastle/config.json` has invalid JSON | Pipeline exits with code 2 (infrastructure failure) |
-| A `rules.extraPaths` glob has invalid syntax | Glob skipped with warning. `audit:rules` reports as error. |
-| A `rules.extraPaths` glob matches zero files | No warning emitted — zero-match is valid. `audit:rules` reports per-glob match counts. |
+| A `rules.extraPaths` entry points to a non-existent file | Skipped with warning |
 | Zero total rules files discovered | No error from discovery itself. Consumers handle this per-tier. |
 
 ### Enforcement block parser — `parseEnforcementBlocks()`
@@ -146,7 +145,7 @@ Each parser consumes enforcement blocks produced by the rule-creator skill. The 
 | Malformed YAML inside fence | Entry added to parse errors array. Consumer decides how to handle (see malformed YAML handling table below). |
 | `---` inside a YAML value (indented) | Treated as literal text, not a separator |
 | Multi-tier block with shared `id` | Valid — all entries share the same `id`, qualified at runtime with `@<tier>` |
-| Empty fence (no content between markers) | Treated as malformed — added to parse errors |
+| Empty fence (no content between markers) | Silently skipped — no error, no output |
 
 ### `apply-t1.mjs` — T1 source text enforcement
 
@@ -1230,7 +1229,7 @@ All budget limits are inclusive — a count at the limit is valid; exceeding it 
 
 | Key | Default | Valid values | On invalid |
 |---|---|---|---|
-| `rules.extraPaths` | `[]` | Array of globs | Invalid JSON → exit 2. Missing key → default. |
+| `rules.extraPaths` | `[]` | Array of file paths | Invalid JSON → exit 2. Missing key → default. |
 | `pipeline.costCeiling` | `$50` | Positive number | Invalid JSON → exit 2. Missing key → default. |
 | `implementer.parallelism` | `4` | Positive integer | Invalid JSON → exit 2. Missing key → default. |
 | `pipeline.backpressure` | `{ "maxConcurrent": 4, "minDiskMB": 500 }` | Object with both keys | Invalid JSON → exit 2. Missing key → default. |
