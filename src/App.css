@@ -1,0 +1,174 @@
+@layer components {
+  body {
+    margin: 0;
+  }
+
+  #app {
+    min-height: 100vh;
+    background: var(--shelf-bgColor-default);
+    color: var(--shelf-fgColor-default);
+    font-family: var(--shelf-font-family-base);
+  }
+
+  /* --- Page shell --- */
+  /* Padding grows from space-md on narrow screens to space-lg on wider ones.
+     A token-driven clamp avoids a hard-coded media-query breakpoint. */
+  .shelf {
+    display: block;
+    padding: clamp(var(--shelf-space-md), 4vw, var(--shelf-space-lg));
+  }
+
+  .shelf-inner {
+    display: flex;
+    flex-direction: column;
+    gap: var(--shelf-space-lg);
+    max-width: var(--shelf-grid-max-width);
+    margin-inline: auto;
+  }
+
+  /* --- Filter chips --- */
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--shelf-space-sm);
+  }
+
+  .chip {
+    font-family: inherit;
+    font-size: var(--shelf-font-size-sm);
+    font-weight: var(--shelf-font-weight-medium);
+    padding-block: var(--shelf-space-sm);
+    padding-inline: var(--shelf-space-md);
+    border: var(--shelf-borderWidth-thin) solid var(--shelf-borderColor-subtle);
+    border-radius: var(--shelf-radius-full);
+    background: var(--shelf-bgColor-raised);
+    color: var(--shelf-fgColor-default);
+    cursor: pointer;
+  }
+
+  .chip[aria-pressed="false"]:hover {
+    background: var(--shelf-bgColor-default);
+  }
+
+  .chip[aria-pressed="true"] {
+    background: var(--shelf-bgColor-accent);
+    color: var(--shelf-fgColor-on-accent);
+    border-color: var(--shelf-bgColor-accent);
+  }
+
+  .chip:focus-visible {
+    outline: var(--shelf-focusRing);
+    outline-offset: var(--shelf-focusRing-offset);
+  }
+
+  /* --- Grid --- */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(var(--shelf-card-min-width), 1fr));
+    gap: var(--shelf-space-lg);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* --- Cards and skeletons share an identical box so the swap never shifts --- */
+  .card,
+  .skeleton {
+    box-sizing: border-box;
+    height: var(--shelf-card-height);
+    display: flex;
+    flex-direction: column;
+    gap: var(--shelf-space-sm);
+    padding: var(--shelf-space-md);
+    border: var(--shelf-borderWidth-thin) solid var(--shelf-borderColor-subtle);
+    border-radius: var(--shelf-radius-md);
+    background: var(--shelf-bgColor-raised);
+    box-shadow: var(--shelf-shadow-sm);
+    overflow: hidden;
+  }
+
+  .card-badge {
+    align-self: flex-end;
+    font-size: var(--shelf-font-size-xs);
+    font-weight: var(--shelf-font-weight-medium);
+    color: var(--shelf-fgColor-muted);
+    padding-block: var(--shelf-space-xs);
+    padding-inline: var(--shelf-space-sm);
+    border: var(--shelf-borderWidth-thin) solid var(--shelf-borderColor-subtle);
+    border-radius: var(--shelf-radius-full);
+  }
+
+  .card-title {
+    font-size: var(--shelf-font-size-lg);
+    font-weight: var(--shelf-font-weight-semibold);
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .card-author {
+    font-size: var(--shelf-font-size-sm);
+    color: var(--shelf-fgColor-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* --- Skeleton placeholders --- */
+  .skeleton {
+    animation: shelf-shimmer var(--shelf-motion-duration-slow) var(--shelf-motion-easing-enter) infinite;
+  }
+
+  .skeleton-pill {
+    align-self: flex-end;
+    width: var(--shelf-skeleton-pill-width);
+    height: var(--shelf-skeleton-pill-height);
+    border-radius: var(--shelf-radius-full);
+    background: var(--shelf-skeleton-bgColor);
+  }
+
+  .skeleton-bar {
+    border-radius: var(--shelf-radius-sm);
+    background: var(--shelf-skeleton-bgColor);
+  }
+
+  .skeleton-bar-title {
+    height: var(--shelf-skeleton-bar-height-title);
+  }
+
+  .skeleton-bar-author {
+    height: var(--shelf-skeleton-bar-height-author);
+  }
+
+  @keyframes shelf-shimmer {
+    0%,
+    100% {
+      opacity: 1;
+    }
+
+    50% {
+      opacity: 0.4;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .skeleton {
+      animation: none;
+    }
+  }
+
+  /* --- Live region (populated by a later ticket) --- */
+  .live {
+    position: absolute;
+    width: var(--shelf-borderWidth-thin);
+    height: var(--shelf-borderWidth-thin);
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    border: 0;
+  }
+}
