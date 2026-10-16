@@ -54,9 +54,6 @@
     --shelf-base-radius-3: 0.75rem;
     --shelf-base-radius-full: 9999px;
 
-    /* --- Border width --- */
-    --shelf-base-border-width-1: 1px;
-
     /* --- Font size --- */
     --shelf-base-font-size-xs: 0.75rem;
     --shelf-base-font-size-sm: 0.875rem;
@@ -129,9 +126,6 @@
     --shelf-radius-md: var(--shelf-base-radius-2);
     --shelf-radius-lg: var(--shelf-base-radius-3);
     --shelf-radius-full: var(--shelf-base-radius-full);
-
-    /* --- Border width --- */
-    --shelf-borderWidth-thin: var(--shelf-base-border-width-1);
 
     /* --- Typography --- */
     --shelf-font-family-base: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
@@ -231,15 +225,5 @@
     --shelf-button-primary-bgColor-hover: var(--shelf-bgColor-accent-hover);
     --shelf-button-primary-bgColor-active: var(--shelf-bgColor-accent-active);
     --shelf-button-primary-fgColor: var(--shelf-fgColor-on-accent);
-
-    /* --- Shelf grid + cards --- */
-    --shelf-card-min-width: 17.5rem;    /* 280px — grid track floor for auto-fill */
-    --shelf-grid-max-width: 80rem;      /* ~1280px — centers the grid, caps it at 4 columns */
-    --shelf-card-height: 10rem;         /* fixed so the skeleton -> card swap never shifts layout */
-    --shelf-skeleton-bgColor: var(--shelf-borderColor-default);
-    --shelf-skeleton-bar-height-title: 1.125rem;
-    --shelf-skeleton-bar-height-author: 0.875rem;
-    --shelf-skeleton-pill-width: 4rem;
-    --shelf-skeleton-pill-height: 1.25rem;
   }
 }
