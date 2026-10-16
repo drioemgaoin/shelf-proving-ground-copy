@@ -68,7 +68,7 @@ const baseHooks = {
   sandbox: {
     onSandboxReady: [
       { command: "ln -s /warm/node_modules ./node_modules" },
-      { command: "cp -a /warm/.beads ./.beads && chmod 700 .beads" },
+      { command: "rm -rf ./.beads && cp -a /warm/.beads ./.beads && chmod 700 .beads" },
     ],
   },
 };
@@ -77,7 +77,7 @@ const fullHooks = {
   sandbox: {
     onSandboxReady: [
       { command: "ln -s /warm/node_modules ./node_modules" },
-      { command: "cp -a /warm/.beads ./.beads && chmod 700 .beads" },
+      { command: "rm -rf ./.beads && cp -a /warm/.beads ./.beads && chmod 700 .beads" },
       { command: "node .claude/hooks/backpressure.mjs --baseline" },
     ],
   },

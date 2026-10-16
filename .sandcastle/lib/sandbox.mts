@@ -55,7 +55,7 @@ export function createHooks(overlay: boolean): SandboxHooks {
         },
         {
           command:
-            "cp -a /warm/.beads ./.beads && chmod 700 .beads && " +
+            "rm -rf ./.beads && cp -a /warm/.beads ./.beads && chmod 700 .beads && " +
             "bd init --reinit-local --non-interactive -q 2>/dev/null; true",
         },
         ...(overlay
@@ -87,7 +87,7 @@ export function createReplayHooks(): SandboxHooks {
         },
         {
           command:
-            "cp -a /warm/.beads ./.beads && chmod 700 .beads && " +
+            "rm -rf ./.beads && cp -a /warm/.beads ./.beads && chmod 700 .beads && " +
             "bd init --reinit-local --non-interactive -q 2>/dev/null; true",
         },
         { command: "node .claude/hooks/backpressure.mjs --baseline" },

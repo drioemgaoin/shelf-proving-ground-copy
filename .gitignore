@@ -41,6 +41,8 @@ Thumbs.db
 
 # Beads runtime artifacts
 .beads.gate.lock
+# Nested .beads created by warm-image copy cycle (only root .beads/ is real)
+.beads/.beads/
 
 # Sandcastle worktrees and logs
 .sandcastle/.baseline/
