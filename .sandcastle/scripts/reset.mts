@@ -128,4 +128,12 @@ if (existsSync(logsDir)) {
   }
 }
 
+// ── 5. Remove pipeline lock ─────────────────────────────────────────────────
+
+const lockPath = ".sandcastle/pipeline.lock";
+if (existsSync(lockPath)) {
+  log("Removing pipeline lock...");
+  rmSync(lockPath, { force: true });
+}
+
 log(`Done. Run \`npm run sandcastle:single\` to rebuild ${issueId}.`);

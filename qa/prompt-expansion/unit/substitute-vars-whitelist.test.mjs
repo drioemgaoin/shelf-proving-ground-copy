@@ -31,6 +31,7 @@ function assert(name, condition, detail) {
 // ---------------------------------------------------------------------------
 
 const STAGE1_WHITELIST = new Set([
+  // Original vars
   'ISSUE_ID',
   'ISSUE_TITLE',
   'ISSUE_BODY',
@@ -38,6 +39,24 @@ const STAGE1_WHITELIST = new Set([
   'CODEMAP',
   'DIFF_REF',
   'FIX_HISTORY',
+  // Implementer vars (phases.mts)
+  'TASK_ID',
+  'BRANCH',
+  'ISSUE_DETAILS',
+  'CODING_STANDARDS',
+  'COMMENT_TASK_COMMAND',
+  'LABEL_TASK_COMMAND',
+  'CREATE_BUG_COMMAND',
+  // Planner vars (phases.mts)
+  'READY_ISSUES',
+  // Merger vars (phases.mts)
+  'BRANCHES',
+  'ISSUES',
+  'CLOSE_TASK_COMMAND',
+  // QA gate vars (gates.mts)
+  'FINDINGS_FILE',
+  'VERIFY_COMMAND',
+  'BASE_BRANCH',
 ]);
 
 function substituteVars(template, vars) {
