@@ -95,12 +95,12 @@ These tests assert compliance with rules from `ui-base.md` and `ui-project.md`, 
 ### Step 3: Classify the fix
 
 - If the root cause is in source code (`src/`): classify as **Fix now**. Provide the exact file, line, current code, and replacement code.
-- If the root cause is in locked files (`e2e/`, `scripts/`, `.claude/`): classify as **DEFER**. Provide full diagnosis so the human can act.
+- If the root cause is in locked files (`tests/`, `scripts/`, `.claude/`): classify as **DEFER**. Provide full diagnosis so the human can act.
 - If the root cause is ambiguous or requires a design decision: classify as **DEFER** with the competing options explained.
 
 ## Review
 
-Look only at what changed: new baselines and screenshots from this run under `e2e/__screenshots__/`. Judge against `.claude/rules/ui-base.md` and `.claude/rules/ui-project.md`.
+Look only at what changed: new baselines and screenshots from this run under `tests/acceptance/__screenshots__/`. Judge against `.claude/rules/ui-base.md` and `.claude/rules/ui-project.md`.
 
 Check for: clipped/overlapping text, misalignment, broken wrapping, low contrast, content hidden behind fixed elements.
 

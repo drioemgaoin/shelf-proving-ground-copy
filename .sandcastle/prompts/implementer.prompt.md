@@ -47,11 +47,11 @@ Do NOT:
 
 You are an implementer, not a researcher. No spikes, no experiments, no throwaway scripts. Trust the toolchain — it works. Your job is to make the acceptance tests pass, not to understand how they run.
 
-Opaque — do not read or edit: `e2e/support/`, `scripts/ui-qa/`, `playwright.config.ts`, config files.
+Opaque — do not read or edit: `tests/support/`, `scripts/ui-qa/`, `playwright.config.ts`, config files.
 
-Locked — read to understand what to implement, do not edit: `e2e/acceptance/`.
+Locked — read to understand what to implement, do not edit: `tests/acceptance/`.
 
-No issue-tracker commands. The issue is above. Your integration tests go in `e2e/agent/`.
+No issue-tracker commands. The issue is above. Your integration tests go in `qa/agent/`.
 
 # EXECUTION
 

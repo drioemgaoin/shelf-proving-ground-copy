@@ -8,8 +8,8 @@ Review code changes on a branch and improve code clarity, consistency, and maint
 
 Scan the branch diff (in CONTEXT below) for changes to locked paths. These files must NOT be modified by the implementer:
 
-- `e2e/acceptance/` — only new baseline PNGs under `__screenshots__/` are allowed; no `.ts` file changes
-- `e2e/support/`, `scripts/ui-qa/`, `playwright.config.ts`, `.claude/` — must be untouched
+- `tests/acceptance/` — only new baseline PNGs under `__screenshots__/` are allowed; no `.ts` file changes
+- `tests/support/`, `scripts/ui-qa/`, `playwright.config.ts`, `.claude/` — must be untouched
 
 If any locked file appears in the diff, revert it with `git checkout <base-branch> -- <path>` (use the base branch from CONTEXT) and note the revert in your report.
 
