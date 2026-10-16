@@ -89,13 +89,26 @@ export function createReviewGate(
 
     findingsFile: (round) => `.qa/review-r${round}.md`,
 
-    buildCheckerArgs: (round, ctx) => ({
-      BRANCH: branch,
-      BASE_BRANCH: (ctx.state.reviewBase as string) ?? "main",
-      ISSUE_DETAILS: issueDetails,
-      FINDINGS_FILE: `.qa/review-r${round}.md`,
-      FIX_HISTORY: (ctx.state.fixHistory as string) ?? "",
-    }),
+    buildCheckerArgs: (round, ctx) => {
+      const base = (ctx.state.reviewBase as string) ?? "main";
+      let branchDiff = "";
+      let branchLog = "";
+      try {
+        branchDiff = execSync(`git diff ${base}...${branch}`, { encoding: "utf8" }).trimEnd();
+      } catch { /* empty diff if branch not reachable */ }
+      try {
+        branchLog = execSync(`git log ${base}..${branch} --oneline`, { encoding: "utf8" }).trimEnd();
+      } catch { /* empty log if branch not reachable */ }
+      return {
+        BRANCH: branch,
+        BASE_BRANCH: base,
+        BRANCH_DIFF: branchDiff,
+        BRANCH_LOG: branchLog,
+        ISSUE_DETAILS: issueDetails,
+        FINDINGS_FILE: `.qa/review-r${round}.md`,
+        FIX_HISTORY: (ctx.state.fixHistory as string) ?? "",
+      };
+    },
 
     buildFixerArgs: (round, ctx) => ({
       BRANCH: branch,

@@ -57,6 +57,9 @@ const STAGE1_WHITELIST = new Set([
   'FINDINGS_FILE',
   'VERIFY_COMMAND',
   'BASE_BRANCH',
+  // Code review pre-computed vars (gates.mts)
+  'BRANCH_DIFF',
+  'BRANCH_LOG',
 ]);
 
 function substituteVars(template, vars) {
@@ -90,6 +93,8 @@ const PIPELINE_VARS = [
   'FINDINGS_FILE',
   // Reviewer checker (gates.mts:createReviewGate)
   'BASE_BRANCH',
+  'BRANCH_DIFF',
+  'BRANCH_LOG',
   // Fixer (gates.mts — both gates)
   'VERIFY_COMMAND',
 ];

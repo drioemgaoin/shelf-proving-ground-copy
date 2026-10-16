@@ -57,6 +57,9 @@ const STAGE1_WHITELIST = new Set([
   'FINDINGS_FILE',
   'VERIFY_COMMAND',
   'BASE_BRANCH',
+  // Code review pre-computed vars (gates.mts)
+  'BRANCH_DIFF',
+  'BRANCH_LOG',
 ]);
 
 function substituteVars(template, vars) {

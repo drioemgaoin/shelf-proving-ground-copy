@@ -96,11 +96,11 @@ Once done, output the completion signal below as the **very last tokens you gene
 
 ## Branch diff
 
-!`git diff {{BASE_BRANCH}}...{{BRANCH}}`
+{{BRANCH_DIFF}}
 
 ## Commits on this branch
 
-!`git log {{BASE_BRANCH}}..{{BRANCH}} --oneline`
+{{BRANCH_LOG}}
 
 ## Issue
 
