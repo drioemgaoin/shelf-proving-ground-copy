@@ -80,6 +80,7 @@
     --shelf-base-size-pill-h: 1.25rem;       /* status badge / pill height */
     --shelf-base-size-bar-md: 1rem;          /* skeleton title bar height */
     --shelf-base-size-bar-sm: 0.75rem;       /* skeleton author bar height */
+    --shelf-border-width-hairline: 1px;      /* hairline border width */
 
     /* --- Ratios (fractional widths) --- */
     --shelf-base-ratio-bar-title: 70%;

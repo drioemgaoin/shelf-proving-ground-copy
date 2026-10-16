@@ -2,12 +2,8 @@ import { useEffect, useState } from 'react';
 import { getBooks, type Book, type Status } from './api';
 import './App.css';
 
-// How many skeleton cards to show while the shelf loads.
 const SKELETON_COUNT = 6;
 
-// Filter chips. "All" is the default-selected reset chip; the three status
-// chips mirror the Status union. Filtering behavior lands in a later ticket —
-// here the bar is structural, with "All" selected on load.
 type ChipId = 'all' | Status;
 const CHIPS: { id: ChipId; label: string }[] = [
   { id: 'all', label: 'All' },
