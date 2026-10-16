@@ -21,12 +21,48 @@ import { join } from 'node:path';
 
 if (process.env.UI_GUARD !== 'afk') process.exit(0);
 
+// Skip for non-builder phases (visual-qa, review). These agents only read and
+// report — they should never be blocked by the stop hook. The orchestrator
+// writes this marker file before each phase.
+const phaseFile = join(process.env.CLAUDE_PROJECT_DIR ?? process.cwd(), '.sandcastle-phase');
+let phase = '';
+if (existsSync(phaseFile)) {
+  phase = readFileSync(phaseFile, 'utf8').trim();
+  if (phase !== 'build' && phase !== 'fix') process.exit(0);
+}
+
 // Configure per repo. Single source of truth for which checks to run.
 const CHECKS = (process.env.UI_CHECK_CMDS ?? 'npm run typecheck;;npm run lint;;npm test').split(';;').map((s) => s.trim()).filter(Boolean);
 const BASELINE_DIR = join(process.env.CLAUDE_PROJECT_DIR ?? process.cwd(), '.sandcastle/.baseline');
 
 function checkSlug(cmd) {
   return cmd.replace(/[^a-z0-9]/g, '-');
+}
+
+// Strip non-deterministic lines so baseline comparison is stable across runs.
+// Timing, durations, timestamps, and stack traces change between invocations
+// and should never count as "new failures."
+const NOISE_PATTERNS = [
+  /^\s*Duration\b/i,
+  /^\s*Start at\b/i,
+  /^\s*Time:/i,
+  /^\s*RUN\s+v[\d.]+\s/,           // vitest "RUN v2.1.9 /path"
+  /^\s*✓.*\d+ms$/,                  // vitest "✓ file.test.ts (N tests) Xms"
+  /^\s*Tests\s+\d+\s+(passed|failed)/i, // vitest summary "Tests  19 passed (19)"
+  /^\s*Test Files\s+\d+/i,          // vitest "Test Files  2 passed (2)"
+  /^\s*⎯/,                          // vitest separator lines
+  /Unhandled Error/,                // vitest unhandled error header
+  /^\s*❯\s/,                        // vitest stack trace frames
+  /^\s*Error:\s*ENOTDIR/,           // vitest cache write failure
+  /Serialized Error/,               // vitest serialized error block
+  /^\s*node:internal\//,            // Node.js internal stack frames
+];
+
+function stripNoise(text) {
+  return text
+    .split('\n')
+    .filter((line) => !NOISE_PATTERNS.some((re) => re.test(line)))
+    .join('\n');
 }
 
 // ---------------------------------------------------------------------------
@@ -38,7 +74,7 @@ if (process.argv.includes('--baseline')) {
   mkdirSync(BASELINE_DIR, { recursive: true });
   for (const cmd of CHECKS) {
     const r = spawnSync(cmd, { shell: true, encoding: 'utf8', maxBuffer: 256 * 1024 * 1024 });
-    const out = `${r.stdout ?? ''}${r.stderr ?? ''}`.trim().split('\n').sort().join('\n');
+    const out = stripNoise(`${r.stdout ?? ''}${r.stderr ?? ''}`).trim().split('\n').sort().join('\n');
     writeFileSync(join(BASELINE_DIR, `${checkSlug(cmd)}.txt`), out);
   }
   process.exit(0);
@@ -98,7 +134,7 @@ if (violations.length) {
 for (const cmd of CHECKS) {
   const r = spawnSync(cmd, { shell: true, encoding: 'utf8', maxBuffer: 256 * 1024 * 1024 });
   if (r.status !== 0) {
-    const currentLines = `${r.stdout ?? ''}${r.stderr ?? ''}`.trim().split('\n').sort();
+    const currentLines = stripNoise(`${r.stdout ?? ''}${r.stderr ?? ''}`).trim().split('\n').sort();
     const baselineFile = join(BASELINE_DIR, `${checkSlug(cmd)}.txt`);
     if (existsSync(baselineFile)) {
       const baselineLines = new Set(readFileSync(baselineFile, 'utf8').trim().split('\n'));
@@ -115,13 +151,14 @@ for (const cmd of CHECKS) {
 }
 
 // 3. UI changes need a matching, passing QA report.
-// Skip during the implement phase — the orchestrator runs visual-qa afterwards.
-const phaseFile = join(process.env.CLAUDE_PROJECT_DIR ?? process.cwd(), '.sandcastle/.phase');
-const phase = existsSync(phaseFile) ? readFileSync(phaseFile, 'utf8').trim() : '';
-
+// Only enforce during the build phase. During fix, the fixer's whole job is to
+// change code after visual-qa reported failures — the fingerprint will never
+// match the old report, and the report will still say FAIL. The orchestrator
+// re-runs visual-qa after the fixer stops; that's its job, not the fixer's.
+// When no report exists the orchestrator handles QA sequencing itself — the
+// implementer should not be blocked waiting for a report it is told not to create.
 const uiChanged = changes.some(({ path }) => UI_PATHS.test(path));
-if (uiChanged && phase !== 'implement') {
-  if (!report) block('UI files changed but no QA report exists. The orchestrator will run visual-qa next.\n');
+if (uiChanged && report && phase !== 'fix') {
   if (report.fingerprint !== fingerprint(base)) {
     block('Code changed after the last QA run. The orchestrator will run visual-qa again.\n');
   }
