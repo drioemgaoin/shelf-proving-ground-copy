@@ -60,6 +60,13 @@ if ! command -v npx &>/dev/null; then
   exit 1
 fi
 
+# Ensure node_modules exist on the host (Vite needs native binaries, not
+# Docker's linux copies).  This is a no-op when already installed.
+if [[ ! -d "$REPO_ROOT/node_modules" ]]; then
+  echo "📦 Installing host dependencies (node_modules missing)..."
+  (cd "$REPO_ROOT" && npm install --ignore-scripts)
+fi
+
 # ── Explicit worktree mode (no loop) ────────────────────────────────────────
 if [[ $# -gt 0 ]]; then
   WORKTREE="$WORKTREES_DIR/$1"
