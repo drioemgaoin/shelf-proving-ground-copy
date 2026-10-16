@@ -72,6 +72,19 @@
     --shelf-base-duration-250: 250ms;
     --shelf-base-duration-400: 400ms;
 
+    /* --- Sizes (layout dimensions) --- */
+    --shelf-base-size-card-min: 17.5rem;    /* grid column min track (~280px) */
+    --shelf-base-size-card-height: 9rem;    /* card/skeleton min height */
+    --shelf-base-size-container: 80rem;      /* grid max width (~1280px, caps at 4 cols) */
+    --shelf-base-size-pill-w: 3.5rem;        /* status badge / pill width */
+    --shelf-base-size-pill-h: 1.25rem;       /* status badge / pill height */
+    --shelf-base-size-bar-md: 1rem;          /* skeleton title bar height */
+    --shelf-base-size-bar-sm: 0.75rem;       /* skeleton author bar height */
+
+    /* --- Ratios (fractional widths) --- */
+    --shelf-base-ratio-bar-title: 70%;
+    --shelf-base-ratio-bar-author: 45%;
+
     /* --- Z-index layers --- */
     --shelf-base-z-base: 0;
     --shelf-base-z-sticky: 100;
@@ -225,5 +238,18 @@
     --shelf-button-primary-bgColor-hover: var(--shelf-bgColor-accent-hover);
     --shelf-button-primary-bgColor-active: var(--shelf-bgColor-accent-active);
     --shelf-button-primary-fgColor: var(--shelf-fgColor-on-accent);
+
+    /* --- Shelf grid + card placeholders --- */
+    --shelf-grid-column-min: var(--shelf-base-size-card-min);
+    --shelf-grid-max-width: var(--shelf-base-size-container);
+    --shelf-card-min-height: var(--shelf-base-size-card-height);
+    --shelf-card-badge-width: var(--shelf-base-size-pill-w);
+    --shelf-card-badge-height: var(--shelf-base-size-pill-h);
+    --shelf-card-placeholder-bgColor: var(--shelf-bgColor-accent);
+    --shelf-skeleton-bgColor: var(--shelf-base-neutral-2);
+    --shelf-skeleton-bar-title-width: var(--shelf-base-ratio-bar-title);
+    --shelf-skeleton-bar-title-height: var(--shelf-base-size-bar-md);
+    --shelf-skeleton-bar-author-width: var(--shelf-base-ratio-bar-author);
+    --shelf-skeleton-bar-author-height: var(--shelf-base-size-bar-sm);
   }
 }
