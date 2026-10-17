@@ -33,7 +33,7 @@ Output your plan as a JSON object wrapped in `<plan>` tags:
 For each issue:
 
 - `touchesUI`: `true` if the work involves UI rendering, components, styling, layout, or visual behavior. `false` for infrastructure, tooling, data logic, or configuration-only work. Use the `ui` label as a strong hint. When in doubt, set `true`.
-- `scope`: a comma-separated glob pattern covering ONLY the files the agent will read or write. Never use bare `src/**` — use directory globs for the specific subtrees involved. For a component ticket, scope the component subtree plus shared modules it imports (e.g., `"src/components/Drawer/**,src/App.tsx,src/styles/tokens.css"`). Do NOT list individual files in the same directory as separate segments — merge them into a single directory glob (e.g., `"src/**"` instead of `"src/App.tsx,src/api.ts,src/fixtures.ts"`). Separate scope segments are only useful for **disjoint directories** (e.g., `"src/**,tests/acceptance/shelf-grid/**"`). Default to `"src/**"` only if the ticket truly touches every source file. This generates a codemap — fewer segments means fewer wasted tokens.
+- `scope`: a comma-separated glob pattern covering the directories/files the agent will need to work in (e.g., `"src/**"`, `"src/api.ts,src/fixtures.ts"`). This is used to generate a codemap — a navigation cheat sheet so the agent skips file exploration. Scope should be tight (just the working area), not the whole repo. Default to `"src/**"` if unsure.
 
 Include only unblocked issues. If every issue is blocked, include the single highest-priority candidate (the one with the fewest or weakest dependencies).
 

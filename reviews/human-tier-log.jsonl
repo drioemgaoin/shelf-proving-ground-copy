@@ -1,5 +1,3 @@
 {"rule":"glossary-terms-in-ui","file":".claude/rules/ui-base.md","reviewedBy":"rule-creator","reviewedAt":"2026-10-15","scope":"initial","verdict":"created"}
 {"rule":"make-exactly-ticket-tests-pass","file":".claude/rules/ui-base.md","reviewedBy":"rule-creator","reviewedAt":"2026-10-15","scope":"initial","verdict":"created"}
 {"rule":"delegate-to-visual-qa","file":".claude/rules/ui-base.md","reviewedBy":"rule-creator","reviewedAt":"2026-10-15","scope":"initial","verdict":"created"}
-{"rule":"style-explicit-over-clever","file":".claude/rules/coding-standards.md","reviewedBy":"rule-creator","reviewedAt":"2026-10-16","scope":"initial","verdict":"created"}
-{"rule":"architecture-single-responsibility","file":".claude/rules/coding-standards.md","reviewedBy":"rule-creator","reviewedAt":"2026-10-16","scope":"initial","verdict":"created"}

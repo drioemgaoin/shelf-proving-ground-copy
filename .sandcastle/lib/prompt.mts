@@ -29,7 +29,7 @@ const STAGE1_WHITELIST = new Set([
   "TASK_ID",
   "BRANCH",
   "ISSUE_DETAILS",
-  "CODING_STANDARDS",  // kept in whitelist for backward compat; no longer injected by implementer
+  "CODING_STANDARDS",
   "COMMENT_TASK_COMMAND",
   "LABEL_TASK_COMMAND",
   "CREATE_BUG_COMMAND",

@@ -38,13 +38,8 @@ if (!existsSync(worktree)) {
 
 log(`Issue: ${issueId} | Branch: ${branch} | Base: main`);
 
-const issueDetails = execSync(`bd show ${issueId}`, { encoding: "utf8" }).trim()
-  .replace(/[ \t]+$/gm, "").replace(/\n{3,}/g, "\n\n");
-let branchDiff = "";
-let branchLog = "";
-try { branchDiff = execSync(`git diff -U1 --no-color main...${branch} -- 'src/' ':!*.snap' ':!*.lock'`, { encoding: "utf8" }).trimEnd(); } catch {}
-try { branchLog = execSync(`git log main..${branch} --oneline`, { encoding: "utf8" }).trimEnd(); } catch {}
-const promptArgs = { BRANCH: branch, BASE_BRANCH: "main", BRANCH_DIFF: branchDiff, BRANCH_LOG: branchLog, ISSUE_DETAILS: issueDetails, FINDINGS_FILE: ".qa/review.md", FIX_HISTORY: "" };
+const issueDetails = execSync(`bd show ${issueId}`, { encoding: "utf8" }).trim();
+const promptArgs = { BRANCH: branch, BASE_BRANCH: "main", ISSUE_DETAILS: issueDetails, FINDINGS_FILE: ".qa/review.md", FIX_HISTORY: "" };
 const expandedPath = `.sandcastle/logs/${issueId}/review-replay.prompt.md`;
 expandAndSave(".sandcastle/prompts/reviewer.prompt.md", promptArgs, expandedPath);
 log(`Expanded prompt saved: ${expandedPath}`);

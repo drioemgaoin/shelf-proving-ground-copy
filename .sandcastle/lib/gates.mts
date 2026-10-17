@@ -94,12 +94,7 @@ export function createReviewGate(
       let branchDiff = "";
       let branchLog = "";
       try {
-        // -U1: 1 line context (vs default 3) — ~66% framing reduction
-        // pathspec: only src/ files, exclude snapshots and lockfiles
-        branchDiff = execSync(
-          `git diff -U1 --no-color ${base}...${branch} -- 'src/' ':!*.snap' ':!*.lock'`,
-          { encoding: "utf8" },
-        ).trimEnd();
+        branchDiff = execSync(`git diff ${base}...${branch}`, { encoding: "utf8" }).trimEnd();
       } catch { /* empty diff if branch not reachable */ }
       try {
         branchLog = execSync(`git log ${base}..${branch} --oneline`, { encoding: "utf8" }).trimEnd();

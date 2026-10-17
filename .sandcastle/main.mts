@@ -85,13 +85,6 @@ function fetchReadyIssues(): { readyIssues: string; ticketFiles?: Map<string, { 
   return { readyIssues: execSync(tracker.LIST_READY_COMMAND, { encoding: "utf8" }).trim() };
 }
 
-/** Strip trailing whitespace padding and collapse blank-line runs from bd show output. */
-function compressIssueDetails(raw: string): string {
-  return raw
-    .replace(/[ \t]+$/gm, "")   // strip trailing padding on every line
-    .replace(/\n{3,}/g, "\n\n"); // collapse 3+ blank lines to one
-}
-
 function fetchIssueDetails(
   issues: Array<{ id: string; scope?: string }>,
   ticketFiles?: Map<string, { content: string }>,
@@ -102,10 +95,10 @@ function fetchIssueDetails(
   for (const issue of issues) {
     // Issue details
     if (TICKETS_FLAG && ticketFiles) {
-      details.set(issue.id, compressIssueDetails(ticketFiles.get(issue.id)?.content ?? ""));
+      details.set(issue.id, ticketFiles.get(issue.id)?.content ?? "");
     } else {
       const cmd = tracker.VIEW_TASK_COMMAND.replace("<ID>", issue.id);
-      details.set(issue.id, compressIssueDetails(execSync(cmd, { encoding: "utf8" }).trim()));
+      details.set(issue.id, execSync(cmd, { encoding: "utf8" }).trim());
     }
 
     // Codemap
