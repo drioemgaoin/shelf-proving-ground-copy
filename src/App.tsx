@@ -83,7 +83,7 @@ export function App(): React.JSX.Element {
         {loading
           ? Array.from({ length: SKELETON_COUNT }, (_, index) => (
               <li key={`skeleton-${index}`} className="shelf-card shelf-skeleton">
-                <span className="shelf-skeleton-bar shelf-skeleton-bar--title" />
+                <span className="shelf-skeleton-bar" />
                 <span className="shelf-skeleton-bar shelf-skeleton-bar-author" />
                 <span className="shelf-skeleton-pill" />
               </li>
