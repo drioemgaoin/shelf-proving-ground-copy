@@ -311,6 +311,29 @@ def _count_scope_files(repo_root: str, scope: str) -> int:
     return _count_source_files(target)
 
 
+def _strip_duplicate_file_blocks(content: str, seen: set) -> str:
+    """Remove '## File: ...' blocks whose path has already been emitted.
+
+    Tracks seen file paths across calls so that multi-scope output never
+    repeats the same file block.  Returns the cleaned content with
+    duplicates removed and their auto-expand comments stripped.
+    """
+    blocks = re.split(r"(?=^## File: )", content, flags=re.MULTILINE)
+    kept = []
+    for block in blocks:
+        m = re.match(r"^## File: (.+)", block)
+        if m:
+            path = m.group(1).strip()
+            if path in seen:
+                continue
+            seen.add(path)
+        kept.append(block)
+    result = "".join(kept)
+    # Strip stale auto-expand comments when all their file blocks were dupes
+    result = re.sub(r"<!-- auto-expanded scope: [^\n]+ -->\n?", "", result)
+    return result
+
+
 def _deduplicate_scopes(segments: list) -> list:
     """Remove scopes that are subsets of other scopes.
 
@@ -374,13 +397,16 @@ def generate_l2(repo_root: str, scope: str, char_budget: int,
     # Minimum floor per segment: 10% or 1/N, whichever is smaller
     min_floor = min(0.1, 1.0 / len(segments))
 
+    seen_files = set()  # track emitted "## File:" blocks across segments
     parts = []
     for seg, fc in zip(segments, file_counts):
         proportion = max(fc / total_files, min_floor)
         seg_budget = int(char_budget * proportion)
         part = _generate_l2_single(repo_root, seg, seg_budget, include_tests)
         if part.strip():
-            parts.append(f"### Scope: {seg}\n\n{part}")
+            part = _strip_duplicate_file_blocks(part, seen_files)
+            if part.strip():
+                parts.append(f"### Scope: {seg}\n\n{part}")
 
     # Rebalance: if some segments used less than their budget, redistribute
     combined = "\n\n".join(parts)

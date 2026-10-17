@@ -38,7 +38,8 @@ if (!existsSync(worktree)) {
 
 log(`Issue: ${issueId} | Branch: ${branch} | Worktree: ${worktree}`);
 
-const issueDetails = execSync(`bd show ${issueId}`, { encoding: "utf8" }).trim();
+const issueDetails = execSync(`bd show ${issueId}`, { encoding: "utf8" }).trim()
+  .replace(/[ \t]+$/gm, "").replace(/\n{3,}/g, "\n\n");
 const promptArgs = { BRANCH: branch, ISSUE_DETAILS: issueDetails, FINDINGS_FILE: ".qa/visual.md" };
 const expandedPath = `.sandcastle/logs/${issueId}/visual-qa-replay.prompt.md`;
 expandAndSave(".sandcastle/prompts/visual-qa.prompt.md", promptArgs, expandedPath);

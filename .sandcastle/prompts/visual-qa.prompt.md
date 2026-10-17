@@ -62,6 +62,14 @@ If the error field is truncated or unclear, run this ONE command to get the full
 
 This is the only extra command allowed per finding. Do NOT run debug probes, do NOT create throwaway test files.
 
+### Command budget per finding
+
+- Step 1: 0 or 1 replay command (the `npx playwright test` single-test rerun from Step 1 above)
+- Step 2: 1 targeted file read (the CSS/TSX file named in the error). Use the Read tool, not grep/find/cat.
+- Total: ≤2 commands per finding. No `grep`. No `find`. No broad searches.
+
+If you cannot identify the root cause from the error message + 1 file read, classify as **DEFER**.
+
 ### Step 2: Identify the root cause
 
 Failures fall into three categories. Identify which one applies, then follow that branch.
@@ -102,13 +110,18 @@ These tests assert compliance with rules from `ui-base.md` and `ui-project.md`, 
 
 Look only at what changed: new baselines and screenshots from this run under `tests/acceptance/__screenshots__/`. Judge against `.claude/rules/ui-base.md` and `.claude/rules/ui-project.md`.
 
-Check for: clipped/overlapping text, misalignment, broken wrapping, low contrast, content hidden behind fixed elements.
+For each screenshot, check every item — a violation on any item is a review finding:
+- No text clipped by or overlapping positioned siblings (badges, icons, indicators, floating elements)
+- No text misaligned or broken across wrapping boundaries
+- No low-contrast text against its immediate background (body < 4.5:1, large text / UI < 3:1)
+- No content hidden behind fixed or sticky elements
+- No visible gap between page content and viewport edges on any side
 
 ## Rule references
 
 Every `Cause` field must begin with a rule reference in brackets:
 
-    `[<file> > <section> > <rule text>]` — rule from ui-base.md, ui-project.md, or CODING_STANDARDS.md
+    `[<file> > <section> > <rule text>]` — rule from ui-base.md, ui-project.md, or coding-standards.md
     `[css]` — pure CSS mechanics (specificity, browser normalization) with no rule violation
 
 ## Output format

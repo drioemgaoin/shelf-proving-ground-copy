@@ -7,7 +7,6 @@
 import * as sandcastle from "@ai-hero/sandcastle";
 import { docker } from "@ai-hero/sandcastle/sandboxes/docker";
 import { execSync } from "child_process";
-import { readFileSync } from "fs";
 import { z } from "zod";
 import { log } from "./logging.mjs";
 import { expandAndSave } from "./prompt.mjs";
@@ -231,14 +230,12 @@ async function runImplementer(
   opts: ExecuteOptions,
 ): Promise<RunResult> {
   log(`  Sandbox ready for ${issue.id}. Implementer starting...`);
-  const codingStandards = readFileSync(".sandcastle/CODING_STANDARDS.md", "utf8");
   const implArgs = {
     TASK_ID: issue.id,
     ISSUE_TITLE: issue.title,
     BRANCH: issue.branch,
     ISSUE_DETAILS: opts.issueDetails.get(issue.id)!,
     CODEMAP: opts.codemaps.get(issue.id) ?? "",
-    CODING_STANDARDS: codingStandards,
     COMMENT_TASK_COMMAND: opts.trackerCommands!.COMMENT_TASK_COMMAND.replace("<ID>", issue.id),
     LABEL_TASK_COMMAND: opts.trackerCommands!.LABEL_TASK_COMMAND.replace("<ID>", issue.id),
     CREATE_BUG_COMMAND: opts.trackerCommands!.CREATE_BUG_COMMAND,

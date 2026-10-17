@@ -58,6 +58,13 @@ export function createHooks(overlay: boolean): SandboxHooks {
             "rm -rf ./.beads && cp -a /warm/.beads ./.beads && chmod 700 .beads && " +
             "bd init --reinit-local --non-interactive -q 2>/dev/null; true",
         },
+        {
+          command:
+            // Strip Beads block and Agent skills section — irrelevant inside sandbox
+            "sed -i.bak '/<!-- BEGIN BEADS/,/<!-- END BEADS/d' CLAUDE.md && " +
+            "sed -i.bak '/^## Agent skills$/,$d' CLAUDE.md && " +
+            "rm -f CLAUDE.md.bak",
+        },
         ...(overlay
           ? [
               {
