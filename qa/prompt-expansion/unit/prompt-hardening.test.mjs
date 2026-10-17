@@ -431,21 +431,21 @@ const SAMPLE_DIFF = [
 // ═══════════════════════════════════════════════════════════════════════════
 
 {
-  // --- Test that compressIssueDetails is called in main.mts ---
+  // --- Test that distillIssueDetails is used in main.mts ---
   const mainSource = readFileSync('.sandcastle/main.mts', 'utf8');
 
   assert(
-    'Issue 7: main.mts defines compressIssueDetails',
-    mainSource.includes('function compressIssueDetails'),
-    'main.mts must define the compressIssueDetails function',
+    'Issue 7: main.mts uses distillIssueDetails',
+    mainSource.includes('distillIssueDetails'),
+    'main.mts must use distillIssueDetails from the distill module',
   );
 
   // Count how many times it's called — should be on both paths (bd show and ticket file)
-  const callCount = (mainSource.match(/compressIssueDetails\(/g) || []).length;
+  const callCount = (mainSource.match(/distillIssueDetails\(/g) || []).length;
   assert(
-    'Issue 7: compressIssueDetails called on both detail paths',
-    callCount >= 3, // definition + bd-show path + ticket-file path
-    `Expected ≥3 occurrences (def + 2 calls), found ${callCount}`,
+    'Issue 7: distillIssueDetails called on both detail paths',
+    callCount >= 2, // bd-show path + ticket-file path
+    `Expected ≥2 calls, found ${callCount}`,
   );
 
   // --- Behavioral tests on the compression function ---
@@ -579,17 +579,17 @@ const SAMPLE_DIFF = [
     'replay-review.mts must use -U1 for diff compression',
   );
 
-  // Both replay scripts must compress issue details
+  // Both replay scripts must use the distill module
   assert(
-    'Cross: replay-review compresses issue details',
-    replayReview.includes('replace(/[ \\t]+$/gm') || replayReview.includes('compressIssueDetails'),
-    'replay-review.mts must strip trailing whitespace from issue details',
+    'Cross: replay-review uses distill module',
+    replayReview.includes('distillIssueDetails') || replayReview.includes('distillBeads'),
+    'replay-review.mts must use distill functions for issue detail compression',
   );
 
   assert(
-    'Cross: replay-visual-qa compresses issue details',
-    replayVisual.includes('replace(/[ \\t]+$/gm') || replayVisual.includes('compressIssueDetails'),
-    'replay-visual-qa.mts must strip trailing whitespace from issue details',
+    'Cross: replay-visual-qa uses distill module',
+    replayVisual.includes('distillIssueDetails') || replayVisual.includes('distillBeads'),
+    'replay-visual-qa.mts must use distill functions for issue detail compression',
   );
 }
 

@@ -158,6 +158,6 @@ function logRunStats(
       : "";
 
   log(
-    `  📊 ${label}: ${elapsed}s | in:${fmt(totalInput)}${cacheParts} out:${fmt(totalOutput)} | ctx:${fmt(totalContextTokens)} [${zoneTag}]${costPart}`,
+    `  📊 ${label}: ${elapsed}s | ${model} | in:${fmt(totalInput)}${cacheParts} out:${fmt(totalOutput)} | ctx:${fmt(totalContextTokens)} [${zoneTag}]${costPart}`,
   );
 }

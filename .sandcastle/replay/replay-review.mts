@@ -14,6 +14,7 @@ import { existsSync, readFileSync, rmSync } from "fs";
 import { log } from "../lib/logging.mjs";
 import { positional, flag } from "../lib/cli.mjs";
 import { expandAndSave } from "../lib/prompt.mjs";
+import { distillIssueDetails, distillBeads } from "../lib/distill.mjs";
 import { buildWarmImage, createReplayHooks } from "../lib/sandbox.mjs";
 
 const issueId = positional();
@@ -38,8 +39,10 @@ if (!existsSync(worktree)) {
 
 log(`Issue: ${issueId} | Branch: ${branch} | Base: main`);
 
-const issueDetails = execSync(`bd show ${issueId}`, { encoding: "utf8" }).trim()
-  .replace(/[ \t]+$/gm, "").replace(/\n{3,}/g, "\n\n");
+const issueDetails = distillIssueDetails(
+  execSync(`bd show ${issueId}`, { encoding: "utf8" }).trim(),
+  distillBeads,
+);
 let branchDiff = "";
 let branchLog = "";
 try { branchDiff = execSync(`git diff -U1 --no-color main...${branch} -- 'src/' ':!*.snap' ':!*.lock'`, { encoding: "utf8" }).trimEnd(); } catch {}

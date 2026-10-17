@@ -380,17 +380,44 @@ function chunkReviewerByPriority(blocks) {
 
 // ─── Format payload content ──────────────────────────────────────
 
+const MONITOR_FOOTER = `
+---
+
+### Monitoring Report (REQUIRED)
+
+After evaluating all rules above, you MUST emit a structured report block at the end of your output. This block is parsed by the monitoring system to track rule effectiveness.
+
+\`\`\`
+<!-- MONITOR_REPORT_START -->
+{
+  "evaluations": [
+    { "ruleId": "<rule-id>", "outcome": "passed|violation_found", "file": "<file-or-null>", "details": { "description": "<brief>" } }
+  ]
+}
+<!-- MONITOR_REPORT_END -->
+\`\`\`
+
+Include one entry per rule you evaluated. Use "passed" if the rule was satisfied, "violation_found" if you detected a violation. The "file" field is the path of the violating file (or null for visual checks). The "details.description" is a brief explanation.
+`;
+
 function formatPayload(blocks) {
   const sorted = [...blocks].sort((a, b) => (a.priority ?? 2) - (b.priority ?? 2));
   const sections = sorted.map((b) => {
-    let section = `## ${b.id ?? '(unnamed)'}\n\n`;
-    section += b.instruction;
+    const source = b._relFile && b.sectionHeading
+      ? `${b._relFile} > ${b.sectionHeading}`
+      : b._relFile ?? '(unknown)';
+    let section = `## ${b.id ?? '(unnamed)'}\n`;
+    section += `**Source:** ${source}\n`;
+    if (b.ruleText) {
+      section += `**Rule:** ${b.ruleText}\n`;
+    }
+    section += `\n${b.instruction}`;
     if (b.triage_hint) {
       section += `\n\n**Triage hint:** ${b.triage_hint}`;
     }
     return section;
   });
-  return `# T3 Rules\n\n${sections.join('\n\n---\n\n')}\n`;
+  return `# T3 Rules\n\n${sections.join('\n\n---\n\n')}\n${MONITOR_FOOTER}`;
 }
 
 // ─── Write payloads ──────────────────────────────────────────────

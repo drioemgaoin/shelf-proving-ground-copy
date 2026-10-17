@@ -225,10 +225,5 @@
     --shelf-button-primary-bgColor-hover: var(--shelf-bgColor-accent-hover);
     --shelf-button-primary-bgColor-active: var(--shelf-bgColor-accent-active);
     --shelf-button-primary-fgColor: var(--shelf-fgColor-on-accent);
-
-    /* --- Shelf grid --- */
-    --shelf-grid-min-column: 17.5rem;   /* 280px — min card width before wrap */
-    --shelf-grid-max-width: 80rem;      /* 1280px — centered page max, caps at 4 cols */
-    --shelf-card-min-height: 11rem;     /* reserves card height so skeletons don't shift */
   }
 }

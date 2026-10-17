@@ -6,7 +6,7 @@
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync, symlinkSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { discoverRulesFiles, parseEnforcementBlocks } from '../../../.claude/hooks/lib/rules.mjs';
+import { discoverRulesFiles, parseEnforcementBlocks, stripEnforcementFences } from '../../../.claude/hooks/lib/rules.mjs';
 
 let passed = 0;
 let failed = 0;
@@ -436,6 +436,132 @@ fix: Fix
     blocks[0].ruleText === 'This is the rule text above the fence.',
     `Expected ruleText to capture bullet, got "${blocks[0].ruleText}"`,
   );
+});
+
+// ═══════════════════════════════════════════════════════════════════
+// stripEnforcementFences tests
+// ═══════════════════════════════════════════════════════════════════
+
+test('stripEnforcementFences: single block removed, prose preserved', () => {
+  const input = `# Rules
+
+- Use named exports.
+
+\`\`\`enforcement
+id: named-exports
+tier: T1
+pattern: "export default "
+\`\`\`
+
+- Another rule with no block.
+`;
+  const result = stripEnforcementFences(input);
+  assert(result.includes('- Use named exports.'), 'Prose before block preserved');
+  assert(result.includes('- Another rule with no block.'), 'Prose after block preserved');
+  assert(!result.includes('```enforcement'), 'Enforcement fence removed');
+  assert(!result.includes('export default'), 'Block content removed');
+});
+
+test('stripEnforcementFences: multiple blocks stripped from one file', () => {
+  const input = `# Rules
+
+- Rule one.
+
+\`\`\`enforcement
+id: one
+tier: T1
+\`\`\`
+
+- Rule two.
+
+\`\`\`enforcement
+id: two
+tier: T3
+agent: visual-qa
+\`\`\`
+`;
+  const result = stripEnforcementFences(input);
+  assert(!result.includes('```enforcement'), 'All fences removed');
+  assert(result.includes('- Rule one.'), 'First rule prose preserved');
+  assert(result.includes('- Rule two.'), 'Second rule prose preserved');
+});
+
+test('stripEnforcementFences: preserves YAML frontmatter', () => {
+  const input = `---
+paths: src/**/*
+---
+
+# Coding standards
+
+- No any types.
+
+\`\`\`enforcement
+id: no-any
+tier: T1
+\`\`\`
+`;
+  const result = stripEnforcementFences(input);
+  assert(result.startsWith('---\npaths: src/**/*\n---'), 'Frontmatter preserved');
+  assert(!result.includes('```enforcement'), 'Enforcement fence removed');
+});
+
+test('stripEnforcementFences: collapses excess blank lines', () => {
+  const input = `# Rules
+
+- Rule.
+
+\`\`\`enforcement
+id: r1
+tier: T1
+\`\`\`
+
+## Next section
+`;
+  const result = stripEnforcementFences(input);
+  assert(!result.includes('\n\n\n'), 'No triple blank lines');
+});
+
+test('stripEnforcementFences: round-trip — stripped content has zero enforcement blocks', () => {
+  const input = `---
+paths: src/**/*
+---
+
+# Rules
+
+- First rule.
+
+\`\`\`enforcement
+id: first
+tier: T1
+pattern: foo
+---
+id: first
+tier: T3
+agent: reviewer
+instruction: Check foo
+\`\`\`
+
+- Second rule.
+
+  \`\`\`enforcement
+  id: second
+  tier: T2
+  scope: global
+  \`\`\`
+`;
+  const stripped = stripEnforcementFences(input);
+  const { blocks } = parseEnforcementBlocks(stripped, 'test.md');
+  assert(blocks.length === 0, `Expected 0 blocks after strip, got ${blocks.length}`);
+});
+
+test('stripEnforcementFences: content without enforcement blocks is unchanged', () => {
+  const input = `# Rules
+
+- Plain rule one.
+- Plain rule two.
+`;
+  const result = stripEnforcementFences(input);
+  assert(result === input, 'Content without enforcement blocks should be unchanged');
 });
 
 // ═══════════════════════════════════════════════════════════════════

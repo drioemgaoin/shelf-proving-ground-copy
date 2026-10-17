@@ -45,10 +45,7 @@ For each in-scope result in the report, classify it:
 
 The fixer agent consumes your report as its sole input. Every finding must be self-contained — the fixer must know exactly what to change, in which file, at which line, without running any exploratory commands. Vague findings ("likely a CSS issue") waste the fixer's entire budget on re-diagnosis.
 
-Your rule scope (runtime checks only):
-
-    `.claude/rules/ui-base.md`: States, Motion, Accessibility floor, Budgets, Content
-    `.claude/rules/ui-project.md`: visual checks against token usage at runtime
+Evaluate each regression against the T3 visual checks in the CONTEXT section below. Those are the only rules in scope for this gate.
 
 For each regression, follow this protocol:
 
@@ -76,7 +73,7 @@ Failures fall into three categories. Identify which one applies, then follow tha
 
 #### A. Screenshot diff failures
 
-Compare the actual vs expected images. Identify the visible difference (color, layout, spacing, missing element). Trace it to the source CSS rule or component markup. Check against the rules in `.claude/rules/ui-base.md` and `.claude/rules/ui-project.md` — the diff may reveal a rule violation (wrong token, missing state, broken layout at a specific width).
+Compare the actual vs expected images. Identify the visible difference (color, layout, spacing, missing element). Trace it to the source CSS rule or component markup. Check against the T3 visual checks in the CONTEXT section — the diff may reveal a rule violation (wrong token, missing state, broken layout at a specific width).
 
 #### B. Programmatic value-comparison failures (`.toBe()`, `.toEqual()` on computed styles or tokens)
 
@@ -90,15 +87,9 @@ The expected value comes from a design token or computed style. The received val
 6. **Property mismatch**: is the test reading a different property than the CSS sets? (e.g., `background` shorthand vs `background-color`, `border` vs `border-color`).
 7. **Browser color normalization**: multi-project runs hit Chromium, WebKit, and Firefox. HSL space syntax (`hsl(18 55% 42%)`) may serialize to different RGB values across engines, or not be supported at all in older WebKit. If the failure only occurs in one project, this is the likely cause.
 
-#### C. UI rule-compliance failures (a11y, layout, motion, states)
+#### C. UI rule-compliance failures
 
-These tests assert compliance with rules from `ui-base.md` and `ui-project.md`, not just CSS correctness. The code compiles and runs, but violates a visual/UX rule. Identify which rule is violated and what the compliant implementation requires:
-
-- **Missing interactive state**: `ui-base.md` requires every interactive element to have default, hover, focus-visible, active, and disabled states. If a test fails because a hover or active state is missing or indistinguishable from another state, the fix is to add the missing CSS rule using the appropriate token (e.g., `--shelf-bgColor-accent-hover`).
-- **Accessibility violation** (axe, contrast, focus, target size): identify the specific WCAG criterion from the axe output. The fix is typically a CSS change (contrast → wrong token, focus → missing `outline`, target size → increase `min-height`/`min-width`).
-- **Layout rule** (overflow, columns, reserved space): the test measures a layout property at a specific viewport width. Check whether a media query is missing, a grid/flex rule is wrong, or content overflows its container.
-- **Motion rule** (wrong duration, wrong easing, animating a non-transform/opacity property, reduced motion not handled): check the CSS animation/transition against the motion tokens in `ui-project.md`. The rule "animate only transform and opacity" means using `transition: background-color` is a violation — use `opacity` changes or class swaps instead.
-- **Budget exceeded** (layout shift > 0.01, > 2 long frames): identify which DOM operation caused the shift or jank. The fix is typically reserved space for async content, or moving an animation to a compositor property.
+The code compiles and runs, but violates a T3 visual rule. Match the failure to the relevant T3 check in the CONTEXT section — the check's instruction tells you what counts as a violation and what correct looks like. Use the **Source** and **Rule** metadata in each T3 check for the Cause citation.
 
 ### Step 3: Classify the fix
 
@@ -108,7 +99,7 @@ These tests assert compliance with rules from `ui-base.md` and `ui-project.md`, 
 
 ## Review
 
-Look only at what changed: new baselines and screenshots from this run under `tests/acceptance/__screenshots__/`. Judge against `.claude/rules/ui-base.md` and `.claude/rules/ui-project.md`.
+Look only at what changed: new baselines and screenshots from this run under `tests/acceptance/__screenshots__/`. Apply the T3 visual checks from the CONTEXT section.
 
 For each screenshot, check every item — a violation on any item is a review finding:
 - No text clipped by or overlapping positioned siblings (badges, icons, indicators, floating elements)
@@ -119,9 +110,9 @@ For each screenshot, check every item — a violation on any item is a review fi
 
 ## Rule references
 
-Every `Cause` field must begin with a rule reference in brackets:
+Every `Cause` field must begin with a rule reference in brackets. Use the **Source** line from the T3 check:
 
-    `[<file> > <section> > <rule text>]` — rule from ui-base.md, ui-project.md, or coding-standards.md
+    `[<source> > <rule-id>]` — from the T3 visual checks in CONTEXT (e.g. `[.claude/rules/ui-base.md > States > interactive-states]`)
     `[css]` — pure CSS mechanics (specificity, browser normalization) with no rule violation
 
 ## Output format
@@ -196,6 +187,10 @@ Once done, output the completion signal below as the **very last tokens you gene
 {{ISSUE_DETAILS}}
 
 </issue>
+
+## T3 visual checks
+
+{{T3_VISUAL_CHECKS}}
 
 ## Findings file
 

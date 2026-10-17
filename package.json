@@ -22,6 +22,7 @@
     "ui:qa": "node scripts/ui-qa/run.mjs",
     "sandcastle": "[ -d node_modules/@ai-hero/sandcastle ] || npm install && npx tsx .sandcastle/main.mts",
     "sandcastle:single": "[ -d node_modules/@ai-hero/sandcastle ] || npm install && npx tsx .sandcastle/main.mts --single",
+    "sandcastle:resume": "[ -d node_modules/@ai-hero/sandcastle ] || npm install && npx tsx .sandcastle/main.mts --single --resume",
     "sandcastle:tickets": "[ -d node_modules/@ai-hero/sandcastle ] || npm install && npx tsx .sandcastle/main.mts --tickets",
     "sandcastle:reset": "npx tsx .sandcastle/scripts/reset.mts",
     "sandcastle:bench": "npx tsx .sandcastle/bench/bench.mts",
@@ -30,6 +31,8 @@
     "sandcastle:review": "[ -d node_modules/@ai-hero/sandcastle ] || npm install && npx tsx .sandcastle/replay/replay-review.mts",
     "sandcastle:fix": "[ -d node_modules/@ai-hero/sandcastle ] || npm install && npx tsx .sandcastle/replay/replay-fix.mts",
     "audit:rules": "node scripts/audit-rules.mjs",
+    "monitor:report": "node scripts/monitor/report.mjs",
+    "monitor:report:html": "node scripts/monitor/report.mjs --html",
     "review": "node scripts/review.mjs",
     "sandcastle:watch": "bash .sandcastle/scripts/watch.sh",
     "postinstall": "playwright install --with-deps 2>/dev/null || true"

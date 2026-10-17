@@ -26,8 +26,9 @@ Do NOT read source files, run commands, or produce findings. An empty diff means
 
 Apply both axes:
 
-1. **Standards**: Does the code follow the project's coding standards? See `.claude/rules/coding-standards.md`
+1. **Standards**: Does the code follow the project's coding standards? (auto-loaded from `.claude/rules/`)
 2. **Spec**: Does the code match what the originating issue asked for? Use the issue details from CONTEXT.
+3. **T3 review checks**: Evaluate each rule in the T3 review checks section in CONTEXT below. Those are the only enforcement rules in scope for this gate.
 
 Also check:
 
@@ -39,14 +40,6 @@ Also check:
 - Nested ternary operators (prefer switch statements or if/else chains)
 - Clarity over brevity: explicit code is often better than compact code
 
-Read and apply non-visual rules from these sections (cite by reference, do not copy):
-
-    `.claude/rules/ui-base.md`: Values, Layout, Motion
-    `.claude/rules/ui-project.md`: all sections (token naming, color roles,
-      typography, spacing, radius, elevation, layer order, focus, motion, viewports)
-
-Runtime-only rules (States, Accessibility floor, Budgets) are the visual-qa gate's responsibility — do not check them here.
-
 Preserve functionality. Never change what the code does, only how it does it.
 
 ## Prior fix dispositions
@@ -55,9 +48,9 @@ A finding the fixer intentionally skipped or traded off is settled. Do not re-ra
 
 ## Rule references
 
-Every finding must begin with a rule reference in brackets:
+Every finding must begin with a rule reference in brackets. Use the **Source** line from the T3 check:
 
-    `[<file> > <section> > <rule text>]` — rule from ui-base.md, ui-project.md, or coding-standards.md
+    `[<source> > <rule-id>]` — from the T3 review checks in CONTEXT (e.g. `[.claude/rules/ui-base.md > Values > values-from-tokens]`)
     `[spec]` — divergence from the issue spec
     `[clarity]` — code clarity issue with no specific rule
 
@@ -124,6 +117,10 @@ The diff uses 1 line of surrounding context (`-U1`), filtered to `src/` only. If
 ## Prior fix history
 
 {{FIX_HISTORY}}
+
+## T3 review checks
+
+{{T3_REVIEW_CHECKS}}
 
 ## Findings file
 

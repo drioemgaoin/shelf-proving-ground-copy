@@ -1,7 +1,7 @@
 // Sandbox infrastructure — warm image, hooks, overlay, and worktree helpers.
 
 import { execSync } from "child_process";
-import { existsSync, readdirSync, readFileSync, statSync } from "fs";
+import { existsSync, readdirSync, readFileSync, renameSync, statSync } from "fs";
 import { join } from "path";
 
 // ---------------------------------------------------------------------------
@@ -39,11 +39,17 @@ const WORKTREE_EXCLUDE = [
 ];
 
 /**
- * Build the default sandbox hooks (node_modules symlink, beads init,
- * backpressure baseline). Optionally includes overlay skip-worktree
- * commands when overlay mode is active.
+ * Hooks for agents that write code (Implementer, Fixer).
+ *
+ * Full toolchain: node_modules, beads, CLAUDE.md trimming,
+ * enforcement stripping, backpressure baseline.
+ * Optionally includes overlay skip-worktree commands.
+ *
+ * IMPORTANT: These hooks mutate files inside the sandbox.  They are
+ * safe ONLY when the sandbox is backed by a git worktree (branch strategy
+ * "branch" or "merge-to-head"), never with "head" (host bind-mount).
  */
-export function createHooks(overlay: boolean): SandboxHooks {
+export function createBuilderHooks(overlay: boolean): SandboxHooks {
   return {
     sandbox: {
       onSandboxReady: [
@@ -65,6 +71,9 @@ export function createHooks(overlay: boolean): SandboxHooks {
             "sed -i.bak '/^## Agent skills$/,$d' CLAUDE.md && " +
             "rm -f CLAUDE.md.bak",
         },
+        // Strip enforcement blocks from rules — LLM needs prose only;
+        // T1/T2/T3 scripts read originals from the host.
+        { command: "node scripts/strip-enforcement.mjs" },
         ...(overlay
           ? [
               {
@@ -75,6 +84,32 @@ export function createHooks(overlay: boolean): SandboxHooks {
             ]
           : []),
         { command: "node .claude/hooks/backpressure.mjs --baseline" },
+      ],
+    },
+  };
+}
+
+/**
+ * Hooks for read-only agents (Planner).
+ *
+ * Minimal setup: node_modules and beads only.  No rules stripping,
+ * no skip-worktree, no CLAUDE.md mutation.  Safe with any branch
+ * strategy including "merge-to-head".
+ */
+export function createLightHooks(): SandboxHooks {
+  return {
+    sandbox: {
+      onSandboxReady: [
+        {
+          command:
+            "rm -rf ./node_modules && ln -s /warm/node_modules ./node_modules && " +
+            'node -e "require(\'rollup\')" || { rm -f ./node_modules && cp -a /warm/node_modules ./node_modules; }',
+        },
+        {
+          command:
+            "rm -rf ./.beads && cp -a /warm/.beads ./.beads && chmod 700 .beads && " +
+            "bd init --reinit-local --non-interactive -q 2>/dev/null; true",
+        },
       ],
     },
   };
@@ -97,6 +132,9 @@ export function createReplayHooks(): SandboxHooks {
             "rm -rf ./.beads && cp -a /warm/.beads ./.beads && chmod 700 .beads && " +
             "bd init --reinit-local --non-interactive -q 2>/dev/null; true",
         },
+        // Strip enforcement blocks from rules — LLM needs prose only;
+        // T1/T2/T3 scripts read originals from the host.
+        { command: "node scripts/strip-enforcement.mjs" },
         { command: "node .claude/hooks/backpressure.mjs --baseline" },
       ],
     },
@@ -156,6 +194,42 @@ export function buildOverlayFileList(): string[] {
     ".claude/settings.local.json",
     "e2e",
   ]);
+}
+
+// ---------------------------------------------------------------------------
+// Rules visibility
+// ---------------------------------------------------------------------------
+
+const RULES_DIR = ".claude/rules";
+const RULES_STASH = ".claude/.rules-stashed";
+
+/**
+ * Show or hide `.claude/rules` inside a sandcastle worktree.
+ *
+ * Used by QA gates to toggle visibility mid-run: hide for checkers
+ * (rules arrive via T3 payloads), restore for fixers (need full context).
+ *
+ * Guard: refuses to operate on the host project root — only worktree paths.
+ * Idempotent: hiding when already hidden or restoring when already visible
+ * is a no-op.
+ */
+export function setRulesVisible(worktree: string, visible: boolean): void {
+  // Guard: never rename .claude/rules on the host root — only inside
+  // sandcastle worktrees.  A bare "." or empty string would resolve to
+  // the orchestrator's cwd (the project root), corrupting the host.
+  if (!worktree || !worktree.includes("worktrees")) {
+    throw new Error(
+      `setRulesVisible refused: target "${worktree}" does not look like a sandcastle worktree. ` +
+      `This would modify the host .claude/rules.`,
+    );
+  }
+  const active = join(worktree, RULES_DIR);
+  const stashed = join(worktree, RULES_STASH);
+  if (visible && existsSync(stashed)) {
+    renameSync(stashed, active);
+  } else if (!visible && existsSync(active)) {
+    renameSync(active, stashed);
+  }
 }
 
 /** Compute the merge-base commit on the host for the backpressure hook. */

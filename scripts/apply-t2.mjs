@@ -18,6 +18,32 @@ import { spawn, spawnSync } from 'node:child_process';
 import { discoverRulesFiles, parseEnforcementBlocks } from '../.claude/hooks/lib/rules.mjs';
 
 const projectDir = process.env.CLAUDE_PROJECT_DIR ?? process.cwd();
+
+// ─── Monitoring (fail-open) ────────────────────────────────────────
+
+let recorder = null;
+try {
+  const { createRecorder } = await import('./monitor/recorder.mjs');
+  recorder = createRecorder(projectDir);
+} catch {
+  // Monitor unavailable
+}
+
+function recordT2Events(blocks, testPassed) {
+  if (!recorder) return;
+  try {
+    for (const block of blocks) {
+      recorder.record({
+        tier: 'T2',
+        ruleId: block.id,
+        outcome: testPassed ? 'passed' : 'blocked',
+        details: { scope: block.scope, assert: block.assert },
+      });
+    }
+  } catch {
+    // Monitoring must never break the script
+  }
+}
 const TEST_FILE = join(projectDir, 'qa', 'invariants', 'invariants.spec.ts');
 const DEV_SERVER_URL = process.env.DEV_SERVER_URL ?? 'http://localhost:5173';
 const STARTUP_TIMEOUT_MS = parseInt(process.env.STARTUP_TIMEOUT_MS ?? '30000', 10);
@@ -216,10 +242,12 @@ async function main() {
       process.exit(2);
     }
 
+    recordT2Events(blocks, false);
     process.stderr.write('apply-t2: assertion failure\n');
     process.exit(1);
   }
 
+  recordT2Events(blocks, true);
   process.stderr.write('apply-t2: all T2 global invariants passed\n');
   process.exit(0);
 }

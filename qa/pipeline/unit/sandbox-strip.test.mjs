@@ -28,8 +28,15 @@ function assert(name, condition, detail) {
   }
 }
 
+// CLAUDE.md may have skip-worktree set (working tree truncated for the
+// interactive session). Read the committed version which the sandbox sees.
 const CLAUDE_MD = 'CLAUDE.md';
-const original = readFileSync(CLAUDE_MD, 'utf8');
+let original;
+try {
+  original = execSync('git show HEAD:CLAUDE.md', { encoding: 'utf8' });
+} catch {
+  original = readFileSync(CLAUDE_MD, 'utf8');
+}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // RED: CLAUDE.md contains Beads block and Agent skills section
@@ -68,9 +75,9 @@ assert(
 // GREEN: sed commands strip the right content
 // ═══════════════════════════════════════════════════════════════════════════
 
-// Copy to temp file and run the exact sed commands from sandbox.mts
+// Write committed content to temp file and run the exact sed commands from sandbox.mts
 const tmpFile = join(tmpdir(), `claude-md-strip-test-${process.pid}.md`);
-copyFileSync(CLAUDE_MD, tmpFile);
+writeFileSync(tmpFile, original);
 
 // These are the EXACT commands from sandbox.mts createHooks()
 execSync(
@@ -153,6 +160,26 @@ assert(
   'GREEN: ≥25% size reduction',
   reduction >= 0.25,
   `Only ${(reduction * 100).toFixed(1)}% reduction — expected ≥25%`,
+);
+
+// ═══════════════════════════════════════════════════════════════════════════
+// GREEN: enforcement stripping command present in sandbox hooks
+// ═══════════════════════════════════════════════════════════════════════════
+
+const sandboxSource = readFileSync('.sandcastle/lib/sandbox.mts', 'utf8');
+
+assert(
+  'GREEN: createHooks includes strip-enforcement command',
+  sandboxSource.includes('node scripts/strip-enforcement.mjs'),
+  'createHooks() must include the enforcement stripping command',
+);
+
+// Verify it appears in both createHooks and createReplayHooks
+const hookMatches = sandboxSource.match(/node scripts\/strip-enforcement\.mjs/g) || [];
+assert(
+  'GREEN: strip-enforcement in both createHooks and createReplayHooks',
+  hookMatches.length >= 2,
+  `Expected ≥2 occurrences (createHooks + createReplayHooks), found ${hookMatches.length}`,
 );
 
 // ─── Results ────────────────────────────────────────────────────────────────

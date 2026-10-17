@@ -10,14 +10,14 @@ import { execSync } from "child_process";
 import { z } from "zod";
 import { log } from "./logging.mjs";
 import { expandAndSave } from "./prompt.mjs";
-import { type SandboxHooks, getGuardBase } from "./sandbox.mjs";
+import { type SandboxHooks, getGuardBase, setRulesVisible, createLightHooks } from "./sandbox.mjs";
 import { timedRun, timedSandboxRun, CostCeilingExceededError } from "./tagged-agent.mjs";
 import { runGateLoop, escalate, type GateContext } from "./qa-gates.mjs";
 import { createVisualGate, createReviewGate } from "./gates.mjs";
+import { collectMonitorData } from "./monitor-collect.mjs";
 import {
   PLANNER,
   IMPLEMENTER,
-  MERGER,
 } from "../config/agents.mjs";
 import {
   VIEW_TASK_COMMAND,
@@ -84,7 +84,7 @@ export async function planIteration(opts: PlanOptions): Promise<PlannedIssue[]> 
   expandAndSave(".sandcastle/prompts/plan.prompt.md", plannerArgs, promptPath("planner"));
 
   const plan = await timedRun<any>("Planner", PLANNER, {
-    hooks: opts.hooks,
+    hooks: setRulesVisible(opts.hooks, false),
     sandbox: docker({ imageName: opts.warmImage }),
     name: "planner",
     maxIterations: 1,
@@ -189,6 +189,7 @@ async function executeIssue(
   opts: ExecuteOptions,
 ): Promise<RunResult> {
   log(`  Creating sandbox for ${issue.id} (${issue.branch})...`);
+  const worktree = `.sandcastle/worktrees/sandcastle-issue-${issue.id}`;
   const guardBase = getGuardBase();
   const sandbox = await sandcastle.createSandbox({
     branch: issue.branch,
@@ -219,6 +220,7 @@ async function executeIssue(
 
     return { ...impl, escalated };
   } finally {
+    collectMonitorData(worktree, issue.id);
     await sandbox.close();
     log(`  Sandbox closed for ${issue.id}.`);
   }
@@ -272,6 +274,28 @@ async function runQAGates(
     state: { reviewBase: "main", fixHistory: "" },
   };
 
+  // Generate T3 payloads before gates run (spec: prompt expansion Stage 3).
+  // apply-t3.mjs writes payloads to .sandcastle/payloads/{issueId}/ which
+  // expandAndSave reads via the ticketId option during Stage 3 injection.
+  const diffRef = `main...${issue.branch}`;
+  try {
+    execSync(`node scripts/apply-t3.mjs ${issue.id} ${diffRef}`, {
+      encoding: "utf8",
+      timeout: 60_000,
+    });
+    log(`  T3 payloads generated for ${issue.id}.`);
+  } catch (e: any) {
+    const exitCode = e.status ?? 2;
+    if (exitCode === 1) {
+      // Budget exceeded — escalate and abort gates
+      log(`  T3 budget exceeded for ${issue.id}. Escalating.`);
+      escalate(issue.id, "rule-budget-exceeded");
+      return true;
+    }
+    // Exit 2 = infra failure — warn but continue (fail-open for T3)
+    log(`  ⚠️  apply-t3 failed for ${issue.id} (exit ${exitCode}), continuing without T3 rules.`);
+  }
+
   // Gates are a list — open for extension.
   // To add a new gate (a11y, perf), append to this array.
   const gates = [
@@ -286,6 +310,83 @@ async function runQAGates(
     if (escalated) return true;
   }
   return false;
+}
+
+// ---------------------------------------------------------------------------
+// Resume: re-run QA gates on existing worktrees (skips plan + implement)
+// ---------------------------------------------------------------------------
+
+export interface ResumeOptions {
+  warmImage: string;
+  hooks: SandboxHooks;
+  copyToWorktree: string[];
+  verbose: boolean;
+  issueDetails: Map<string, string>;
+  trackerCommands: {
+    COMMENT_TASK_COMMAND: string;
+    LABEL_TASK_COMMAND: string;
+    CREATE_BUG_COMMAND: string;
+  };
+}
+
+export async function resumeQAGates(
+  issues: PlannedIssue[],
+  opts: ResumeOptions,
+): Promise<PlannedIssue[]> {
+  log("Resume: re-running QA gates on existing branches...");
+
+  const settled = await Promise.allSettled(
+    issues.map(async (issue) => {
+      const worktree = `.sandcastle/worktrees/sandcastle-issue-${issue.id}`;
+      const guardBase = getGuardBase();
+
+      log(`  Re-creating sandbox for ${issue.id} (${issue.branch})...`);
+      const sandbox = await sandcastle.createSandbox({
+        branch: issue.branch,
+        sandbox: docker({
+          imageName: opts.warmImage,
+          env: { UI_GUARD: "afk", UI_GUARD_BASE: guardBase },
+        }),
+        hooks: opts.hooks,
+        copyToWorktree: opts.copyToWorktree,
+      });
+
+      try {
+        // runQAGates expects ExecuteOptions but only reads issueDetails,
+        // verbose, and trackerCommands.  Provide the missing fields as stubs.
+        const executeOpts: ExecuteOptions = {
+          warmImage: opts.warmImage,
+          hooks: opts.hooks,
+          copyToWorktree: opts.copyToWorktree,
+          verbose: opts.verbose,
+          issueDetails: opts.issueDetails,
+          codemaps: new Map(),
+          trackerCommands: opts.trackerCommands,
+        };
+        const escalated = await runQAGates(issue, sandbox, executeOpts);
+        return { escalated };
+      } finally {
+        collectMonitorData(worktree, issue.id);
+        await sandbox.close();
+        log(`  Sandbox closed for ${issue.id}.`);
+      }
+    }),
+  );
+
+  for (const [i, outcome] of settled.entries()) {
+    if (outcome.status === "rejected") {
+      log(`  ✗ ${issues[i]!.id} (${issues[i]!.branch}) failed: ${outcome.reason}`);
+    }
+  }
+
+  return settled
+    .map((outcome, i) => ({ outcome, issue: issues[i]! }))
+    .filter(
+      (entry) =>
+        entry.outcome.status === "fulfilled" &&
+        !(entry.outcome as PromiseFulfilledResult<{ escalated: boolean }>).value.escalated,
+    )
+    .map((entry) => entry.issue);
 }
 
 // ---------------------------------------------------------------------------
@@ -311,7 +412,7 @@ export async function mergeCompleted(
   };
   expandAndSave(".sandcastle/prompts/merger.prompt.md", mergerArgs, promptPath("merger"));
   await timedRun("Merger", MERGER, {
-    hooks: opts.hooks,
+    hooks: setRulesVisible(opts.hooks, false),
     sandbox: docker({ imageName: opts.warmImage }),
     name: "merger",
     maxIterations: 3,

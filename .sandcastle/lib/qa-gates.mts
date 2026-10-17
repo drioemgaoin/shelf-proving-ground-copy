@@ -9,6 +9,7 @@ import { existsSync, readdirSync, readFileSync, writeFileSync } from "fs";
 import { join } from "path";
 import { log } from "./logging.mjs";
 import { expandAndSave } from "./prompt.mjs";
+import { setRulesVisible } from "./sandbox.mjs";
 import { timedSandboxRun, type TaggedAgent } from "./tagged-agent.mjs";
 import {
   LABEL_TASK_COMMAND,
@@ -78,18 +79,20 @@ export async function runGateLoop(
     log(`  ${gate.name} round ${round}/${MAX_GATE_ROUNDS} for ${ctx.issueId}...`);
 
     // --- Checker ---
+    setRulesVisible(ctx.worktree, false);
     gate.beforeCheck?.(round, ctx);
     const checkerArgs = gate.buildCheckerArgs(round, ctx);
     const checkerLogName = `${slugify(gate.name)}-r${round}`;
-    expandAndSave(gate.checkerPromptFile, checkerArgs, promptPath(checkerLogName, ctx.issueId));
+    const checkerExpandedPath = promptPath(checkerLogName, ctx.issueId);
+    expandAndSave(gate.checkerPromptFile, checkerArgs, checkerExpandedPath, { ticketId: ctx.issueId });
     await timedSandboxRun(`${gate.name} [${ctx.issueId}] r${round}`, gate.checker, ctx.sandbox, {
       name: checkerLogName,
       maxIterations: gate.checkerMaxIterations,
       logging: verbose
         ? { type: "file", verbose: true, path: logFilePath(checkerLogName, ctx.issueId) }
         : undefined,
-      promptFile: `./${gate.checkerPromptFile}`,
-      promptArgs: checkerArgs,
+      promptFile: `./${checkerExpandedPath}`,
+      promptArgs: {},
     });
 
     // --- Evaluate result ---
@@ -121,18 +124,20 @@ export async function runGateLoop(
 
     // --- Fixer ---
     log(`  ${gate.name} findings detected. Fixer starting...`);
+    setRulesVisible(ctx.worktree, true);
     gate.beforeFix?.(round, ctx);
     const fixerArgs = gate.buildFixerArgs(round, ctx);
     const fixerLogName = `${slugify(gate.name)}-fixer-r${round}`;
-    expandAndSave(gate.fixerPromptFile, fixerArgs, promptPath(fixerLogName, ctx.issueId));
+    const fixerExpandedPath = promptPath(fixerLogName, ctx.issueId);
+    expandAndSave(gate.fixerPromptFile, fixerArgs, fixerExpandedPath);
     await timedSandboxRun(`${gate.name}-Fixer [${ctx.issueId}] r${round}`, gate.fixer, ctx.sandbox, {
       name: fixerLogName,
       maxIterations: gate.fixerMaxIterations,
       logging: verbose
         ? { type: "file", verbose: true, path: logFilePath(fixerLogName, ctx.issueId) }
         : undefined,
-      promptFile: `./${gate.fixerPromptFile}`,
-      promptArgs: fixerArgs,
+      promptFile: `./${fixerExpandedPath}`,
+      promptArgs: {},
     });
     gate.afterFix?.(round, ctx);
   }
@@ -151,6 +156,9 @@ export function isClean(path: string, passWord: string): boolean {
 export function setPhase(worktree: string, phase: string): void {
   writeFileSync(join(worktree, ".sandcastle-phase"), phase);
 }
+
+// setRulesVisible lives in sandbox.mts — single source of truth for both
+// host-side worktree renames (used here) and hook-level commands (planner/merger).
 
 export function archiveTestResults(worktree: string, label: string): void {
   const src = join(worktree, "test-results");

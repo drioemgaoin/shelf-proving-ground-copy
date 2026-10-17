@@ -14,6 +14,7 @@ import { existsSync, readFileSync, rmSync } from "fs";
 import { log } from "../lib/logging.mjs";
 import { positional, flag } from "../lib/cli.mjs";
 import { expandPrompt, expandAndSave } from "../lib/prompt.mjs";
+import { distillIssueDetails, distillBeads } from "../lib/distill.mjs";
 import { buildWarmImage, createReplayHooks } from "../lib/sandbox.mjs";
 
 const issueId = positional();
@@ -38,8 +39,10 @@ if (!existsSync(worktree)) {
 
 log(`Issue: ${issueId} | Branch: ${branch} | Worktree: ${worktree}`);
 
-const issueDetails = execSync(`bd show ${issueId}`, { encoding: "utf8" }).trim()
-  .replace(/[ \t]+$/gm, "").replace(/\n{3,}/g, "\n\n");
+const issueDetails = distillIssueDetails(
+  execSync(`bd show ${issueId}`, { encoding: "utf8" }).trim(),
+  distillBeads,
+);
 const promptArgs = { BRANCH: branch, ISSUE_DETAILS: issueDetails, FINDINGS_FILE: ".qa/visual.md" };
 const expandedPath = `.sandcastle/logs/${issueId}/visual-qa-replay.prompt.md`;
 expandAndSave(".sandcastle/prompts/visual-qa.prompt.md", promptArgs, expandedPath);

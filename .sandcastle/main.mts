@@ -4,15 +4,16 @@
 // Repeats until no unblocked issues remain or MAX_ITERATIONS is reached.
 //
 // Usage:
-//   npx tsx .sandcastle/main.mts [--single] [--verbose] [--overlay] [--tickets [dir]]
+//   npx tsx .sandcastle/main.mts [--single] [--verbose] [--overlay] [--tickets [dir]] [--resume]
 
 import { execSync } from "child_process";
-import { readFileSync } from "fs";
+import { existsSync, readFileSync, readdirSync } from "fs";
 import { log } from "./lib/logging.mjs";
 import { hasFlag, flag } from "./lib/cli.mjs";
 import { buildWarmImage, createHooks, buildOverlayFileList } from "./lib/sandbox.mjs";
 import { readTicketFiles, ticketsToReadyJson } from "./lib/tickets.mjs";
-import { planIteration, executeInParallel, mergeCompleted } from "./lib/phases.mjs";
+import { planIteration, executeInParallel, mergeCompleted, resumeQAGates } from "./lib/phases.mjs";
+import type { PlannedIssue } from "./lib/phases.mjs";
 import { CostCeilingExceededError } from "./lib/tagged-agent.mjs";
 import { MAX_ITERATIONS } from "./config/constants.mjs";
 import {
@@ -25,9 +26,24 @@ import {
   SEARCH_BUGS_COMMAND,
   CLOSE_BUG_COMMAND,
   TICKET_OVERRIDES,
+  DISTILL,
 } from "./config/tracker.mjs";
+import { distillIssueDetails } from "./lib/distill.mjs";
 import { acquireLock, releaseLock } from "./lib/pipeline-lock.mjs";
 import { runGlobalT2, createT2Runner, createT2Tracker } from "./lib/global-t2.mjs";
+import { collectAllWorktrees } from "./lib/monitor-collect.mjs";
+
+// ---------------------------------------------------------------------------
+// SIGINT/SIGTERM: collect monitor data before sandcastle's handler exits.
+// Registered BEFORE sandcastle installs its own handler (createSandbox),
+// so this fires first in Node's listener order.
+// ---------------------------------------------------------------------------
+
+for (const sig of ["SIGINT", "SIGTERM"] as const) {
+  process.on(sig, () => {
+    collectAllWorktrees();
+  });
+}
 
 // ---------------------------------------------------------------------------
 // CLI flags
@@ -36,6 +52,7 @@ import { runGlobalT2, createT2Runner, createT2Tracker } from "./lib/global-t2.mj
 const SINGLE_MODE = hasFlag("single");
 const VERBOSE = hasFlag("verbose");
 const OVERLAY = hasFlag("overlay");
+const RESUME = hasFlag("resume");
 const TICKETS_FLAG = hasFlag("tickets");
 const TICKETS_DIR = (() => {
   const next = flag("tickets");
@@ -49,7 +66,7 @@ const TICKETS_DIR = (() => {
 
 const tracker = TICKETS_FLAG
   ? TICKET_OVERRIDES
-  : { VIEW_TASK_COMMAND, LIST_READY_COMMAND, CLOSE_TASK_COMMAND, COMMENT_TASK_COMMAND, LABEL_TASK_COMMAND, CREATE_BUG_COMMAND };
+  : { VIEW_TASK_COMMAND, LIST_READY_COMMAND, CLOSE_TASK_COMMAND, COMMENT_TASK_COMMAND, LABEL_TASK_COMMAND, CREATE_BUG_COMMAND, DISTILL };
 
 // ---------------------------------------------------------------------------
 // Gap 11: Concurrent run prevention
@@ -85,13 +102,6 @@ function fetchReadyIssues(): { readyIssues: string; ticketFiles?: Map<string, { 
   return { readyIssues: execSync(tracker.LIST_READY_COMMAND, { encoding: "utf8" }).trim() };
 }
 
-/** Strip trailing whitespace padding and collapse blank-line runs from bd show output. */
-function compressIssueDetails(raw: string): string {
-  return raw
-    .replace(/[ \t]+$/gm, "")   // strip trailing padding on every line
-    .replace(/\n{3,}/g, "\n\n"); // collapse 3+ blank lines to one
-}
-
 function fetchIssueDetails(
   issues: Array<{ id: string; scope?: string }>,
   ticketFiles?: Map<string, { content: string }>,
@@ -102,10 +112,10 @@ function fetchIssueDetails(
   for (const issue of issues) {
     // Issue details
     if (TICKETS_FLAG && ticketFiles) {
-      details.set(issue.id, compressIssueDetails(ticketFiles.get(issue.id)?.content ?? ""));
+      details.set(issue.id, distillIssueDetails(ticketFiles.get(issue.id)?.content ?? "", tracker.DISTILL));
     } else {
       const cmd = tracker.VIEW_TASK_COMMAND.replace("<ID>", issue.id);
-      details.set(issue.id, compressIssueDetails(execSync(cmd, { encoding: "utf8" }).trim()));
+      details.set(issue.id, distillIssueDetails(execSync(cmd, { encoding: "utf8" }).trim(), tracker.DISTILL));
     }
 
     // Codemap
@@ -133,85 +143,182 @@ function fetchIssueDetails(
 // Main loop
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// Resume mode — skip planning + implementation, re-run QA gates on existing
+// worktrees that have commits ahead of main.
+// ---------------------------------------------------------------------------
+
+function discoverResumableIssues(): PlannedIssue[] {
+  const worktreeRoot = ".sandcastle/worktrees";
+  if (!existsSync(worktreeRoot)) return [];
+
+  const entries = readdirSync(worktreeRoot, { withFileTypes: true });
+  const issues: PlannedIssue[] = [];
+
+  for (const entry of entries) {
+    if (!entry.isDirectory() || !entry.name.startsWith("sandcastle-issue-")) continue;
+    const issueId = entry.name.replace("sandcastle-issue-", "");
+    const worktreePath = `${worktreeRoot}/${entry.name}`;
+
+    // Check the branch has commits ahead of main
+    try {
+      const branch = execSync(`git -C ${worktreePath} rev-parse --abbrev-ref HEAD`, { encoding: "utf8" }).trim();
+      const ahead = execSync(`git rev-list --count main..${branch}`, { encoding: "utf8" }).trim();
+      if (Number(ahead) === 0) continue;
+
+      // Infer touchesUI from whether src/ files were changed
+      const diff = execSync(`git diff --name-only main...${branch} -- src/`, { encoding: "utf8" }).trim();
+      const touchesUI = diff.length > 0;
+
+      // Get title from the last commit message
+      const title = execSync(`git log -1 --format=%s ${branch}`, { encoding: "utf8" }).trim();
+
+      issues.push({ id: issueId, title, branch, touchesUI, scope: "src/**" });
+    } catch {
+      log(`  Skipping ${issueId}: could not read worktree state.`);
+    }
+  }
+  return issues;
+}
+
 try {
-  for (let iteration = 1; iteration <= MAX_ITERATIONS; iteration++) {
-    log(`=== Iteration ${iteration}/${MAX_ITERATIONS} ===`);
-
-    // Phase 1: Plan
-    log("Pre-expanding issue list on host...");
-    const { readyIssues, ticketFiles } = fetchReadyIssues();
-    let issues = await planIteration({ readyIssues, warmImage, hooks, verbose: VERBOSE });
-
-    if (SINGLE_MODE && issues.length > 1) {
-      log(`Single mode: picking only ${issues[0]!.id}, skipping ${issues.length - 1} other(s).`);
-      issues = [issues[0]!];
-    }
-
+  if (RESUME) {
+    // ── Resume path ──────────────────────────────────────────────────
+    const issues = discoverResumableIssues();
     if (issues.length === 0) {
-      log("No unblocked issues to work on. Exiting.");
-      break;
+      log("Resume: no worktrees with commits found. Nothing to resume.");
+    } else {
+      log(`Resume: found ${issues.length} issue(s) with existing commits:`);
+      for (const issue of issues) {
+        log(`  ${issue.id}: ${issue.title} → ${issue.branch}`);
+      }
+
+      // Fetch issue details for QA prompts
+      log("Pre-expanding issue details on host...");
+      const { details } = fetchIssueDetails(issues);
+
+      const completedIssues = await resumeQAGates(issues, {
+        warmImage,
+        hooks,
+        copyToWorktree,
+        verbose: VERBOSE,
+        issueDetails: details,
+        trackerCommands: {
+          COMMENT_TASK_COMMAND: tracker.COMMENT_TASK_COMMAND,
+          LABEL_TASK_COMMAND: tracker.LABEL_TASK_COMMAND,
+          CREATE_BUG_COMMAND: tracker.CREATE_BUG_COMMAND,
+        },
+      });
+
+      log(`Resume QA done. ${completedIssues.length} branch(es) passed QA:`);
+      for (const issue of completedIssues) {
+        log(`  ${issue.branch}`);
+      }
+
+      if (completedIssues.length > 0) {
+        // Phase 3: Merge
+        await mergeCompleted(completedIssues, {
+          warmImage,
+          hooks,
+          verbose: VERBOSE,
+          closeTaskCommand: tracker.CLOSE_TASK_COMMAND,
+        });
+
+        // Global T2 suite — post-merge
+        log("Global T2 suite starting...");
+        const t2result = await runGlobalT2({
+          runner: createT2Runner(),
+          tracker: createT2Tracker({
+            searchCommand: SEARCH_BUGS_COMMAND,
+            createBugCommand: tracker.CREATE_BUG_COMMAND,
+            closeBugCommand: CLOSE_BUG_COMMAND,
+            labelCommand: tracker.LABEL_TASK_COMMAND,
+          }),
+        });
+        log(`Global T2 suite done. ${t2result.rounds} round(s), green=${t2result.green}.`);
+      }
     }
+  } else {
+    // ── Normal path ──────────────────────────────────────────────────
+    for (let iteration = 1; iteration <= MAX_ITERATIONS; iteration++) {
+      log(`=== Iteration ${iteration}/${MAX_ITERATIONS} ===`);
 
-    log(`Planning complete. ${issues.length} issue(s) to work in parallel:`);
-    for (const issue of issues) {
-      log(`  ${issue.id}: ${issue.title} → ${issue.branch}`);
-    }
+      // Phase 1: Plan
+      log("Pre-expanding issue list on host...");
+      const { readyIssues, ticketFiles } = fetchReadyIssues();
+      let issues = await planIteration({ readyIssues, warmImage, hooks, verbose: VERBOSE });
 
-    // Pre-expand issue details + codemaps on the host
-    log("Pre-expanding issue details on host...");
-    const { details, codemaps } = fetchIssueDetails(issues, ticketFiles);
-    log("Generating codemaps...");
+      if (SINGLE_MODE && issues.length > 1) {
+        log(`Single mode: picking only ${issues[0]!.id}, skipping ${issues.length - 1} other(s).`);
+        issues = [issues[0]!];
+      }
 
-    // Phase 2: Execute + QA Gates
-    const completedIssues = await executeInParallel(issues, {
-      warmImage,
-      hooks,
-      copyToWorktree,
-      verbose: VERBOSE,
-      issueDetails: details,
-      codemaps,
-      trackerCommands: {
-        COMMENT_TASK_COMMAND: tracker.COMMENT_TASK_COMMAND,
-        LABEL_TASK_COMMAND: tracker.LABEL_TASK_COMMAND,
-        CREATE_BUG_COMMAND: tracker.CREATE_BUG_COMMAND,
-      },
-    });
+      if (issues.length === 0) {
+        log("No unblocked issues to work on. Exiting.");
+        break;
+      }
 
-    log(`Phase 2 done. ${completedIssues.length} branch(es) with commits:`);
-    for (const issue of completedIssues) {
-      log(`  ${issue.branch}`);
-    }
+      log(`Planning complete. ${issues.length} issue(s) to work in parallel:`);
+      for (const issue of issues) {
+        log(`  ${issue.id}: ${issue.title} → ${issue.branch}`);
+      }
 
-    if (completedIssues.length === 0) {
-      log("No commits produced. Nothing to merge.");
-      if (SINGLE_MODE) break;
-      continue;
-    }
+      // Pre-expand issue details + codemaps on the host
+      log("Pre-expanding issue details on host...");
+      const { details, codemaps } = fetchIssueDetails(issues, ticketFiles);
+      log("Generating codemaps...");
 
-    // Phase 3: Merge
-    await mergeCompleted(completedIssues, {
-      warmImage,
-      hooks,
-      verbose: VERBOSE,
-      closeTaskCommand: tracker.CLOSE_TASK_COMMAND,
-    });
+      // Phase 2: Execute + QA Gates
+      const completedIssues = await executeInParallel(issues, {
+        warmImage,
+        hooks,
+        copyToWorktree,
+        verbose: VERBOSE,
+        issueDetails: details,
+        codemaps,
+        trackerCommands: {
+          COMMENT_TASK_COMMAND: tracker.COMMENT_TASK_COMMAND,
+          LABEL_TASK_COMMAND: tracker.LABEL_TASK_COMMAND,
+          CREATE_BUG_COMMAND: tracker.CREATE_BUG_COMMAND,
+        },
+      });
 
-    // Global T2 suite — post-merge
-    log("Global T2 suite starting...");
-    const t2result = await runGlobalT2({
-      runner: createT2Runner(),
-      tracker: createT2Tracker({
-        searchCommand: SEARCH_BUGS_COMMAND,
-        createBugCommand: tracker.CREATE_BUG_COMMAND,
-        closeBugCommand: CLOSE_BUG_COMMAND,
-        labelCommand: tracker.LABEL_TASK_COMMAND,
-      }),
-    });
-    log(`Global T2 suite done. ${t2result.rounds} round(s), green=${t2result.green}.`);
+      log(`Phase 2 done. ${completedIssues.length} branch(es) with commits:`);
+      for (const issue of completedIssues) {
+        log(`  ${issue.branch}`);
+      }
 
-    if (SINGLE_MODE) {
-      log("Single mode: stopping after one issue.");
-      break;
+      if (completedIssues.length === 0) {
+        log("No commits produced. Nothing to merge.");
+        if (SINGLE_MODE) break;
+        continue;
+      }
+
+      // Phase 3: Merge
+      await mergeCompleted(completedIssues, {
+        warmImage,
+        hooks,
+        verbose: VERBOSE,
+        closeTaskCommand: tracker.CLOSE_TASK_COMMAND,
+      });
+
+      // Global T2 suite — post-merge
+      log("Global T2 suite starting...");
+      const t2result = await runGlobalT2({
+        runner: createT2Runner(),
+        tracker: createT2Tracker({
+          searchCommand: SEARCH_BUGS_COMMAND,
+          createBugCommand: tracker.CREATE_BUG_COMMAND,
+          closeBugCommand: CLOSE_BUG_COMMAND,
+          labelCommand: tracker.LABEL_TASK_COMMAND,
+        }),
+      });
+      log(`Global T2 suite done. ${t2result.rounds} round(s), green=${t2result.green}.`);
+
+      if (SINGLE_MODE) {
+        log("Single mode: stopping after one issue.");
+        break;
+      }
     }
   }
 } catch (e) {
