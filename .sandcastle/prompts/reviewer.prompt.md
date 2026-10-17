@@ -13,11 +13,20 @@ Scan the branch diff (in CONTEXT below) for changes to locked paths. These files
 
 If any locked file appears in the diff, revert it with `git checkout <base-branch> -- <path>` (use the base branch from CONTEXT) and note the revert in your report.
 
+## Empty diff guard
+
+If the "Branch diff" section in CONTEXT is empty or contains only whitespace, output:
+
+    CLEAN
+    No issues found. (empty diff)
+
+Do NOT read source files, run commands, or produce findings. An empty diff means the branch has no changes relative to the base — there is nothing to review.
+
 ## Review checklist
 
 Apply both axes:
 
-1. **Standards**: Does the code follow the project's coding standards? See @.sandcastle/CODING_STANDARDS.md
+1. **Standards**: Does the code follow the project's coding standards? See `.claude/rules/coding-standards.md`
 2. **Spec**: Does the code match what the originating issue asked for? Use the issue details from CONTEXT.
 
 Also check:
@@ -48,7 +57,7 @@ A finding the fixer intentionally skipped or traded off is settled. Do not re-ra
 
 Every finding must begin with a rule reference in brackets:
 
-    `[<file> > <section> > <rule text>]` — rule from ui-base.md, ui-project.md, or CODING_STANDARDS.md
+    `[<file> > <section> > <rule text>]` — rule from ui-base.md, ui-project.md, or coding-standards.md
     `[spec]` — divergence from the issue spec
     `[clarity]` — code clarity issue with no specific rule
 
@@ -95,6 +104,8 @@ Once done, output the completion signal below as the **very last tokens you gene
 {{BRANCH}}
 
 ## Branch diff
+
+The diff uses 1 line of surrounding context (`-U1`), filtered to `src/` only. If you need more context for a hunk, read the source file at that location.
 
 {{BRANCH_DIFF}}
 

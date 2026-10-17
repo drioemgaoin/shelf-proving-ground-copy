@@ -23,7 +23,9 @@ Do NOT explore the repo. Read the findings file immediately.
    - `npm run test 2>&1`
    - The verify command specified in CONTEXT below
 5. If verification fails: read the FULL error output. Do NOT reinstall dependencies. Do NOT run `rm -rf node_modules`. Diagnose the actual error message first. Only reinstall if the error explicitly names a missing or corrupt package. Fix the issue and re-run the failing command. Repeat until it passes. If a failure is in a locked file you cannot edit, stop looping — commit the fixes you made and note the locked-file failure in your output.
-6. Commit with prefix `RALPH: fix QA round`
+6. Stage only the source files you changed — `git add <file1> <file2> ...`.
+   Do NOT use `git add -A`, `git add .`, or `git add --all` — these stage QA reports, test artifacts, and tracker state that must not be committed.
+7. Commit with prefix `RALPH: fix QA round`
 
 ## Boundaries
 

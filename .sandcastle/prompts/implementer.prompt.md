@@ -20,38 +20,26 @@ Single-issue focus. Branch: {{BRANCH}}.
 
 <recent-commits>
 
-!`git log -n 10 --format="%H%n%ad%n%B---" --date=short`
+!`git log -n 3 --format="%ad %s" --date=short`
 
 </recent-commits>
 
-# CODING STANDARDS
-
-```
-{{CODING_STANDARDS}}
-```
-
 # COLD START
 
-Your inputs are: the issue above, the codemap (file structure + signatures), CLAUDE.md (loads automatically), the coding standards above, and recent commits. That is everything you need to start.
+Your inputs are: the issue above, the codemap, CLAUDE.md and `.claude/rules/` (both load automatically), and recent commits. That is everything you need.
 
-The codemap shows the repo layout and function signatures for your working area. Use it to find the right files — do not explore the tree yourself.
+Use the codemap to find files — do not explore the tree yourself.
 
 Read the locked acceptance spec for this ticket and any existing source files you will modify. Then write code. Nothing else first.
 
-Do NOT:
-- Browse the file tree, list directories, or search for tooling
-- Read config files, build scripts, or test infrastructure
-- Diagnose or fix environment/toolchain errors — escalate these instead
-
 # BOUNDARIES
 
-You are an implementer, not a researcher. No spikes, no experiments, no throwaway scripts. Trust the toolchain — it works. Your job is to make the acceptance tests pass, not to understand how they run.
+Implementer, not researcher. Trust the toolchain. Make the acceptance tests pass.
 
-Opaque — do not read or edit: `tests/support/`, `scripts/ui-qa/`, `playwright.config.ts`, config files.
-
-Locked — read to understand what to implement, do not edit: `tests/acceptance/`.
-
-No issue-tracker commands. The issue is above. Your integration tests go in `qa/agent/`.
+Read-only: `tests/acceptance/`, `.claude/rules/`.
+Opaque (don't read or edit): `tests/support/`, `scripts/`, config files.
+Do not: browse dirs, read build config, diagnose env errors, run issue-tracker commands.
+Your integration tests go in `qa/agent/`.
 
 # EXECUTION
 
@@ -66,9 +54,7 @@ Co-located tests. When you modify a source file, check the codemap for a matchin
 Before committing:
 
 1. `npm run typecheck && npm run lint && npm run test`
-2. Verify all test assertions use role-based queries (`getByRole`, `getByLabelText`), not `querySelector`.
-3. Verify no nested ternary operators — use if/else or switch.
-4. Verify all `@keyframes` declarations are inside their parent `@layer` block.
+2. Verify code passes all T1 enforcement rules in `.claude/rules/`.
 
 Commit prefix: `RALPH:`. Include: task + PRD ref, key decisions, files changed, blockers.
 
