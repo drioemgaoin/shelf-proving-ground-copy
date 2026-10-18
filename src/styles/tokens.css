@@ -82,6 +82,14 @@
 
     /* --- Shadow color channel (warm dark, used to compose shadows) --- */
     --shelf-base-shadow-channel: 16 12% 10%;
+
+    /* --- Sizes (layout) --- */
+    --shelf-base-size-card-min-inline: 17.5rem;  /* 280px card column floor */
+    --shelf-base-size-card-min-block: 10rem;      /* 160px placeholder card height */
+    --shelf-base-size-container: 80rem;           /* 1280px centered content cap */
+
+    /* --- Border width --- */
+    --shelf-base-border-width-thin: 1px;
   }
 
   /* ================================================================
@@ -107,6 +115,7 @@
     /* --- Border --- */
     --shelf-borderColor-default: var(--shelf-base-neutral-3);
     --shelf-borderColor-subtle: var(--shelf-base-neutral-2);
+    --shelf-borderWidth-default: var(--shelf-base-border-width-thin);
 
     /* --- Focus --- */
     --shelf-focusRing-color: var(--shelf-base-accent-5);
@@ -225,5 +234,10 @@
     --shelf-button-primary-bgColor-hover: var(--shelf-bgColor-accent-hover);
     --shelf-button-primary-bgColor-active: var(--shelf-bgColor-accent-active);
     --shelf-button-primary-fgColor: var(--shelf-fgColor-on-accent);
+
+    /* Shelf grid + placeholder card */
+    --shelf-grid-column-min: var(--shelf-base-size-card-min-inline);
+    --shelf-grid-max-inline-size: var(--shelf-base-size-container);
+    --shelf-card-min-block-size: var(--shelf-base-size-card-min-block);
   }
 }
