@@ -89,7 +89,7 @@ export function App(): React.JSX.Element {
       <ul className="grid" role="list">
         {loading
           ? Array.from({ length: SKELETON_COUNT }, (_, index) => (
-              <li key={`skeleton-${index}`} className="card card-skeleton">
+              <li key={`skeleton-${index}`} className="card">
                 <span className="card-bar" />
                 <span className="card-bar" />
                 <span className="card-pill" />
