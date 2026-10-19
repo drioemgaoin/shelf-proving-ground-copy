@@ -227,3 +227,11 @@
     --shelf-button-primary-fgColor: var(--shelf-fgColor-on-accent);
   }
 }
+
+@layer base {
+  body {
+    background-color: var(--shelf-bgColor-default);
+    color: var(--shelf-fgColor-default);
+    font-family: var(--shelf-font-family-base);
+  }
+}
