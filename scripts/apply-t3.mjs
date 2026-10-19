@@ -407,17 +407,14 @@ function formatPayload(blocks) {
       ? `${b._relFile} > ${b.sectionHeading}`
       : b._relFile ?? '(unknown)';
     let section = `## ${b.id ?? '(unnamed)'}\n`;
-    section += `**Source:** ${source}\n`;
+    section += `<!-- source: ${source} -->\n`;
     if (b.ruleText) {
-      section += `**Rule:** ${b.ruleText}\n`;
+      section += `\n${b.ruleText}\n`;
     }
     section += `\n${b.instruction}`;
-    if (b.triage_hint) {
-      section += `\n\n**Triage hint:** ${b.triage_hint}`;
-    }
     return section;
   });
-  return `# T3 Rules\n\n${sections.join('\n\n---\n\n')}\n${MONITOR_FOOTER}`;
+  return `# Rules\n\n${sections.join('\n\n')}\n${MONITOR_FOOTER}`;
 }
 
 // ─── Write payloads ──────────────────────────────────────────────
