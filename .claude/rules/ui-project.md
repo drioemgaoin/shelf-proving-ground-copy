@@ -14,22 +14,22 @@ All tokens use `--shelf-`.
 
 ## Color roles
 
-| Role | Token | Use for |
-|---|---|---|
-| Body text | `--shelf-fgColor-default` | Most text |
-| Muted text | `--shelf-fgColor-muted` | Secondary info, captions, metadata |
-| Accent text | `--shelf-fgColor-accent` | Links, interactive highlights |
-| Text on accent | `--shelf-fgColor-on-accent` | Text on accent-colored backgrounds |
-| Danger text | `--shelf-fgColor-danger` | Errors, destructive action labels |
-| Page surface | `--shelf-bgColor-default` | Page background (warm off-white / dark) |
-| Raised surface | `--shelf-bgColor-raised` | Cards, dialogs, drawers |
-| Accent | `--shelf-bgColor-accent` | Primary buttons, selected items |
-| Accent hover | `--shelf-bgColor-accent-hover` | Hover state for accent surfaces |
-| Accent active | `--shelf-bgColor-accent-active` | Pressed state for accent surfaces |
-| Danger | `--shelf-bgColor-danger` | Danger buttons |
-| Overlay | `--shelf-bgColor-overlay` | Backdrop behind dialogs and drawers |
-| Border | `--shelf-borderColor-default` | Visible borders, dividers |
-| Subtle border | `--shelf-borderColor-subtle` | Faint separators |
+| Role           | Token                           | Use for                                 |
+| -------------- | ------------------------------- | --------------------------------------- |
+| Body text      | `--shelf-fgColor-default`       | Most text                               |
+| Muted text     | `--shelf-fgColor-muted`         | Secondary info, captions, metadata      |
+| Accent text    | `--shelf-fgColor-accent`        | Links, interactive highlights           |
+| Text on accent | `--shelf-fgColor-on-accent`     | Text on accent-colored backgrounds      |
+| Danger text    | `--shelf-fgColor-danger`        | Errors, destructive action labels       |
+| Page surface   | `--shelf-bgColor-default`       | Page background (warm off-white / dark) |
+| Raised surface | `--shelf-bgColor-raised`        | Cards, dialogs, drawers                 |
+| Accent         | `--shelf-bgColor-accent`        | Primary buttons, selected items         |
+| Accent hover   | `--shelf-bgColor-accent-hover`  | Hover state for accent surfaces         |
+| Accent active  | `--shelf-bgColor-accent-active` | Pressed state for accent surfaces       |
+| Danger         | `--shelf-bgColor-danger`        | Danger buttons                          |
+| Overlay        | `--shelf-bgColor-overlay`       | Backdrop behind dialogs and drawers     |
+| Border         | `--shelf-borderColor-default`   | Visible borders, dividers               |
+| Subtle border  | `--shelf-borderColor-subtle`    | Faint separators                        |
 
 Color modes shipped: **light and dark**. Theme is set via `[data-theme]` attribute on `:root` (values: `light`, `dark`). System preference honored when no explicit theme is set.
 
@@ -53,23 +53,23 @@ All focusable elements use `outline: var(--shelf-focusRing)` with `outline-offse
 
 ## Motion
 
-| Token | Use for |
-|---|---|
+| Token                          | Use for                           |
+| ------------------------------ | --------------------------------- |
 | `--shelf-motion-duration-fast` | Hover, focus, small state changes |
 | `--shelf-motion-duration-base` | Dialogs, drawers, panels entering |
-| `--shelf-motion-duration-slow` | Large layout changes (rare) |
-| `--shelf-motion-easing-enter` | Things appearing |
-| `--shelf-motion-easing-exit` | Things leaving |
+| `--shelf-motion-duration-slow` | Large layout changes (rare)       |
+| `--shelf-motion-easing-enter`  | Things appearing                  |
+| `--shelf-motion-easing-exit`   | Things leaving                    |
 
 Reduced motion sets all durations to `0ms`.
 
 ## Viewports
 
-| Name | Width | Height |
-|---|---|---|
-| Mobile | 375 | 812 |
-| Tablet | 768 | 1024 |
-| Desktop | 1280 | 800 |
+| Name    | Width | Height |
+| ------- | ----- | ------ |
+| Mobile  | 375   | 812    |
+| Tablet  | 768   | 1024   |
+| Desktop | 1280  | 800    |
 
 Breakpoints: 768px (tablet layout), 1024px (desktop layout). Card grid: 1 column on mobile, 2 on tablet, 3+ on desktop.
 
@@ -140,6 +140,48 @@ Breakpoints: 768px (tablet layout), 1024px (desktop layout). Card grid: 1 column
   ```
 
   > **Agent:** `visual-qa` — visual centering requires rendered output; the focus-trap and Escape-close behavior are covered by the focus-management T2 block.
+
+## Syntax
+
+- Class selectors use kebab-case: `.chip-bar`, `.card-title`, `.skeleton-pill`. The linter enforces `selector-class-pattern` (kebab-case only).
+
+  CORRECT: `.card-title { }`
+  WRONG: `.card__title { }` — BEM `__` and `--` separators are not used
+
+  ```enforcement
+  id: "no-bem-separators"
+  tier: T1
+  tool: selector-class-pattern
+  - pattern: "\\.[a-z][a-z0-9]*__"
+    assert: absent
+    scope: "src/**/*.css"
+    exclude: "src/styles/tokens.css"
+    strip: comments
+    fix: "Use kebab-case: .card-title not .card__title"
+  - pattern: "\\.[a-z][a-z0-9]*--"
+    assert: absent
+    scope: "src/**/*.css"
+    exclude: "src/styles/tokens.css"
+    strip: comments
+    fix: "Use kebab-case: .card-title not .card__title"
+  ```
+
+- Media queries use range notation: `@media (width >= 768px)`. The linter enforces `media-feature-range-notation` (modern range syntax).
+
+  CORRECT: `@media (width >= 768px) { }`
+  WRONG: `@media (min-width: 768px) { }`
+
+  ```enforcement
+  id: "media-range-notation"
+  tier: T1
+  tool: media-feature-range-notation
+  - pattern: "\\((min|max)-(width|height)\\s*:"
+    assert: absent
+    scope: "src/**/*.css"
+    exclude: "src/styles/tokens.css"
+    strip: comments
+    fix: "Use range notation: @media (width >= 768px) not @media (min-width: 768px)"
+  ```
 
 ## Vocabulary
 
