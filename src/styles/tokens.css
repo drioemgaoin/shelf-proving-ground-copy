@@ -82,21 +82,6 @@
 
     /* --- Shadow color channel (warm dark, used to compose shadows) --- */
     --shelf-base-shadow-channel: 16 12% 10%;
-
-    /* --- Border width --- */
-    --shelf-base-border-width-1: 1px;
-
-    /* --- Layout sizes --- */
-    --shelf-base-size-card-min: 17.5rem;      /* 280px grid column floor */
-    --shelf-base-size-content-max: 80rem;     /* 1280px centered page */
-    --shelf-base-size-card-min-height: 10rem; /* shared card / skeleton box */
-    --shelf-base-size-skeleton-line: 0.75rem;
-    --shelf-base-size-skeleton-pill-width: 4rem;
-    --shelf-base-size-skeleton-pill-height: 1.5rem;
-
-    /* --- Opacity --- */
-    --shelf-base-opacity-faint: 0.1;
-    --shelf-base-opacity-soft: 0.3;
   }
 
   /* ================================================================
@@ -122,7 +107,6 @@
     /* --- Border --- */
     --shelf-borderColor-default: var(--shelf-base-neutral-3);
     --shelf-borderColor-subtle: var(--shelf-base-neutral-2);
-    --shelf-borderWidth-default: var(--shelf-base-border-width-1);
 
     /* --- Focus --- */
     --shelf-focusRing-color: var(--shelf-base-accent-5);
@@ -241,29 +225,5 @@
     --shelf-button-primary-bgColor-hover: var(--shelf-bgColor-accent-hover);
     --shelf-button-primary-bgColor-active: var(--shelf-bgColor-accent-active);
     --shelf-button-primary-fgColor: var(--shelf-fgColor-on-accent);
-
-    /* --- Shelf grid + cards --- */
-    --shelf-grid-column-min: var(--shelf-base-size-card-min);
-    --shelf-grid-max-width: var(--shelf-base-size-content-max);
-    --shelf-card-min-height: var(--shelf-base-size-card-min-height);
-
-    /* --- Skeleton placeholder --- */
-    --shelf-skeleton-line-height: var(--shelf-base-size-skeleton-line);
-    --shelf-skeleton-pill-width: var(--shelf-base-size-skeleton-pill-width);
-    --shelf-skeleton-pill-height: var(--shelf-base-size-skeleton-pill-height);
-    --shelf-skeleton-opacity-rest: var(--shelf-base-opacity-faint);
-    --shelf-skeleton-opacity-peak: var(--shelf-base-opacity-soft);
-  }
-}
-
-/* ================================================================
-   BASE — design system takes the page surface from the UA stylesheet
-   ================================================================ */
-@layer base {
-  body {
-    margin: 0;
-    background-color: var(--shelf-bgColor-default);
-    color: var(--shelf-fgColor-default);
-    font-family: var(--shelf-font-family-base);
   }
 }

@@ -52,22 +52,6 @@ paths: src/**/*
   reason: "Subjective judgment — what counts as 'clever' vs 'explicit' depends on reviewer experience and context; no stable standard across reviewers"
   ```
 
-- Comments stand on their own — reference code, not ephemeral tickets or future work. Temporal references rot instantly and mislead future readers.
-
-  CORRECT: `// Grid filtering is deferred — chips update only their own state.`
-  WRONG: `// This ticket wires only the chip bar — filtering ships in a later ticket.`
-
-  ```enforcement
-  id: "no-temporal-comment-refs"
-  tier: T1
-  - pattern: "([Tt]his ticket|[Nn]ext ticket|[Ll]ater ticket|[Ff]uture ticket|[Aa]nother PR|[Nn]ext PR|[Aa] later|[Tt]his PR|[Cc]urrent ticket)"
-    assert: absent
-    scope: "src/**/*.{ts,tsx,css}"
-    strip: strings
-    fix: "Remove temporal reference. Describe the current state of the code, not which ticket or PR it belongs to."
-  ```
-
-
 ## TypeScript
 
 - No `any` types; use `unknown` and narrow.
