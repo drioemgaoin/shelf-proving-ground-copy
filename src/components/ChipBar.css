@@ -1,0 +1,51 @@
+@layer components {
+  .chip-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--shelf-space-sm);
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    padding: var(--shelf-space-sm) var(--shelf-space-md);
+    border: thin solid var(--shelf-borderColor-subtle);
+    border-radius: var(--shelf-radius-full);
+    background-color: var(--shelf-bgColor-raised);
+    color: var(--shelf-fgColor-default);
+    font-family: var(--shelf-font-family-base);
+    font-size: var(--shelf-font-size-sm);
+    font-weight: var(--shelf-font-weight-medium);
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  .chip:hover {
+    border-color: var(--shelf-borderColor-default);
+  }
+
+  .chip:active {
+    background-color: var(--shelf-bgColor-default);
+  }
+
+  .chip:focus-visible {
+    outline: var(--shelf-focusRing);
+    outline-offset: var(--shelf-focusRing-offset);
+  }
+
+  .chip[aria-pressed='true'] {
+    border-color: var(--shelf-bgColor-accent);
+    background-color: var(--shelf-bgColor-accent);
+    color: var(--shelf-fgColor-on-accent);
+  }
+
+  .chip[aria-pressed='true']:hover {
+    border-color: var(--shelf-bgColor-accent-hover);
+    background-color: var(--shelf-bgColor-accent-hover);
+  }
+
+  .chip[aria-pressed='true']:active {
+    border-color: var(--shelf-bgColor-accent-active);
+    background-color: var(--shelf-bgColor-accent-active);
+  }
+}
