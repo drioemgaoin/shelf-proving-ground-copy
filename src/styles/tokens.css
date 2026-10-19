@@ -225,5 +225,23 @@
     --shelf-button-primary-bgColor-hover: var(--shelf-bgColor-accent-hover);
     --shelf-button-primary-bgColor-active: var(--shelf-bgColor-accent-active);
     --shelf-button-primary-fgColor: var(--shelf-fgColor-on-accent);
+
+    /* Hairline border shared by cards and chips. */
+    --shelf-borderWidth-hairline: 1px;
+
+    /* --- Shelf grid --- */
+    /* Min card width drives the auto-fill column count; the max page width caps
+       the grid at 4 columns on wide screens. */
+    --shelf-grid-colMinWidth: 17.5rem;      /* 280px */
+    --shelf-grid-maxWidth: 80rem;           /* 1280px */
+    --shelf-card-minHeight: 7.5rem;
+
+    /* --- Skeleton placeholder --- */
+    --shelf-skeleton-bar-height: 0.75rem;
+    --shelf-skeleton-bar-authorWidth: 60%;
+    --shelf-skeleton-pill-width: 4rem;
+    --shelf-skeleton-pill-height: 1.25rem;
+    --shelf-skeleton-opacity-low: 0.1;
+    --shelf-skeleton-opacity-high: 0.3;
   }
 }
