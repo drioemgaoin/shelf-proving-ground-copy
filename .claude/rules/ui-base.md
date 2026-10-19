@@ -44,6 +44,17 @@ These apply to every project. Project values and names are in `ui-project.md`. S
   instruction: "Check that each design token is used for its intended semantic role. A violation is using a token outside its role — e.g., a spacing token for font-size, a danger color for non-error content, or a shadow token for a non-elevated element. Correct: each token maps to the role described in ui-project.md's token tables."
   ```
 
+- Every project must include a `@layer base` that applies design tokens to bare HTML elements. This is the layer where the design system takes control from the browser UA stylesheet. At minimum, `body` receives the page-surface background, default text color, base font family, and `margin: 0`. Without a base layer, bare elements render with UA defaults (white background, black text, 8px margin) and the design system is not in control of the page surface.
+
+  ```enforcement
+  id: "base-layer-exists"
+  tier: T1
+  - pattern: "@layer base"
+    assert: present
+    scope: "src/styles/tokens.css"
+    fix: "Add a @layer base block after @layer tokens that sets body { margin: 0; background-color: var(--<ns>-bgColor-default); color: var(--<ns>-fgColor-default); font-family: var(--<ns>-font-family-base); }"
+  ```
+
 - Components own no space outside themselves. Spacing between components is the parent's job.
 
   ```enforcement
