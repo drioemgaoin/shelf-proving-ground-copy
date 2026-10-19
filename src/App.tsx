@@ -23,11 +23,6 @@ function statusLabel(status: Status): string {
   }
 }
 
-/**
- * Multi-select status filter. "All" clears every status selection; selecting any
- * status unsets "All". This ticket wires only the chip bar's own pressed/styling
- * state — grid filtering ships in a later ticket.
- */
 function ChipBar(): React.JSX.Element {
   const [selected, setSelected] = useState<Status[]>([]);
 

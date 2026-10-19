@@ -53,7 +53,7 @@
     font-family: inherit;
     font-size: var(--shelf-font-size-sm);
     font-weight: var(--shelf-font-weight-medium);
-    line-height: 1.5;
+    line-height: var(--shelf-line-height-body);
     cursor: pointer;
   }
 

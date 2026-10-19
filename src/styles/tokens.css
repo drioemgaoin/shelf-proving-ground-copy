@@ -229,6 +229,9 @@
     /* Hairline border shared by cards and chips. */
     --shelf-borderWidth-hairline: 1px;
 
+    /* Body line-height shared by text-bearing components. */
+    --shelf-line-height-body: 1.5;
+
     /* --- Shelf grid --- */
     /* Min card width drives the auto-fill column count; the max page width caps
        the grid at 4 columns on wide screens. */
