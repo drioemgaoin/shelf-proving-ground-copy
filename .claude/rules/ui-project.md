@@ -73,42 +73,6 @@ Reduced motion sets all durations to `0ms`.
 
 Breakpoints: 768px (tablet layout), 1024px (desktop layout). Card grid: 1 column on mobile, 2 on tablet, 3+ on desktop.
 
-## Syntax
-
-- Class selectors use kebab-case. No BEM `__` or `--` separators — the linter enforces `selector-class-pattern` (kebab-case only).
-
-  ```enforcement
-  id: "no-bem-separators"
-  tier: T1
-  tool: selector-class-pattern
-  - pattern: "\\.[a-z][a-z0-9]*__"
-    assert: absent
-    scope: "src/**/*.css"
-    exclude: "src/styles/tokens.css"
-    strip: comments
-    fix: "Use kebab-case: .card-title not .card__title"
-  - pattern: "\\.[a-z][a-z0-9]*--"
-    assert: absent
-    scope: "src/**/*.css"
-    exclude: "src/styles/tokens.css"
-    strip: comments
-    fix: "Use kebab-case: .card-title not .card__title"
-  ```
-
-- Media queries use range notation. No legacy `min-`/`max-` prefixes — the linter enforces `media-feature-range-notation` (modern range syntax).
-
-  ```enforcement
-  id: "media-range-notation"
-  tier: T1
-  tool: media-feature-range-notation
-  - pattern: "\\((min|max)-(width|height)\\s*:"
-    assert: absent
-    scope: "src/**/*.css"
-    exclude: "src/styles/tokens.css"
-    strip: comments
-    fix: "Use range notation: @media (width >= 768px) not @media (min-width: 768px)"
-  ```
-
 ## Product patterns
 
 - **Toasts**: bottom-center, 4 seconds, auto-dismiss. Used to confirm success (e.g. "Book added").

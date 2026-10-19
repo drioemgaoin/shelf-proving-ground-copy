@@ -44,19 +44,6 @@ These apply to every project. Project values and names are in `ui-project.md`. S
   instruction: "Check that each design token is used for its intended semantic role. A violation is using a token outside its role — e.g., a spacing token for font-size, a danger color for non-error content, or a shadow token for a non-elevated element. Correct: each token maps to the role described in ui-project.md's token tables."
   ```
 
-
-- Every project must include a `@layer base` that applies design tokens to bare HTML elements. This is the layer where the design system takes control from the browser UA stylesheet. At minimum, `body` receives the page-surface background and default text color tokens. Without a base layer, bare elements render with UA defaults and the design system is not in control of the page surface, text color, or any element that lives outside a component.
-
-  ```enforcement
-  id: "base-layer-exists"
-  tier: T3
-  agent: reviewer
-  scope: "src/**/*.css"
-  group: tokens
-  triage_hint: "Flag when: new project setup, tokens file created, @layer declaration added, body/html selector added or missing"
-  instruction: "Check that a @layer base block exists and applies the project's design tokens to bare HTML elements. At minimum body must receive the page-surface background token and default foreground color token. A violation is a project where semantic tokens are defined but no base layer applies them to the document root — bare elements render with browser UA defaults instead of the design system's values. Correct: a @layer base block styles body (background-color + color from tokens) and any other globally used bare elements."
-  ```
-
 - Components own no space outside themselves. Spacing between components is the parent's job.
 
   ```enforcement
