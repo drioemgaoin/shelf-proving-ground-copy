@@ -4,9 +4,7 @@ import { ChipBar } from './ChipBar';
 import { BookGrid } from './BookGrid';
 import './Shelf.css';
 
-// Top-level shelf page: loads the reading list, shows skeletons while it loads,
-// then the real card grid. Filtering and mutation announcements land in later
-// tickets; the aria-live region is seeded here so they have a home.
+// Top-level shelf: loads the book list, shows skeletons while loading, then the card grid.
 export function Shelf(): React.JSX.Element {
   const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);

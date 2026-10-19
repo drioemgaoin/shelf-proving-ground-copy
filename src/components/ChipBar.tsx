@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import './ChipBar.css';
 
-// The filter chip bar. In this ticket it owns only its own pressed/styling
-// state — wiring the selection to grid filtering ships in a later ticket.
+// The filter chip bar manages only its own selection state; grid filtering is wired by its consumer.
 interface ChipDef {
   readonly key: string;
   readonly label: string;

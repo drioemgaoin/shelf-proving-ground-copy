@@ -13,6 +13,8 @@
 
   #app {
     min-height: 100vh;
+    display: grid;
+    justify-items: center;
   }
 
   ul[role='list'] {

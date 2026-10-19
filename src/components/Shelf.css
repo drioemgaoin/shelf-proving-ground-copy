@@ -4,9 +4,15 @@
     flex-direction: column;
     gap: var(--shelf-space-lg);
     max-width: var(--shelf-layout-max-width);
-    margin-inline: auto;
+    width: 100%;
     padding-block: var(--shelf-space-lg);
-    /* space-md on mobile, ramping to space-lg at wider viewports (768px+). */
-    padding-inline: clamp(var(--shelf-space-md), 4vw, var(--shelf-space-lg));
+    /* space-md on mobile, stepping up to space-lg at the tablet breakpoint. */
+    padding-inline: var(--shelf-space-md);
+  }
+
+  @media (width >= 768px) {
+    .shelf {
+      padding-inline: var(--shelf-space-lg);
+    }
   }
 }
