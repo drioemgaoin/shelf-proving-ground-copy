@@ -41,7 +41,6 @@
 
   .chip[aria-pressed='true']:hover {
     border-color: var(--shelf-bgColor-accent-hover);
-    background-color: var(--shelf-bgColor-accent-hover);
   }
 
   .chip[aria-pressed='true']:active {
