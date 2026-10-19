@@ -1,0 +1,163 @@
+@layer components {
+  /* Page wrapper: centered column, spacious gaps, responsive padding. */
+  .shelf {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: var(--shelf-space-lg);
+    max-width: var(--shelf-grid-max-width);
+    margin-inline: auto;
+    padding: var(--shelf-space-md);
+  }
+
+  @media (width >= 768px) {
+    .shelf {
+      padding: var(--shelf-space-lg);
+    }
+  }
+
+  /* Filter chip bar. */
+  .shelf-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--shelf-space-sm);
+  }
+
+  .shelf-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--shelf-space-sm) var(--shelf-space-md);
+    border: thin solid var(--shelf-borderColor-subtle);
+    border-radius: var(--shelf-radius-full);
+    background-color: transparent;
+    color: var(--shelf-fgColor-default);
+    font-family: inherit;
+    font-size: var(--shelf-font-size-sm);
+    font-weight: var(--shelf-font-weight-medium);
+    cursor: pointer;
+  }
+
+  .shelf-chip:hover {
+    border-color: var(--shelf-borderColor-default);
+  }
+
+  .shelf-chip:focus-visible {
+    outline: var(--shelf-focusRing);
+    outline-offset: var(--shelf-focusRing-offset);
+  }
+
+  .shelf-chip[aria-pressed='true'] {
+    border-color: var(--shelf-bgColor-accent);
+    background-color: var(--shelf-bgColor-accent);
+    color: var(--shelf-fgColor-on-accent);
+  }
+
+  .shelf-chip[aria-pressed='true']:hover {
+    border-color: var(--shelf-bgColor-accent-hover);
+  }
+
+  .shelf-chip[aria-pressed='true']:active {
+    border-color: var(--shelf-bgColor-accent-active);
+    background-color: var(--shelf-bgColor-accent-active);
+  }
+
+  /* Fluid card grid: 1–4 columns, capped by the centered max-width. */
+  .shelf-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(var(--shelf-grid-column-min), 1fr));
+    gap: var(--shelf-space-lg);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  /* Card shell, shared by skeleton and real cards so the swap never shifts. */
+  .shelf-card {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: var(--shelf-space-sm);
+    min-height: var(--shelf-card-min-height);
+    padding: var(--shelf-space-md);
+    border: thin solid var(--shelf-borderColor-subtle);
+    border-radius: var(--shelf-radius-md);
+    background-color: var(--shelf-bgColor-raised);
+    box-shadow: var(--shelf-shadow-sm);
+  }
+
+  .shelf-card-title {
+    display: -webkit-box;
+    margin: 0;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+    font-size: var(--shelf-font-size-lg);
+    font-weight: var(--shelf-font-weight-semibold);
+    color: var(--shelf-fgColor-default);
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+
+  .shelf-card-author {
+    margin: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: var(--shelf-font-size-sm);
+    color: var(--shelf-fgColor-muted);
+  }
+
+  .shelf-card-badge {
+    align-self: flex-start;
+    margin-top: auto;
+    padding: var(--shelf-space-xs) var(--shelf-space-sm);
+    border-radius: var(--shelf-radius-full);
+    background-color: var(--shelf-bgColor-subtle);
+    font-size: var(--shelf-font-size-xs);
+    font-weight: var(--shelf-font-weight-medium);
+    color: var(--shelf-fgColor-default);
+  }
+
+  /* Skeleton shimmer: an opacity pulse using the slow motion token. */
+  .shelf-skeleton-bar,
+  .shelf-skeleton-pill {
+    background-color: var(--shelf-bgColor-subtle);
+    border-radius: var(--shelf-radius-sm);
+    animation: shelf-shimmer var(--shelf-motion-duration-slow) var(--shelf-motion-easing-enter)
+      infinite alternate;
+  }
+
+  .shelf-skeleton-title {
+    height: var(--shelf-space-lg);
+  }
+
+  .shelf-skeleton-author {
+    height: var(--shelf-space-md);
+  }
+
+  .shelf-skeleton-pill {
+    align-self: flex-start;
+    margin-top: auto;
+    width: var(--shelf-space-2xl);
+    height: var(--shelf-space-md);
+    border-radius: var(--shelf-radius-full);
+  }
+
+  @keyframes shelf-shimmer {
+    from {
+      opacity: 0.1;
+    }
+
+    to {
+      opacity: 0.3;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .shelf-skeleton-bar,
+    .shelf-skeleton-pill {
+      animation: none;
+      opacity: 0.1;
+    }
+  }
+}
