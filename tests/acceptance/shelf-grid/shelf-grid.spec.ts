@@ -128,21 +128,69 @@ test.describe('Shelf grid', () => {
 
   test('Shelf grid: chip visual states', { tag: ['@visual', '@djk.1'] }, async ({ page }) => {
     await loadShelf(page);
-    await chip(page, 'Reading').click();
 
-    // Selected chip has accent background
+    // -- Unselected: default --
+    const subtleBorder = await readToken(page, '--shelf-borderColor-subtle');
+    const unselectedBorder = await chip(page, 'To Read').evaluate(
+      (el) => getComputedStyle(el).borderColor,
+    );
+    expect(unselectedBorder).toBe(await resolveColor(page, subtleBorder));
+
+    // -- Unselected: hover --
+    await chip(page, 'To Read').hover();
+    const defaultBorder = await readToken(page, '--shelf-borderColor-default');
+    const unselectedHoverBorder = await chip(page, 'To Read').evaluate(
+      (el) => getComputedStyle(el).borderColor,
+    );
+    expect(unselectedHoverBorder).toBe(await resolveColor(page, defaultBorder));
+
+    // -- Unselected: focus-visible (skipped on WebKit: macOS doesn't Tab-focus buttons) --
+    await page.mouse.move(0, 0);
+    const browserName = page.context().browser()?.browserType().name() ?? '';
+    if (browserName !== 'webkit') {
+      for (let i = 0; i < 10; i++) {
+        await page.keyboard.press('Tab');
+        if (await chip(page, 'To Read').evaluate((el) => el === document.activeElement)) break;
+      }
+      await expect(chip(page, 'To Read')).toBeFocused();
+      const focusRing = await readToken(page, '--shelf-focusRing-color');
+      const unselectedOutline = await chip(page, 'To Read').evaluate(
+        (el) => getComputedStyle(el).outlineColor,
+      );
+      expect(unselectedOutline).toBe(await resolveColor(page, focusRing));
+    }
+
+    // -- Selected: default --
+    await chip(page, 'Reading').click();
+    await page.mouse.move(0, 0);
     const accentBg = await readToken(page, '--shelf-bgColor-accent');
     const selectedBg = await chip(page, 'Reading').evaluate(
       (el) => getComputedStyle(el).backgroundColor,
     );
     expect(selectedBg).toBe(await resolveColor(page, accentBg));
 
-    // Unselected chip has subtle border
-    const subtleBorder = await readToken(page, '--shelf-borderColor-subtle');
-    const unselectedBorder = await chip(page, 'To Read').evaluate(
-      (el) => getComputedStyle(el).borderColor,
+    // -- Selected: hover --
+    await chip(page, 'Reading').hover();
+    const accentHover = await readToken(page, '--shelf-bgColor-accent-hover');
+    const selectedHoverBg = await chip(page, 'Reading').evaluate(
+      (el) => getComputedStyle(el).backgroundColor,
     );
-    expect(unselectedBorder).toBe(await resolveColor(page, subtleBorder));
+    expect(selectedHoverBg).toBe(await resolveColor(page, accentHover));
+
+    // -- Selected: focus-visible (skipped on WebKit: macOS doesn't Tab-focus buttons) --
+    if (browserName !== 'webkit') {
+      await page.mouse.move(0, 0);
+      for (let i = 0; i < 10; i++) {
+        await page.keyboard.press('Tab');
+        if (await chip(page, 'Reading').evaluate((el) => el === document.activeElement)) break;
+      }
+      await expect(chip(page, 'Reading')).toBeFocused();
+      const focusRing = await readToken(page, '--shelf-focusRing-color');
+      const selectedOutline = await chip(page, 'Reading').evaluate(
+        (el) => getComputedStyle(el).outlineColor,
+      );
+      expect(selectedOutline).toBe(await resolveColor(page, focusRing));
+    }
   });
 
   test('Shelf grid: default populated screenshot', { tag: ['@visual', '@djk.1'] }, async ({ page }) => {

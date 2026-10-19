@@ -18,7 +18,7 @@ These apply to every project. Project values and names are in `ui-project.md`. S
     scope: "src/**/*.css"
     exclude: "src/styles/tokens.css"
     fix: "Replace with a --shelf-*Color-* token from src/styles/tokens.css"
-  - pattern: "[0-9]+(px|rem|em|ms|s|%)"
+  - pattern: "[0-9]+(px|rem|em|ms|s|%|vw|vh|vmin|vmax|dvh|svh|lvh)"
     assert: absent
     scope: "src/**/*.css"
     exclude: "src/styles/tokens.css"
@@ -47,6 +47,13 @@ These apply to every project. Project values and names are in `ui-project.md`. S
 - Components own no space outside themselves. Spacing between components is the parent's job.
 
   ```enforcement
+  id: "no-outer-margin"
+  tier: T1
+  - pattern: "margin(-inline|-block|-top|-right|-bottom|-left)?\\s*:"
+    assert: absent
+    scope: "src/components/**/*.css"
+    fix: "Components must not set margin on their own root. The parent layout owns spacing via gap or padding."
+  ---
   id: "no-outer-margin"
   tier: T3
   agent: reviewer
@@ -335,6 +342,17 @@ These apply to every project. Project values and names are in `ui-project.md`. S
   ```
 
 ## Process (builder)
+
+- Source comments describe current behavior, not delivery plans. References to ticket state rot immediately.
+
+  ```enforcement
+  id: "no-ticket-references"
+  tier: T1
+  - pattern: "(in this ticket|later ticket|next ticket|future ticket|ships in.*ticket|lands in.*ticket|in a future|in a later)"
+    assert: absent
+    scope: "src/**/*.{ts,tsx,css}"
+    fix: "Describe current behavior and its boundary, not the delivery plan. e.g. 'Grid filtering is wired by its consumer' not 'ships in a later ticket'."
+  ```
 
 - Tickets list the acceptance tests to turn green. Make exactly those pass: `npx playwright test -g "<test name>"`.
 
