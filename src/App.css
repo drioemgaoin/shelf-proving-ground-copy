@@ -112,7 +112,7 @@
     margin-top: auto;
     padding: var(--shelf-space-xs) var(--shelf-space-sm);
     border-radius: var(--shelf-radius-full);
-    background-color: var(--shelf-borderColor-subtle);
+    background-color: var(--shelf-bgColor-subtle);
     font-size: var(--shelf-font-size-xs);
     font-weight: var(--shelf-font-weight-medium);
     color: var(--shelf-fgColor-default);
@@ -121,7 +121,7 @@
   /* Skeleton shimmer: an opacity pulse using the slow motion token. */
   .shelf-skeleton-bar,
   .shelf-skeleton-pill {
-    background-color: var(--shelf-borderColor-subtle);
+    background-color: var(--shelf-bgColor-subtle);
     border-radius: var(--shelf-radius-sm);
     animation: shelf-shimmer var(--shelf-motion-duration-slow) var(--shelf-motion-easing-enter)
       infinite alternate;

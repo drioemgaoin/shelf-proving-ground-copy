@@ -102,6 +102,7 @@
     --shelf-bgColor-accent-hover: var(--shelf-base-accent-6);   /* 6.3:1 white text */
     --shelf-bgColor-accent-active: var(--shelf-base-accent-7);  /* 8.1:1 white text */
     --shelf-bgColor-danger: var(--shelf-base-danger-5);
+    --shelf-bgColor-subtle: var(--shelf-base-neutral-2);        /* faint fill: badges, skeletons */
     --shelf-bgColor-overlay: hsl(16 12% 10% / 0.5);
 
     /* --- Border --- */
@@ -171,6 +172,7 @@
 
     --shelf-bgColor-default: var(--shelf-base-neutral-9);
     --shelf-bgColor-raised: var(--shelf-base-neutral-8);
+    --shelf-bgColor-subtle: var(--shelf-base-neutral-8);
     --shelf-bgColor-overlay: hsl(0 0% 0% / 0.6);
 
     --shelf-borderColor-default: var(--shelf-base-neutral-7);
@@ -192,6 +194,7 @@
 
       --shelf-bgColor-default: var(--shelf-base-neutral-9);
       --shelf-bgColor-raised: var(--shelf-base-neutral-8);
+      --shelf-bgColor-subtle: var(--shelf-base-neutral-8);
       --shelf-bgColor-overlay: hsl(0 0% 0% / 0.6);
 
       --shelf-borderColor-default: var(--shelf-base-neutral-7);
