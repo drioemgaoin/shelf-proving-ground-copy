@@ -60,19 +60,19 @@
   }
 
   .chip[aria-pressed='true'] {
-    border-color: var(--shelf-bgColor-accent);
+    border-color: transparent;
     background-color: var(--shelf-bgColor-accent);
     color: var(--shelf-fgColor-on-accent);
   }
 
   .chip[aria-pressed='true']:hover {
     background-color: var(--shelf-bgColor-accent-hover);
-    border-color: var(--shelf-bgColor-accent-hover);
+    border-color: transparent;
   }
 
   .chip[aria-pressed='true']:active {
     background-color: var(--shelf-bgColor-accent-active);
-    border-color: var(--shelf-bgColor-accent-active);
+    border-color: transparent;
   }
 
   /* Shared card box. Real cards and skeletons use the same dimensions so the

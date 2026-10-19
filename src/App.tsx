@@ -82,8 +82,8 @@ export function App(): React.JSX.Element {
         <ul className="shelf-grid" role="list">
           {Array.from({ length: SKELETON_COUNT }, (_, index) => (
             <li className="shelf-card" key={index}>
-              <span className="skeleton-bar skeleton-bar-title" />
-              <span className="skeleton-bar skeleton-bar-author" />
+              <span className="skeleton-bar" />
+              <span className="skeleton-bar" />
               <span className="skeleton-pill" />
             </li>
           ))}
