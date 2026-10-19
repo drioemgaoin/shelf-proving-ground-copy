@@ -134,7 +134,7 @@ function startDevServer() {
 function runPlaywright(testFile) {
   const result = spawnSync(
     'npx',
-    ['playwright', 'test', testFile],
+    ['playwright', 'test', '--config=qa/playwright.config.ts', testFile],
     {
       cwd: projectDir,
       stdio: ['pipe', 'pipe', 'pipe'],
