@@ -1,0 +1,18 @@
+@layer components {
+  .shelf {
+    display: flex;
+    flex-direction: column;
+    gap: var(--shelf-space-lg);
+    max-width: var(--shelf-layout-max-width);
+    width: 100%;
+    padding-block: var(--shelf-space-lg);
+    /* space-md on mobile, stepping up to space-lg at the tablet breakpoint. */
+    padding-inline: var(--shelf-space-md);
+  }
+
+  @media (width >= 768px) {
+    .shelf {
+      padding-inline: var(--shelf-space-lg);
+    }
+  }
+}

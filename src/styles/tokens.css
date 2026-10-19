@@ -225,5 +225,14 @@
     --shelf-button-primary-bgColor-hover: var(--shelf-bgColor-accent-hover);
     --shelf-button-primary-bgColor-active: var(--shelf-bgColor-accent-active);
     --shelf-button-primary-fgColor: var(--shelf-fgColor-on-accent);
+
+    /* --- Shelf layout + grid --- */
+    --shelf-layout-max-width: 80rem;        /* 1280px centered content cap */
+    --shelf-card-min-width: 17.5rem;        /* 280px fluid grid column floor */
+
+    /* --- Skeleton placeholder --- */
+    --shelf-skeleton-bgColor: var(--shelf-borderColor-default);
+    --shelf-skeleton-opacity-min: 0.1;
+    --shelf-skeleton-opacity-max: 0.3;
   }
 }

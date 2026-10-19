@@ -1,0 +1,92 @@
+@layer components {
+  /* Shimmer is an opacity pulse; the card element itself carries the animation
+     so the whole placeholder breathes between the two skeleton opacities. */
+  @keyframes shelf-shimmer {
+    from {
+      opacity: var(--shelf-skeleton-opacity-min);
+    }
+
+    to {
+      opacity: var(--shelf-skeleton-opacity-max);
+    }
+  }
+
+  .book-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(var(--shelf-card-min-width), 1fr));
+    gap: var(--shelf-space-lg);
+  }
+
+  /* Skeleton and real cards share a fixed footprint so the swap never shifts. */
+  .card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--shelf-space-sm);
+    height: calc(var(--shelf-space-2xl) * 3);
+    padding: var(--shelf-space-md);
+    overflow: hidden;
+    background-color: var(--shelf-bgColor-raised);
+    border: thin solid var(--shelf-borderColor-subtle);
+    border-radius: var(--shelf-radius-md);
+    box-shadow: var(--shelf-shadow-md);
+  }
+
+  .card-title {
+    color: var(--shelf-fgColor-default);
+    font-size: var(--shelf-font-size-lg);
+    font-weight: var(--shelf-font-weight-semibold);
+    line-height: 1.3;
+  }
+
+  .card-author {
+    overflow: hidden;
+    color: var(--shelf-fgColor-muted);
+    font-size: var(--shelf-font-size-sm);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .card-badge {
+    align-self: flex-start;
+    padding: var(--shelf-space-xs) var(--shelf-space-sm);
+    border: thin solid var(--shelf-borderColor-subtle);
+    border-radius: var(--shelf-radius-full);
+    background-color: var(--shelf-bgColor-default);
+    color: var(--shelf-fgColor-muted);
+    font-size: var(--shelf-font-size-xs);
+    font-weight: var(--shelf-font-weight-medium);
+  }
+
+  .skeleton-card {
+    animation: shelf-shimmer var(--shelf-motion-duration-slow)
+      var(--shelf-motion-easing-enter) infinite alternate;
+  }
+
+  .skeleton-line,
+  .skeleton-pill {
+    background-color: var(--shelf-skeleton-bgColor);
+    border-radius: var(--shelf-radius-sm);
+  }
+
+  .skeleton-line-title {
+    height: var(--shelf-space-md);
+  }
+
+  .skeleton-line-author {
+    width: calc(var(--shelf-space-2xl) * 3);
+    height: var(--shelf-space-sm);
+  }
+
+  .skeleton-pill {
+    width: var(--shelf-space-2xl);
+    height: var(--shelf-space-md);
+    border-radius: var(--shelf-radius-full);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .skeleton-card {
+      animation: none;
+      opacity: var(--shelf-skeleton-opacity-min);
+    }
+  }
+}

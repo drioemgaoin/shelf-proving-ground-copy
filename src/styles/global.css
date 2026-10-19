@@ -1,0 +1,25 @@
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    background-color: var(--shelf-bgColor-default);
+    color: var(--shelf-fgColor-default);
+    font-family: var(--shelf-font-family-base);
+    font-size: var(--shelf-font-size-base);
+  }
+
+  #app {
+    min-height: 100vh;
+    display: grid;
+    justify-items: center;
+  }
+
+  ul[role='list'] {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+}
