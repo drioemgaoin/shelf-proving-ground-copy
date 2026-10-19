@@ -129,7 +129,6 @@ test.describe('Shelf grid', () => {
   test('Shelf grid: chip visual states', { tag: ['@visual', '@djk.1'] }, async ({ page }) => {
     await loadShelf(page);
     await chip(page, 'Reading').click();
-    await page.mouse.move(0, 0);
 
     // Selected chip has accent background
     const accentBg = await readToken(page, '--shelf-bgColor-accent');
