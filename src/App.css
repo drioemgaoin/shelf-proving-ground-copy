@@ -1,0 +1,178 @@
+/*
+ * Shelf grid: responsive card grid with a filter chip bar and skeleton loading.
+ * Values come from tokens in src/styles/tokens.css.
+ */
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    font-family: var(--shelf-font-family-base);
+    color: var(--shelf-fgColor-default);
+    background: var(--shelf-bgColor-default);
+  }
+}
+
+@layer components {
+  /* ---- Page wrapper ---- */
+  .shelf {
+    max-width: var(--shelf-grid-maxWidth);
+    margin-inline: auto;
+    padding: var(--shelf-space-md);
+    display: flex;
+    flex-direction: column;
+    gap: var(--shelf-space-lg);
+  }
+
+  @media (width >= 768px) {
+    .shelf {
+      padding: var(--shelf-space-lg);
+    }
+  }
+
+  /* ---- Filter chips ---- */
+  .chip-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--shelf-space-sm);
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    padding: var(--shelf-space-sm) var(--shelf-space-md);
+    border: var(--shelf-borderWidth-hairline) solid var(--shelf-borderColor-subtle);
+    border-radius: var(--shelf-radius-full);
+    background: var(--shelf-bgColor-raised);
+    color: var(--shelf-fgColor-default);
+    font-family: inherit;
+    font-size: var(--shelf-font-size-sm);
+    font-weight: var(--shelf-font-weight-medium);
+    line-height: var(--shelf-line-height-body);
+    cursor: pointer;
+  }
+
+  .chip:hover {
+    border-color: var(--shelf-borderColor-default);
+  }
+
+  .chip:focus-visible {
+    outline: var(--shelf-focusRing);
+    outline-offset: var(--shelf-focusRing-offset);
+  }
+
+  .chip:active {
+    background: var(--shelf-bgColor-default);
+  }
+
+  .chip[aria-pressed='true'] {
+    background: var(--shelf-bgColor-accent);
+    border-color: var(--shelf-bgColor-accent);
+    color: var(--shelf-fgColor-on-accent);
+  }
+
+  .chip[aria-pressed='true']:hover {
+    background: var(--shelf-bgColor-accent-hover);
+    border-color: var(--shelf-bgColor-accent-hover);
+  }
+
+  .chip[aria-pressed='true']:active {
+    background: var(--shelf-bgColor-accent-active);
+    border-color: var(--shelf-bgColor-accent-active);
+  }
+
+  /* ---- Grid ---- */
+  .grid {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(var(--shelf-grid-colMinWidth), 1fr));
+    gap: var(--shelf-space-lg);
+  }
+
+  /* ---- Card (placeholder; Book card ticket owns the real design) ---- */
+  .card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--shelf-space-sm);
+    min-height: var(--shelf-card-minHeight);
+    padding: var(--shelf-space-md);
+    background: var(--shelf-bgColor-raised);
+    border: var(--shelf-borderWidth-hairline) solid var(--shelf-borderColor-default);
+    border-radius: var(--shelf-radius-md);
+    box-shadow: var(--shelf-shadow-sm);
+  }
+
+  .card-title {
+    margin: 0;
+    font-size: var(--shelf-font-size-lg);
+    font-weight: var(--shelf-font-weight-semibold);
+    color: var(--shelf-fgColor-default);
+  }
+
+  .card-author {
+    margin: 0;
+    font-size: var(--shelf-font-size-sm);
+    color: var(--shelf-fgColor-muted);
+  }
+
+  .card-badge {
+    align-self: flex-start;
+    margin-top: auto;
+    padding: var(--shelf-space-xs) var(--shelf-space-sm);
+    border-radius: var(--shelf-radius-full);
+    background: var(--shelf-bgColor-default);
+    color: var(--shelf-fgColor-muted);
+    font-size: var(--shelf-font-size-xs);
+    font-weight: var(--shelf-font-weight-medium);
+  }
+
+  /* ---- Skeleton placeholders ---- */
+  .skeleton-bar,
+  .skeleton-pill {
+    background: var(--shelf-borderColor-default);
+    border-radius: var(--shelf-radius-sm);
+    opacity: var(--shelf-skeleton-opacity-low);
+    animation: shelf-shimmer var(--shelf-motion-duration-slow) var(--shelf-motion-easing-enter)
+      infinite alternate;
+  }
+
+  .skeleton-bar {
+    height: var(--shelf-skeleton-bar-height);
+  }
+
+  .skeleton-bar-author {
+    width: var(--shelf-skeleton-bar-authorWidth);
+  }
+
+  .skeleton-pill {
+    margin-top: auto;
+    width: var(--shelf-skeleton-pill-width);
+    height: var(--shelf-skeleton-pill-height);
+    border-radius: var(--shelf-radius-full);
+  }
+
+  @keyframes shelf-shimmer {
+    from {
+      opacity: var(--shelf-skeleton-opacity-low);
+    }
+
+    to {
+      opacity: var(--shelf-skeleton-opacity-high);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .skeleton-bar,
+    .skeleton-pill {
+      animation: none;
+      opacity: var(--shelf-skeleton-opacity-low);
+    }
+  }
+}
