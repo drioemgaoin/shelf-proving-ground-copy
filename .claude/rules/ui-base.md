@@ -24,7 +24,6 @@ These apply to every project. Project values and names are in `ui-project.md`. S
     scope: "src/**/*.css"
     exclude: "src/styles/tokens.css"
     strip: comments+at-rule-params
-    skip-lines: "calc\\(|clamp\\(|minmax\\("
     fix: "Replace with the appropriate --shelf-* token from src/styles/tokens.css"
   - pattern: "\\b(rgb|rgba|hsl|hsla|hwb|lab|lch|oklab|oklch|color(-\\w+)?|light-dark)\\s*\\("
     assert: absent
@@ -38,12 +37,25 @@ These apply to every project. Project values and names are in `ui-project.md`. S
     exclude: "src/styles/tokens.css"
     strip: comments
     fix: "Color properties must use a --shelf-*Color-* token from src/styles/tokens.css, not a raw value"
-  - pattern: "\\b(border(-(top|right|bottom|left|block|inline)(-(start|end))?)?|outline)\\s*:[^;]*\\b(?!(thin|medium|thick|none|hidden|dotted|dashed|solid|double|groove|ridge|inset|outset|inherit|initial|unset|revert|currentColor|transparent|auto|var|important)\\b)[a-z]{2,}"
+  - pattern: "\\b(border(-(top|right|bottom|left|block|inline)(-(start|end))?)?|outline)\\s*:[^;]*\\b(?!(none|hidden|dotted|dashed|solid|double|groove|ridge|inset|outset|inherit|initial|unset|revert|currentColor|transparent|auto|var|important)\\b)[a-z]{2,}"
     assert: absent
     scope: "src/**/*.css"
     exclude: "src/styles/tokens.css"
     strip: comments+paren-contents
     fix: "Use a --shelf-*Color-* token instead of a raw color name in border/outline shorthand declarations"
+  - pattern: "\\b(border(-(width|top|right|bottom|left))?|border-(block|inline)(-(start|end))?)\\s*:[^;]*(\\b(thin|medium|thick)\\b)"
+    assert: absent
+    scope: "src/**/*.css"
+    exclude: "src/styles/tokens.css"
+    strip: comments
+    fix: "Replace thin/medium/thick with a --shelf-border-width-* token from src/styles/tokens.css"
+  - pattern: ":\\s*(?!var\\(|inherit|initial|unset|revert|none|auto|normal|0\\s*[;}])\\d*\\.?\\d+\\s*;"
+    assert: absent
+    scope: "src/**/*.css"
+    exclude: "src/styles/tokens.css"
+    strip: comments
+    skip-lines: "flex(-grow|-shrink|-basis)?\\s*:|order\\s*:|column-count\\s*:|orphans\\s*:|widows\\s*:|tab-size\\s*:|counter-|animation-iteration-count\\s*:|will-change"
+    fix: "Replace bare numeric value with the appropriate --shelf-* token from src/styles/tokens.css"
   ---
   id: "values-from-tokens"
   tier: T3
@@ -375,6 +387,25 @@ These apply to every project. Project values and names are in `ui-project.md`. S
     assert: absent
     scope: "src/**/*.{ts,tsx,css}"
     fix: "Describe current behavior and its boundary, not the delivery plan. e.g. 'Grid filtering is wired by its consumer' not 'ships in a later ticket'."
+  - pattern: "shelf-proving-ground-[a-z0-9]+"
+    assert: absent
+    scope: "src/**/*.{ts,tsx,css}"
+    fix: "Remove the beads ticket ID. Describe current behavior, not the delivery plan."
+  - pattern: "\\b[a-z]{2,}[a-z0-9]*\\.\\d+\\b"
+    assert: absent
+    scope: "src/**/*.{ts,tsx,css}"
+    strip: strings
+    fix: "Remove the ticket ID reference (e.g. djk.2). Describe current behavior, not the delivery plan."
+  - pattern: "\\b[A-Z]{2,}-\\d{2,}\\b"
+    assert: absent
+    scope: "src/**/*.{ts,tsx,css}"
+    strip: strings
+    fix: "Remove the Jira/Linear ticket ID (e.g. SHELF-456). Describe current behavior, not the delivery plan."
+  - pattern: "#\\d{2,}\\b"
+    assert: absent
+    scope: "src/**/*.{ts,tsx,css}"
+    strip: strings
+    fix: "Remove the issue reference (e.g. #234). Describe current behavior, not the delivery plan."
   ```
 
 - Tickets list the acceptance tests to turn green. Make exactly those pass: `npx playwright test -g "<test name>"`.
@@ -445,4 +476,38 @@ These apply to every project. Project values and names are in `ui-project.md`. S
   tier: Human
   review: morning-review
   reason: "Meta-process — whether the builder agent delegated to visual-qa before finishing is a workflow step visible only in the agent's execution log, not in code"
+  ```
+
+- Comments explain WHY, never WHAT. One short line maximum. If the name already says it, write no comment. No multi-line JSDoc blocks.
+
+  CORRECT: `// null = loading; array (possibly empty) = loaded`
+  CORRECT: `// Owns only visual pressed state; grid filtering is not wired.`
+  CORRECT: (no comment — the name `SKELETON_COUNT` already explains itself)
+
+  WRONG:
+
+  ```ts
+  /** Fixed number of skeleton placeholders shown while the shelf loads. */
+  const SKELETON_COUNT = 6;
+  ```
+
+  — restates the name
+
+  WRONG:
+
+  ```ts
+  // null while the first load is in flight; an array once data (or an empty
+  // shelf) has arrived. Skeletons render during the null phase.
+  ```
+
+  — two lines when one suffices: `// null = loading; array = loaded`
+
+  ```enforcement
+  id: "comment-style"
+  tier: T3
+  agent: reviewer
+  scope: "src/**/*.{ts,tsx,css}"
+  group: clarity
+  triage_hint: "Flag when: JSDoc block, multi-line comment, comment restating name or type signature, comment explaining WHAT not WHY"
+  instruction: "Every comment MUST explain WHY, never WHAT. One short line maximum. No multi-line JSDoc blocks. If the function/variable name already communicates the meaning, the comment is a violation."
   ```
