@@ -17,23 +17,33 @@ These apply to every project. Project values and names are in `ui-project.md`. S
     assert: absent
     scope: "src/**/*.css"
     exclude: "src/styles/tokens.css"
+    strip: comments
     fix: "Replace with a --shelf-*Color-* token from src/styles/tokens.css"
   - pattern: "[0-9]+(px|rem|em|ms|s|%|vw|vh|vmin|vmax|dvh|svh|lvh)"
     assert: absent
     scope: "src/**/*.css"
     exclude: "src/styles/tokens.css"
-    strip: comments
+    strip: comments+at-rule-params
+    skip-lines: "calc\\(|clamp\\(|minmax\\("
     fix: "Replace with the appropriate --shelf-* token from src/styles/tokens.css"
-  - pattern: "rgb(a?)\\("
+  - pattern: "\\b(rgb|rgba|hsl|hsla|hwb|lab|lch|oklab|oklch|color(-\\w+)?|light-dark)\\s*\\("
     assert: absent
     scope: "src/**/*.css"
     exclude: "src/styles/tokens.css"
+    strip: comments
     fix: "Replace with a --shelf-*Color-* token from src/styles/tokens.css"
-  - pattern: "hsl(a?)\\("
+  - pattern: "\\b(color|background-color|border-color|outline-color|text-decoration-color|caret-color|accent-color|fill|stroke|column-rule-color|border-top-color|border-right-color|border-bottom-color|border-left-color)\\s*:\\s*(?=\\S)(?!var\\(|inherit\\b|initial\\b|unset\\b|revert\\b|currentColor\\b|transparent\\b|none\\b|auto\\b)"
     assert: absent
     scope: "src/**/*.css"
     exclude: "src/styles/tokens.css"
-    fix: "Replace with a --shelf-*Color-* token from src/styles/tokens.css"
+    strip: comments
+    fix: "Color properties must use a --shelf-*Color-* token from src/styles/tokens.css, not a raw value"
+  - pattern: "\\b(border(-(top|right|bottom|left|block|inline)(-(start|end))?)?|outline)\\s*:[^;]*\\b(?!(thin|medium|thick|none|hidden|dotted|dashed|solid|double|groove|ridge|inset|outset|inherit|initial|unset|revert|currentColor|transparent|auto|var|important)\\b)[a-z]{2,}"
+    assert: absent
+    scope: "src/**/*.css"
+    exclude: "src/styles/tokens.css"
+    strip: comments+paren-contents
+    fix: "Use a --shelf-*Color-* token instead of a raw color name in border/outline shorthand declarations"
   ---
   id: "values-from-tokens"
   tier: T3
@@ -49,9 +59,11 @@ These apply to every project. Project values and names are in `ui-project.md`. S
   ```enforcement
   id: "base-layer-exists"
   tier: T1
-  - pattern: "@layer base"
+  - pattern: "@layer\s+base"
     assert: present
-    scope: "src/styles/tokens.css"
+    strip: comments
+    scope: "src/**/*.{css,ts,tsx}"
+    cross-check: "src/styles/tokens.css"
     fix: "Add a @layer base block after @layer tokens that sets body { margin: 0; background-color: var(--<ns>-bgColor-default); color: var(--<ns>-fgColor-default); font-family: var(--<ns>-font-family-base); }"
   ```
 
