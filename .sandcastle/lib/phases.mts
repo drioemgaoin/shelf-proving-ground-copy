@@ -7,14 +7,16 @@
 import * as sandcastle from "@ai-hero/sandcastle";
 import { docker } from "@ai-hero/sandcastle/sandboxes/docker";
 import { execSync } from "child_process";
+import { existsSync, rmSync } from "fs";
 import { z } from "zod";
 import { log } from "./logging.mjs";
 import { expandAndSave } from "./prompt.mjs";
-import { type SandboxHooks, getGuardBase, setRulesVisible, createLightHooks } from "./sandbox.mjs";
+import { type SandboxHooks, getGuardBase, setRulesVisible } from "./sandbox.mjs";
 import { timedRun, timedSandboxRun, CostCeilingExceededError } from "./tagged-agent.mjs";
 import { runGateLoop, escalate, type GateContext } from "./qa-gates.mjs";
 import { createVisualGate, createReviewGate } from "./gates.mjs";
 import { collectMonitorData } from "./monitor-collect.mjs";
+import { loadViolationsMemory, recordViolation } from "./violations-memory.mjs";
 import {
   PLANNER,
   IMPLEMENTER,
@@ -74,7 +76,6 @@ function loggingConfig(name: string, verbose: boolean, issueId?: string) {
 export interface PlanOptions {
   readyIssues: string;
   warmImage: string;
-  hooks: SandboxHooks;
   verbose: boolean;
 }
 
@@ -84,8 +85,8 @@ export async function planIteration(opts: PlanOptions): Promise<PlannedIssue[]> 
   expandAndSave(".sandcastle/prompts/plan.prompt.md", plannerArgs, promptPath("planner"));
 
   const plan = await timedRun<any>("Planner", PLANNER, {
-    hooks: setRulesVisible(opts.hooks, false),
     sandbox: docker({ imageName: opts.warmImage }),
+    branchStrategy: { type: "head" },
     name: "planner",
     maxIterations: 1,
     logging: loggingConfig("planner", opts.verbose),
@@ -238,6 +239,8 @@ async function runImplementer(
     BRANCH: issue.branch,
     ISSUE_DETAILS: opts.issueDetails.get(issue.id)!,
     CODEMAP: opts.codemaps.get(issue.id) ?? "",
+    // VIOLATIONS_MEMORY: loadViolationsMemory(), // temporarily disabled for testing
+    VIOLATIONS_MEMORY: "",
     COMMENT_TASK_COMMAND: opts.trackerCommands!.COMMENT_TASK_COMMAND.replace("<ID>", issue.id),
     LABEL_TASK_COMMAND: opts.trackerCommands!.LABEL_TASK_COMMAND.replace("<ID>", issue.id),
     CREATE_BUG_COMMAND: opts.trackerCommands!.CREATE_BUG_COMMAND,
@@ -390,35 +393,83 @@ export async function resumeQAGates(
 }
 
 // ---------------------------------------------------------------------------
-// Phase 3: Merge
+// Phase 3: Merge — push branches, create PRs, merge on GitHub
 // ---------------------------------------------------------------------------
 
 export interface MergeOptions {
-  warmImage: string;
-  hooks: SandboxHooks;
   verbose: boolean;
   closeTaskCommand: string;
+  keepWorktree?: boolean;
 }
 
 export async function mergeCompleted(
   completedIssues: PlannedIssue[],
   opts: MergeOptions,
 ): Promise<void> {
-  log("Phase 3: Merger starting...");
-  const mergerArgs = {
-    BRANCHES: completedIssues.map((i) => `- ${i.branch}`).join("\n"),
-    ISSUES: completedIssues.map((i) => `- ${i.id}: ${i.title}`).join("\n"),
-    CLOSE_TASK_COMMAND: opts.closeTaskCommand,
-  };
-  expandAndSave(".sandcastle/prompts/merger.prompt.md", mergerArgs, promptPath("merger"));
-  await timedRun("Merger", MERGER, {
-    hooks: setRulesVisible(opts.hooks, false),
-    sandbox: docker({ imageName: opts.warmImage }),
-    name: "merger",
-    maxIterations: 3,
-    logging: loggingConfig("merger", opts.verbose),
-    promptFile: "./.sandcastle/prompts/merger.prompt.md",
-    promptArgs: mergerArgs,
+  log("Phase 3: Push + PR + merge starting...");
+
+  for (const issue of completedIssues) {
+    const { id, branch, title } = issue;
+
+    // Remove the worktree so git can delete the local branch during merge.
+    // --keep-worktree preserves it for post-run inspection (reset cleans it).
+    const worktree = `.sandcastle/worktrees/sandcastle-issue-${id}`;
+    if (existsSync(worktree) && !opts.keepWorktree) {
+      try {
+        execSync(`git worktree remove --force ${worktree}`, {
+          encoding: "utf8",
+          timeout: 30_000,
+        });
+      } catch {
+        // Force-remove the directory and prune if git worktree remove fails
+        rmSync(worktree, { recursive: true, force: true });
+        execSync("git worktree prune", { encoding: "utf8", timeout: 10_000 });
+      }
+    }
+
+    // Push the validated branch to the remote
+    log(`  Pushing ${branch}...`);
+    execSync(`git push origin ${branch} --force-with-lease`, {
+      encoding: "utf8",
+      timeout: 120_000,
+    });
+
+    // Create a PR and merge it
+    log(`  Creating PR for ${id}: ${title}...`);
+    const prBody = `Sandcastle build for ${id}: ${title}.\n\nAutomated implementation + QA (visual + code review).`;
+    const prUrl = execSync(
+      `gh pr create --base main --head ${branch} ` +
+      `--title ${JSON.stringify(`${id}: ${title}`)} ` +
+      `--body ${JSON.stringify(prBody)}`,
+      { encoding: "utf8", timeout: 60_000 },
+    ).trim();
+    log(`  PR created: ${prUrl}`);
+
+    log(`  Merging PR for ${id}...`);
+    const deleteBranch = opts.keepWorktree ? "" : " --delete-branch";
+    execSync(`gh pr merge ${branch} --merge${deleteBranch}`, {
+      encoding: "utf8",
+      timeout: 120_000,
+    });
+    log(`  PR merged for ${id}.`);
+
+    // Close the tracker issue
+    try {
+      execSync(opts.closeTaskCommand.replace("<ID>", id), {
+        encoding: "utf8",
+        timeout: 30_000,
+      });
+      log(`  Issue ${id} closed.`);
+    } catch (e) {
+      log(`  ⚠️  Failed to close issue ${id}: ${e}`);
+    }
+  }
+
+  // Pull merged changes so local main stays current
+  execSync("git pull --ff-only origin main", {
+    encoding: "utf8",
+    timeout: 60_000,
   });
-  log("Phase 3: Merger done. Branches merged.");
+
+  log(`Phase 3: ${completedIssues.length} branch(es) merged via PR.`);
 }

@@ -169,17 +169,17 @@ assert(
 const sandboxSource = readFileSync('.sandcastle/lib/sandbox.mts', 'utf8');
 
 assert(
-  'GREEN: createHooks includes strip-enforcement command',
+  'GREEN: createBuilderHooks includes strip-enforcement command',
   sandboxSource.includes('node scripts/strip-enforcement.mjs'),
-  'createHooks() must include the enforcement stripping command',
+  'createBuilderHooks() must include the enforcement stripping command',
 );
 
-// Verify it appears in both createHooks and createReplayHooks
+// Verify it appears in both createBuilderHooks and createReplayHooks
 const hookMatches = sandboxSource.match(/node scripts\/strip-enforcement\.mjs/g) || [];
 assert(
-  'GREEN: strip-enforcement in both createHooks and createReplayHooks',
+  'GREEN: strip-enforcement in both createBuilderHooks and createReplayHooks',
   hookMatches.length >= 2,
-  `Expected ≥2 occurrences (createHooks + createReplayHooks), found ${hookMatches.length}`,
+  `Expected ≥2 occurrences (createBuilderHooks + createReplayHooks), found ${hookMatches.length}`,
 );
 
 // ─── Results ────────────────────────────────────────────────────────────────

@@ -407,7 +407,11 @@ function createT2Tracker(commands, exec) {
       } catch { /* ignore parse errors */ }
     },
     escalate: (reason) => {
-      exec(commands.labelCommand.replace('<ID>', 'pipeline').replace('ready-for-human', reason));
+      const cmd = commands.createBugCommand
+        .replace('<TITLE>', `[Escalation] ${reason}`)
+        .replace('<DESCRIPTION>', `Global T2 escalation: ${reason}`)
+        .replace('--label=ready-for-human', '--label=ready-for-human');
+      exec(cmd);
     },
   };
 }

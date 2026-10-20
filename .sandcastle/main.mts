@@ -4,13 +4,13 @@
 // Repeats until no unblocked issues remain or MAX_ITERATIONS is reached.
 //
 // Usage:
-//   npx tsx .sandcastle/main.mts [--single] [--verbose] [--overlay] [--tickets [dir]] [--resume]
+//   npx tsx .sandcastle/main.mts [--single] [--verbose] [--overlay] [--tickets [dir]] [--resume] [--keep-worktree]
 
 import { execSync } from "child_process";
-import { existsSync, readFileSync, readdirSync } from "fs";
+import { existsSync, readFileSync, readdirSync, rmSync } from "fs";
 import { log } from "./lib/logging.mjs";
 import { hasFlag, flag } from "./lib/cli.mjs";
-import { buildWarmImage, createHooks, buildOverlayFileList } from "./lib/sandbox.mjs";
+import { buildWarmImage, createBuilderHooks, buildOverlayFileList } from "./lib/sandbox.mjs";
 import { readTicketFiles, ticketsToReadyJson } from "./lib/tickets.mjs";
 import { planIteration, executeInParallel, mergeCompleted, resumeQAGates } from "./lib/phases.mjs";
 import type { PlannedIssue } from "./lib/phases.mjs";
@@ -34,14 +34,17 @@ import { runGlobalT2, createT2Runner, createT2Tracker } from "./lib/global-t2.mj
 import { collectAllWorktrees } from "./lib/monitor-collect.mjs";
 
 // ---------------------------------------------------------------------------
-// SIGINT/SIGTERM: collect monitor data before sandcastle's handler exits.
-// Registered BEFORE sandcastle installs its own handler (createSandbox),
-// so this fires first in Node's listener order.
+// SIGINT/SIGTERM: collect monitor data, release lock, and exit.
+//
+// Without process.exit(), registering a listener suppresses Node's default
+// "terminate" behavior, so the process would hang after Ctrl-C.
 // ---------------------------------------------------------------------------
 
 for (const sig of ["SIGINT", "SIGTERM"] as const) {
   process.on(sig, () => {
     collectAllWorktrees();
+    releaseLock(process.cwd());
+    process.exit(128 + (sig === "SIGINT" ? 2 : 15));
   });
 }
 
@@ -53,6 +56,7 @@ const SINGLE_MODE = hasFlag("single");
 const VERBOSE = hasFlag("verbose");
 const OVERLAY = hasFlag("overlay");
 const RESUME = hasFlag("resume");
+const KEEP_WORKTREE = hasFlag("keep-worktree");
 const TICKETS_FLAG = hasFlag("tickets");
 const TICKETS_DIR = (() => {
   const next = flag("tickets");
@@ -85,8 +89,29 @@ log("Building warm image...");
 const warmImage = buildWarmImage();
 log(`Warm image ready: ${warmImage}`);
 
-const hooks = createHooks(OVERLAY);
+const builderHooks = createBuilderHooks(OVERLAY);
 const copyToWorktree = OVERLAY ? buildOverlayFileList() : [];
+
+// ---------------------------------------------------------------------------
+// Planner worktree cleanup
+// ---------------------------------------------------------------------------
+
+function cleanupPlannerWorktrees(): void {
+  const root = ".sandcastle/worktrees";
+  if (!existsSync(root)) return;
+  for (const entry of readdirSync(root)) {
+    if (!entry.startsWith("sandcastle-planner-")) continue;
+    const dir = `${root}/${entry}`;
+    try {
+      execSync(`git worktree remove --force ${dir}`, { encoding: "utf8", timeout: 10_000 });
+    } catch {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  }
+  try {
+    execSync("git worktree prune", { encoding: "utf8", timeout: 10_000 });
+  } catch { /* best-effort */ }
+}
 
 // ---------------------------------------------------------------------------
 // Pre-expansion helpers
@@ -199,7 +224,7 @@ try {
 
       const completedIssues = await resumeQAGates(issues, {
         warmImage,
-        hooks,
+        hooks: builderHooks,
         copyToWorktree,
         verbose: VERBOSE,
         issueDetails: details,
@@ -218,10 +243,9 @@ try {
       if (completedIssues.length > 0) {
         // Phase 3: Merge
         await mergeCompleted(completedIssues, {
-          warmImage,
-          hooks,
           verbose: VERBOSE,
           closeTaskCommand: tracker.CLOSE_TASK_COMMAND,
+          keepWorktree: KEEP_WORKTREE,
         });
 
         // Global T2 suite — post-merge
@@ -246,7 +270,12 @@ try {
       // Phase 1: Plan
       log("Pre-expanding issue list on host...");
       const { readyIssues, ticketFiles } = fetchReadyIssues();
-      let issues = await planIteration({ readyIssues, warmImage, hooks, verbose: VERBOSE });
+      let issues = await planIteration({ readyIssues, warmImage, verbose: VERBOSE });
+
+      // Clean up orphaned planner worktrees — merge-to-head doesn't always
+      // self-clean (Docker file ownership, timing).  Safe to remove since the
+      // planner writes no commits.
+      cleanupPlannerWorktrees();
 
       if (SINGLE_MODE && issues.length > 1) {
         log(`Single mode: picking only ${issues[0]!.id}, skipping ${issues.length - 1} other(s).`);
@@ -271,7 +300,7 @@ try {
       // Phase 2: Execute + QA Gates
       const completedIssues = await executeInParallel(issues, {
         warmImage,
-        hooks,
+        hooks: builderHooks,
         copyToWorktree,
         verbose: VERBOSE,
         issueDetails: details,
@@ -296,10 +325,9 @@ try {
 
       // Phase 3: Merge
       await mergeCompleted(completedIssues, {
-        warmImage,
-        hooks,
         verbose: VERBOSE,
         closeTaskCommand: tracker.CLOSE_TASK_COMMAND,
+        keepWorktree: KEEP_WORKTREE,
       });
 
       // Global T2 suite — post-merge

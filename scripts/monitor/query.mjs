@@ -29,12 +29,21 @@ export function createQueryApi(sink) {
       const byRule = new Map();
       for (const e of events) {
         if (!byRule.has(e.ruleId)) {
-          byRule.set(e.ruleId, { ruleId: e.ruleId, tier: e.tier, triggers: [], blocks: 0, fixes: 0 });
+          byRule.set(e.ruleId, { ruleId: e.ruleId, tier: e.tier, triggers: [], blocks: 0, fixes: 0, byAgent: {} });
         }
         const entry = byRule.get(e.ruleId);
         entry.triggers.push(e);
         if (e.outcome === 'blocked') entry.blocks++;
         if (e.outcome === 'fixed') entry.fixes++;
+
+        // Per-agent breakdown
+        const agent = e.agent ?? 'implementer';
+        if (!entry.byAgent[agent]) {
+          entry.byAgent[agent] = { triggers: 0, blocks: 0, fixes: 0 };
+        }
+        entry.byAgent[agent].triggers++;
+        if (e.outcome === 'blocked') entry.byAgent[agent].blocks++;
+        if (e.outcome === 'fixed') entry.byAgent[agent].fixes++;
       }
 
       return [...byRule.values()].map(entry => ({
@@ -45,6 +54,7 @@ export function createQueryApi(sink) {
         blockRate: entry.triggers.length > 0 ? entry.blocks / entry.triggers.length : 0,
         fixCount: entry.fixes,
         fixRate: entry.blocks > 0 ? entry.fixes / entry.blocks : 0,
+        byAgent: entry.byAgent,
       }));
     },
 

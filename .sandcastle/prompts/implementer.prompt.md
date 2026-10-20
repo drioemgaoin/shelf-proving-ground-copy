@@ -18,11 +18,17 @@ Single-issue focus. Branch: {{BRANCH}}.
 
 </codemap>
 
+<!-- recent-commits disabled: returning empty list for now
 <recent-commits>
 
 !`git log -n 3 --format="%ad %s" --date=short`
 
 </recent-commits>
+-->
+<recent-commits>
+</recent-commits>
+
+{{VIOLATIONS_MEMORY}}
 
 # COLD START
 
@@ -43,7 +49,7 @@ Your integration tests go in `qa/agent/`.
 
 # EXECUTION
 
-Vertical slice, then widen. Red-green-refactor (TDD): read one acceptance test, write the minimum code to pass it, run it, repeat. Do not read all tests upfront. Do NOT write more than one source file before running tests. If you write multiple files before your first test run, you have violated your contract.
+Vertical slice, then widen. Red-green-refactor (TDD): read one acceptance test, write the minimum code to pass it, run it, repeat. Do not read all tests upfront. A component's markup and its stylesheet are ONE slice — write both together for each visual element before moving on. Do NOT write all markup first then all CSS; that splits the slice horizontally and lets speculative classNames diverge from what the CSS actually needs. Do NOT write more than one source file before running tests. If you write multiple files before your first test run, you have violated your contract.
 
 Only run tests tagged for your ticket. Use the `Run` command from the "Tests to turn green" section in the issue details — never run the whole spec file. Tests from other tickets will fail; that is expected and not your problem. Do not investigate, report, or count them.
 

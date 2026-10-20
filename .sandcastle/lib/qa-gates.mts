@@ -72,76 +72,82 @@ export async function runGateLoop(
   ctx: GateContext,
   verbose: boolean,
 ): Promise<boolean> {
-  for (let round = 1; round <= MAX_GATE_ROUNDS; round++) {
-    const findingsFile = gate.findingsFile(round);
-    const findingsPath = `${ctx.worktree}/${findingsFile}`;
+  try {
+    for (let round = 1; round <= MAX_GATE_ROUNDS; round++) {
+      const findingsFile = gate.findingsFile(round);
+      const findingsPath = `${ctx.worktree}/${findingsFile}`;
 
-    log(`  ${gate.name} round ${round}/${MAX_GATE_ROUNDS} for ${ctx.issueId}...`);
+      log(`  ${gate.name} round ${round}/${MAX_GATE_ROUNDS} for ${ctx.issueId}...`);
 
-    // --- Checker ---
-    setRulesVisible(ctx.worktree, false);
-    gate.beforeCheck?.(round, ctx);
-    const checkerArgs = gate.buildCheckerArgs(round, ctx);
-    const checkerLogName = `${slugify(gate.name)}-r${round}`;
-    const checkerExpandedPath = promptPath(checkerLogName, ctx.issueId);
-    expandAndSave(gate.checkerPromptFile, checkerArgs, checkerExpandedPath, { ticketId: ctx.issueId });
-    await timedSandboxRun(`${gate.name} [${ctx.issueId}] r${round}`, gate.checker, ctx.sandbox, {
-      name: checkerLogName,
-      maxIterations: gate.checkerMaxIterations,
-      logging: verbose
-        ? { type: "file", verbose: true, path: logFilePath(checkerLogName, ctx.issueId) }
-        : undefined,
-      promptFile: `./${checkerExpandedPath}`,
-      promptArgs: {},
-    });
+      // --- Checker ---
+      setRulesVisible(ctx.worktree, false);
+      gate.beforeCheck?.(round, ctx);
+      const checkerArgs = gate.buildCheckerArgs(round, ctx);
+      const checkerLogName = `${slugify(gate.name)}-r${round}`;
+      const checkerExpandedPath = promptPath(checkerLogName, ctx.issueId);
+      expandAndSave(gate.checkerPromptFile, checkerArgs, checkerExpandedPath, { ticketId: ctx.issueId });
+      await timedSandboxRun(`${gate.name} [${ctx.issueId}] r${round}`, gate.checker, ctx.sandbox, {
+        name: checkerLogName,
+        maxIterations: gate.checkerMaxIterations,
+        logging: verbose
+          ? { type: "file", verbose: true, path: logFilePath(checkerLogName, ctx.issueId) }
+          : undefined,
+        promptFile: `./${checkerExpandedPath}`,
+        promptArgs: {},
+      });
 
-    // --- Evaluate result ---
-    if (isClean(findingsPath, gate.passWord)) {
-      log(`  ${gate.name} clean for ${ctx.issueId} after ${round} round(s).`);
-      return false;
+      // --- Evaluate result ---
+      if (isClean(findingsPath, gate.passWord)) {
+        log(`  ${gate.name} clean for ${ctx.issueId} after ${round} round(s).`);
+        return false;
+      }
+
+      if (isClean(findingsPath, "DEFER")) {
+        log(`  ${gate.name} deferred for ${ctx.issueId}. Escalating.`);
+        escalate(ctx.issueId, `${gate.name} found only deferred issues.`);
+        return true;
+      }
+
+      if (round === MAX_GATE_ROUNDS) {
+        log(`  ${gate.name} still failing. Escalating ${ctx.issueId}.`);
+        escalate(ctx.issueId, `${gate.name} loop exhausted after ${MAX_GATE_ROUNDS} rounds.`);
+        return true;
+      }
+
+      if (gate.detectOscillation?.(round, ctx)) {
+        log(`  Oscillation detected for ${ctx.issueId} at round ${round}. Escalating.`);
+        escalate(
+          ctx.issueId,
+          `${gate.name} oscillation at round ${round}: findings re-target locations from round ${round - 1}. Needs human tiebreak.`,
+        );
+        return true;
+      }
+
+      // --- Fixer ---
+      log(`  ${gate.name} findings detected. Fixer starting...`);
+      setRulesVisible(ctx.worktree, true);
+      gate.beforeFix?.(round, ctx);
+      const fixerArgs = gate.buildFixerArgs(round, ctx);
+      const fixerLogName = `${slugify(gate.name)}-fixer-r${round}`;
+      const fixerExpandedPath = promptPath(fixerLogName, ctx.issueId);
+      expandAndSave(gate.fixerPromptFile, fixerArgs, fixerExpandedPath);
+      await timedSandboxRun(`${gate.name}-Fixer [${ctx.issueId}] r${round}`, gate.fixer, ctx.sandbox, {
+        name: fixerLogName,
+        maxIterations: gate.fixerMaxIterations,
+        logging: verbose
+          ? { type: "file", verbose: true, path: logFilePath(fixerLogName, ctx.issueId) }
+          : undefined,
+        promptFile: `./${fixerExpandedPath}`,
+        promptArgs: {},
+      });
+      gate.afterFix?.(round, ctx);
     }
-
-    if (isClean(findingsPath, "DEFER")) {
-      log(`  ${gate.name} deferred for ${ctx.issueId}. Escalating.`);
-      escalate(ctx.issueId, `${gate.name} found only deferred issues.`);
-      return true;
-    }
-
-    if (round === MAX_GATE_ROUNDS) {
-      log(`  ${gate.name} still failing. Escalating ${ctx.issueId}.`);
-      escalate(ctx.issueId, `${gate.name} loop exhausted after ${MAX_GATE_ROUNDS} rounds.`);
-      return true;
-    }
-
-    if (gate.detectOscillation?.(round, ctx)) {
-      log(`  Oscillation detected for ${ctx.issueId} at round ${round}. Escalating.`);
-      escalate(
-        ctx.issueId,
-        `${gate.name} oscillation at round ${round}: findings re-target locations from round ${round - 1}. Needs human tiebreak.`,
-      );
-      return true;
-    }
-
-    // --- Fixer ---
-    log(`  ${gate.name} findings detected. Fixer starting...`);
+    return false;
+  } finally {
+    // Always restore rules regardless of exit path (clean, escalation, error).
+    // Idempotent — safe even if rules are already visible.
     setRulesVisible(ctx.worktree, true);
-    gate.beforeFix?.(round, ctx);
-    const fixerArgs = gate.buildFixerArgs(round, ctx);
-    const fixerLogName = `${slugify(gate.name)}-fixer-r${round}`;
-    const fixerExpandedPath = promptPath(fixerLogName, ctx.issueId);
-    expandAndSave(gate.fixerPromptFile, fixerArgs, fixerExpandedPath);
-    await timedSandboxRun(`${gate.name}-Fixer [${ctx.issueId}] r${round}`, gate.fixer, ctx.sandbox, {
-      name: fixerLogName,
-      maxIterations: gate.fixerMaxIterations,
-      logging: verbose
-        ? { type: "file", verbose: true, path: logFilePath(fixerLogName, ctx.issueId) }
-        : undefined,
-      promptFile: `./${fixerExpandedPath}`,
-      promptArgs: {},
-    });
-    gate.afterFix?.(round, ctx);
   }
-  return false;
 }
 
 // ---------------------------------------------------------------------------
@@ -157,8 +163,8 @@ export function setPhase(worktree: string, phase: string): void {
   writeFileSync(join(worktree, ".sandcastle-phase"), phase);
 }
 
-// setRulesVisible lives in sandbox.mts — single source of truth for both
-// host-side worktree renames (used here) and hook-level commands (planner/merger).
+// setRulesVisible lives in sandbox.mts — single source of truth for
+// worktree-level visibility toggling (used here by QA gates).
 
 export function archiveTestResults(worktree: string, label: string): void {
   const src = join(worktree, "test-results");

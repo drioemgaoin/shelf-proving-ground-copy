@@ -86,19 +86,29 @@ for (const label of ESCALATION_LABELS) {
 // fast-forwarded onto main and a summary commit was added. We revert the
 // entire range (fork-point..merge-commit] so the next run starts clean.
 //
+// Finding the merge commit:
+//   a) GitHub PR merge: "Merge pull request #N from <remote>/<branch>"
+//   b) Local git merge: "Merge <branch>: ..."
+// We search for both patterns.
+//
 // Finding the fork point:
-//   a) If the branch still exists, its reflog shows "branch: Created from HEAD"
-//      at the SHA where it was forked.
-//   b) Otherwise, fall back to the main HEAD reflog: find the "merge <branch>:
-//      Fast-forward" entry; the previous reflog entry is the pre-merge state.
+//   a) True merge commit (PR merge): first parent is pre-merge main.
+//   b) Fast-forward (local merge): use branch reflog or main reflog.
 
 const branch = `sandcastle/issue-${issueId}`;
 
-// Find the most recent merge summary commit for this issue on main.
-const mergeCommit = run(
-  `git log --grep="^Merge ${branch.replace(/\//g, "\\/")}:" --format=%H -1 main`,
+// Find the most recent merge commit for this issue on main.
+// Match both GitHub PR merge messages and local merge messages.
+let mergeCommit = run(
+  `git log --grep="/${branch.replace(/\//g, "\\/")}" --merges --format=%H -1 main`,
   { ignoreError: true },
 );
+if (!mergeCommit) {
+  mergeCommit = run(
+    `git log --grep="^Merge ${branch.replace(/\//g, "\\/")}:" --format=%H -1 main`,
+    { ignoreError: true },
+  );
+}
 
 if (mergeCommit) {
   // Check if this merge was already reverted by a previous reset.
@@ -117,26 +127,39 @@ if (mergeCommit) {
 
     // Find the fork point — the commit main was at before the branch was merged.
     //
-    // Strategy A: branch reflog (most reliable when branch still exists).
+    // Strategy A: true merge commit (GitHub PR merge) — first parent is
+    //   the pre-merge main tip.
+    //
+    // Strategy B: branch reflog (most reliable when branch still exists).
     //   The last entry is "branch: Created from HEAD" at the fork SHA.
     //
-    // Strategy B: main HEAD reflog.
+    // Strategy C: main HEAD reflog.
     //   Find "merge <branch>: Fast-forward"; the next reflog entry is the
     //   pre-merge HEAD.
     let forkPoint = "";
 
-    const branchReflog = run(
-      `git reflog show "${branch}" --format="%H %gs" 2>/dev/null`,
-      { ignoreError: true },
-    );
-    if (branchReflog) {
-      const lines = branchReflog.split("\n");
-      const creation = lines.find((l) => l.includes("branch: Created from"));
-      if (creation) {
-        forkPoint = creation.split(" ")[0]!;
+    // Strategy A: true merge commit — first parent is the pre-merge main
+    const parentCount = run(`git cat-file -p ${mergeCommit} | grep -c "^parent"`, { ignoreError: true });
+    if (parseInt(parentCount, 10) >= 2) {
+      forkPoint = run(`git rev-parse ${mergeCommit}^1`, { ignoreError: true });
+    }
+
+    // Strategy B: branch reflog
+    if (!forkPoint) {
+      const branchReflog = run(
+        `git reflog show "${branch}" --format="%H %gs" 2>/dev/null`,
+        { ignoreError: true },
+      );
+      if (branchReflog) {
+        const lines = branchReflog.split("\n");
+        const creation = lines.find((l) => l.includes("branch: Created from"));
+        if (creation) {
+          forkPoint = creation.split(" ")[0]!;
+        }
       }
     }
 
+    // Strategy C: main HEAD reflog
     if (!forkPoint) {
       const mainReflog = run(`git reflog --format="%H %gs"`, { ignoreError: true });
       if (mainReflog) {
@@ -157,11 +180,21 @@ if (mergeCommit) {
         `git merge-base --is-ancestor "${forkPoint}" "${mergeCommit}" && echo yes || echo no`,
       );
       if (isAncestor === "yes") {
-        const count = run(`git rev-list --count ${forkPoint}..${mergeCommit}`);
-        log(`Reverting ${count} commit(s) (${forkPoint.slice(0, 7)}..${mergeCommit.slice(0, 7)})...`);
-        run(`git revert --no-commit ${forkPoint}..${mergeCommit}`);
+        // For true merge commits, revert the merge itself (not the range)
+        if (parseInt(parentCount, 10) >= 2) {
+          log(`Reverting merge commit ${mergeCommit.slice(0, 7)} (PR merge)...`);
+          run(`git revert -m 1 --no-commit ${mergeCommit}`);
+        } else {
+          const count = run(`git rev-list --count ${forkPoint}..${mergeCommit}`);
+          log(`Reverting ${count} commit(s) (${forkPoint.slice(0, 7)}..${mergeCommit.slice(0, 7)})...`);
+          run(`git revert --no-commit ${forkPoint}..${mergeCommit}`);
+        }
         run(`git commit -m "Revert sandcastle/${issueId}: reset for re-processing"`);
         log("Merge reverted.");
+
+        // Push the revert to the remote so origin/main is also clean.
+        log("Pushing revert to origin/main...");
+        run(`git push origin main`, { ignoreError: true });
       } else {
         log(`WARNING: fork point ${forkPoint.slice(0, 7)} is not an ancestor of merge — skipping revert.`);
       }
@@ -184,18 +217,25 @@ const worktreeCandidates = [
 for (const dir of worktreeCandidates) {
   if (existsSync(dir)) {
     log(`Removing worktree: ${dir}`);
-    // Remove symlinks (e.g. node_modules → /warm/node_modules) first so
-    // rmSync doesn't follow them and destroy the target.
-    for (const entry of readdirSync(dir)) {
-      const p = join(dir, entry);
-      try {
-        if (lstatSync(p).isSymbolicLink()) {
-          log(`  Unlinking symlink: ${entry}`);
-          unlinkSync(p);
-        }
-      } catch {}
+    // Use git worktree remove first — this properly detaches the branch
+    // so the subsequent branch delete (step 5) can succeed.
+    run(`git worktree remove --force "${dir}"`, { ignoreError: true });
+
+    // If git worktree remove failed (e.g. Docker-owned files), fall back
+    // to manual cleanup: remove symlinks, then rmSync, then prune.
+    if (existsSync(dir)) {
+      log(`  git worktree remove failed, falling back to manual cleanup...`);
+      for (const entry of readdirSync(dir)) {
+        const p = join(dir, entry);
+        try {
+          if (lstatSync(p).isSymbolicLink()) {
+            log(`  Unlinking symlink: ${entry}`);
+            unlinkSync(p);
+          }
+        } catch {}
+      }
+      rmSync(dir, { recursive: true, force: true });
     }
-    rmSync(dir, { recursive: true, force: true });
   }
 }
 
@@ -207,10 +247,38 @@ run("git worktree prune", { ignoreError: true });
 const branchExists = run(`git branch --list "${branch}"`, { ignoreError: true });
 
 if (branchExists) {
-  log(`Deleting branch: ${branch}`);
+  log(`Deleting local branch: ${branch}`);
   run(`git branch -D "${branch}"`);
 } else {
-  log(`No branch to delete (${branch}).`);
+  log(`No local branch to delete (${branch}).`);
+}
+
+// Also delete the remote branch — if it survives, createSandbox will check
+// it out from origin and the implementer will see the old implementation.
+const remoteBranchExists = run(
+  `git branch -r --list "origin/${branch}"`,
+  { ignoreError: true },
+);
+
+if (remoteBranchExists) {
+  log(`Deleting remote branch: origin/${branch}`);
+  run(`git push origin --delete "${branch}"`, { ignoreError: true });
+}
+
+// Always prune stale remote-tracking refs — even if the remote branch was
+// already deleted (e.g. via GitHub UI), the local tracking ref survives and
+// createSandbox will check it out, resurrecting the old implementation.
+run(`git fetch origin --prune`, { ignoreError: true });
+
+// Belt-and-suspenders: explicitly remove the tracking ref in case fetch
+// --prune didn't cover it (offline, auth issues, etc.).
+const trackingRefStillExists = run(
+  `git branch -r --list "origin/${branch}"`,
+  { ignoreError: true },
+);
+if (trackingRefStillExists) {
+  log(`Removing stale tracking ref: origin/${branch}`);
+  run(`git branch -d -r "origin/${branch}"`, { ignoreError: true });
 }
 
 // ── 6. Clean watch directory ────────────────────────────────────────────────

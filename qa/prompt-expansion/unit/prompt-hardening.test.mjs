@@ -265,6 +265,47 @@ const SAMPLE_DIFF = [
     /defer/i.test(budgetSection),
     'Budget must tell the agent to DEFER if diagnosis requires more commands',
   );
+
+  // ─── Issue 3b: inline-script and exploration prohibition ────────────────
+  // Observed in sandcastle-issue-shelf-proving-ground-djk.1-visual-qa-r1.log:
+  //   - Agent wrote `cat .ui-qa/report.json | python3 -c "..."` to parse the report
+  //   - Agent ran `ls /home/agent/workspace/src/` to explore
+  // Root cause: the prompt doesn't prohibit inline scripts or require the Read
+  // tool for report parsing, and `ls` is not in the forbidden command list.
+
+  // The Execution section (step 4) must require the Read tool for report.json
+  const executionIdx = expanded.indexOf('## Execution');
+  const triageIdx = expanded.indexOf('## Triage');
+  const executionSection = expanded.slice(executionIdx, triageIdx);
+
+  assert(
+    'Issue 3b: execution step requires Read tool for report.json',
+    /read tool/i.test(executionSection),
+    'Execution step 4 must explicitly require the Read tool for .ui-qa/report.json',
+  );
+
+  // The prompt must prohibit inline scripts (python, bash, jq) anywhere
+  const instructions = expanded.slice(0, expanded.indexOf('# CONTEXT'));
+
+  assert(
+    'Issue 3b: prompt prohibits inline scripts (python/bash/jq)',
+    /do not (write|execute|run).*\b(script|python|jq)\b|no inline script/i.test(instructions),
+    'Prompt must explicitly prohibit writing/executing inline scripts (python, bash, jq)',
+  );
+
+  // The budget must also forbid `ls` — the agent used it to explore src/
+  assert(
+    'Issue 3b: budget explicitly forbids ls',
+    /no.*`?ls`?[.`,\s]/i.test(budgetSection) || /`?ls`?.*forbidden|forbid.*`?ls`?/i.test(budgetSection),
+    'Budget section must explicitly forbid ls (the agent used ls to explore src/)',
+  );
+
+  // The prompt must prohibit `cat` for report reading (agent used cat | python3)
+  assert(
+    'Issue 3b: prompt forbids cat for report reading',
+    /do not use.*\bcat\b|no.*\bcat\b/i.test(executionSection) || /do not use.*\bcat\b/i.test(instructions),
+    'Prompt must forbid cat (agent used cat .ui-qa/report.json | python3)',
+  );
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

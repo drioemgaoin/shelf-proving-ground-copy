@@ -1,0 +1,11 @@
+{
+  "TASK_ID": "eval-test-001",
+  "ISSUE_TITLE": "Implement BookCard component with status badge",
+  "BRANCH": "eval/self-review-test",
+  "ISSUE_DETAILS": "## Summary\nBuild the BookCard component displaying title, author, and status badge.\n\n## Tests to turn green\n`npx playwright test -g \"BookCard renders title\"`",
+  "CODEMAP": "src/\n  components/\n    BookCard/\n      BookCard.tsx\n      BookCard.css\n    ChipBar/\n      ChipBar.tsx\n      ChipBar.css\n    Drawer/\n      Drawer.tsx\n      Drawer.css\n    ShelfGrid/\n      ShelfGrid.tsx\n      ShelfGrid.css\n  App.tsx\n  api.ts\n  types.ts\n  styles/\n    tokens.css",
+  "VIOLATIONS_MEMORY": "",
+  "COMMENT_TASK_COMMAND": "bd comment eval-test-001 \"<COMMENT>\"",
+  "LABEL_TASK_COMMAND": "bd update eval-test-001 --label=\"needs-review\"",
+  "CREATE_BUG_COMMAND": "bd create --title=\"<TITLE>\" --description=\"<DESCRIPTION>\" --type=bug"
+}

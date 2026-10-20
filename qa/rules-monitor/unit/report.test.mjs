@@ -2,7 +2,7 @@
 /**
  * Unit tests for scripts/monitor/report.mjs
  */
-import { formatCliReport, generateHtmlReport } from '../../../scripts/monitor/report.mjs';
+import { formatCliReport, generateHtmlReport, VIEWS } from '../../../scripts/monitor/report.mjs';
 
 let passed = 0;
 let failed = 0;
@@ -24,9 +24,9 @@ function assert(condition, message) {
 
 function sampleMetrics() {
   return [
-    { ruleId: 'values-from-tokens', tier: 'T1', triggerCount: 50, blockCount: 30, blockRate: 0.6, fixCount: 25, fixRate: 0.833 },
-    { ruleId: 'no-axe-violations', tier: 'T2', triggerCount: 10, blockCount: 2, blockRate: 0.2, fixCount: 2, fixRate: 1.0 },
-    { ruleId: 'never-triggered', tier: 'T3', triggerCount: 0, blockCount: 0, blockRate: 0, fixCount: 0, fixRate: 0 },
+    { ruleId: 'values-from-tokens', tier: 'T1', triggerCount: 50, blockCount: 30, blockRate: 0.6, fixCount: 25, fixRate: 0.833, byAgent: { implementer: { triggers: 30, blocks: 20, fixes: 18 }, 'visual-qa': { triggers: 20, blocks: 10, fixes: 7 } } },
+    { ruleId: 'no-axe-violations', tier: 'T2', triggerCount: 10, blockCount: 2, blockRate: 0.2, fixCount: 2, fixRate: 1.0, byAgent: { 'visual-qa': { triggers: 10, blocks: 2, fixes: 2 } } },
+    { ruleId: 'never-triggered', tier: 'T3', triggerCount: 0, blockCount: 0, blockRate: 0, fixCount: 0, fixRate: 0, byAgent: {} },
   ];
 }
 
@@ -59,6 +59,26 @@ test('CLI report color-codes verdicts', () => {
   assert(output.includes('\x1b[31m'), 'Should include red ANSI for unused rules');
 });
 
+test('CLI report "all" view shows agent breakdown column', () => {
+  const output = formatCliReport(sampleMetrics(), [], sampleSummary(), 'all');
+  assert(output.includes('impl:30'), 'Should include implementer count');
+  assert(output.includes('vqa:'), 'Should include visual-qa abbreviation');
+  assert(output.includes('[view: All Agents]'), 'Should show All Agents label');
+});
+
+test('CLI report filtered view shows view label', () => {
+  const output = formatCliReport(sampleMetrics(), [], sampleSummary(), 'visual-qa');
+  assert(output.includes('[view: visual-qa]'), 'Should show visual-qa view label');
+  assert(!output.includes('impl:'), 'Should not show agent column in filtered view');
+});
+
+test('VIEWS exports valid view names', () => {
+  assert(VIEWS.includes('all'), 'Should include all');
+  assert(VIEWS.includes('implementer'), 'Should include implementer');
+  assert(VIEWS.includes('visual-qa'), 'Should include visual-qa');
+  assert(VIEWS.includes('reviewer'), 'Should include reviewer');
+});
+
 // ═══════════════════════════════════════════════════════════════════
 // HTML Report
 // ═══════════════════════════════════════════════════════════════════
@@ -75,6 +95,19 @@ test('HTML report contains expected rule rows', () => {
   assert(html.includes('values-from-tokens'), 'Should have rule row');
   assert(html.includes('no-axe-violations'), 'Should have rule row');
   assert(html.includes('never-triggered'), 'Should have rule row');
+});
+
+test('HTML report renders view tabs when perAgentData provided', () => {
+  const perAgent = {
+    implementer: { metrics: [sampleMetrics()[0]], unusedRules: [], summary: { totalSessions: 3, totalEvents: 30, avgEventsPerSession: 10 } },
+    'visual-qa': { metrics: [sampleMetrics()[1]], unusedRules: [], summary: { totalSessions: 2, totalEvents: 10, avgEventsPerSession: 5 } },
+  };
+  const html = generateHtmlReport(sampleMetrics(), [], sampleSummary(), [], perAgent);
+  assert(html.includes('tab-btn'), 'Should include tab buttons');
+  assert(html.includes('All Agents'), 'Should have All Agents tab');
+  assert(html.includes('implementer'), 'Should have implementer tab');
+  assert(html.includes('visual-qa'), 'Should have visual-qa tab');
+  assert(html.includes('VIEW_DATA'), 'Should embed view data JSON');
 });
 
 test('HTML report is self-contained (no external refs)', () => {

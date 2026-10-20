@@ -7,7 +7,7 @@
 // collectMonitorData() copies them to the host's monitor directory
 // BEFORE sandbox.close() deletes the worktree.
 
-import { existsSync, readdirSync, readFileSync, appendFileSync, mkdirSync } from "fs";
+import { existsSync, readdirSync, readFileSync, appendFileSync, mkdirSync, unlinkSync } from "fs";
 import { join } from "path";
 import { log } from "./logging.mjs";
 
@@ -33,6 +33,9 @@ export function collectMonitorData(worktreePath: string, issueId: string): void 
       if (!content) continue;
       // Append to the same-named file on the host (same date key).
       appendFileSync(join(HOST_MONITOR_DIR, file), content + "\n");
+      // Delete source so a second call (e.g. SIGINT after per-issue collect)
+      // does not duplicate events.
+      try { unlinkSync(join(srcDir, file)); } catch { /* best-effort */ }
       totalLines += content.split("\n").length;
     }
 

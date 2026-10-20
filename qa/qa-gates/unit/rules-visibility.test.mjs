@@ -192,6 +192,17 @@ test('G: runGateLoop calls setRulesVisible before checker and fixer', () => {
     fixerSection.includes('setRulesVisible') && fixerSection.includes('true'),
     'runGateLoop must call setRulesVisible(worktree, true) before fixer',
   );
+
+  // Finally block: always restore rules regardless of exit path
+  assert(
+    fnBody.includes('finally'),
+    'runGateLoop must have a finally block to restore rules on all exit paths',
+  );
+  const finallySection = fnBody.slice(fnBody.indexOf('finally'));
+  assert(
+    finallySection.includes('setRulesVisible') && finallySection.includes('true'),
+    'finally block must call setRulesVisible(worktree, true)',
+  );
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -246,59 +257,71 @@ test('I: simulated checker→fixer→checker cycle', () => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Test J: hooks overload appends mv command
+// Test J: setRulesVisible only accepts worktree strings (no hooks overload)
 // ═══════════════════════════════════════════════════════════════════════════
 
-test('J: setRulesVisible(hooks) overload preserves hooks without destructive mv', () => {
+test('J: setRulesVisible has no hooks overload (host safety)', () => {
   const src = readFileSync('.sandcastle/lib/sandbox.mts', 'utf8');
 
-  // Must have the overloaded signature accepting SandboxHooks
+  // Must NOT have the old SandboxHooks overload — removed to prevent
+  // host-bind-mount mutations via head strategy
   assert(
-    src.includes('setRulesVisible(hooks: SandboxHooks'),
-    'setRulesVisible must have a SandboxHooks overload',
+    !src.includes('setRulesVisible(hooks: SandboxHooks'),
+    'setRulesVisible must NOT have a SandboxHooks overload (host safety)',
   );
 
-  // Implementation must spread existing hooks (no-op: avoids destructive mv
-  // on host-bind-mounted workspaces)
-  const fnStart = src.indexOf('): void | SandboxHooks {');
-  const fnEnd = src.indexOf('\n}', fnStart) + 2;
-  const fnBody = src.slice(fnStart, fnEnd);
+  // Must only accept worktree strings
   assert(
-    fnBody.includes('...target.sandbox.onSandboxReady'),
-    'hooks overload must preserve existing hooks',
-  );
-  // Must NOT contain mv or rename commands that would affect the host
-  assert(
-    !fnBody.includes('mv ') || fnBody.indexOf('mv ') < fnBody.indexOf('// The string overload'),
-    'hooks overload must not contain mv commands for .claude/rules',
+    src.includes('setRulesVisible(worktree: string'),
+    'setRulesVisible must accept worktree path strings',
   );
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Test K: planner and merger use setRulesVisible(hooks, false)
+// Test K: planner and merger do NOT use setRulesVisible (no hooks overload)
 // ═══════════════════════════════════════════════════════════════════════════
 
-test('K: planIteration uses setRulesVisible to hide rules', () => {
+test('K: planIteration uses head strategy with no hooks (no host mutation)', () => {
   const src = readFileSync('.sandcastle/lib/phases.mts', 'utf8');
   const fnStart = src.indexOf('export async function planIteration');
   const fnEnd = src.indexOf('\n}', fnStart) + 2;
   const fnBody = src.slice(fnStart, fnEnd);
 
   assert(
-    fnBody.includes('setRulesVisible') && fnBody.includes('false'),
-    'planIteration must call setRulesVisible(hooks, false)',
+    fnBody.includes('"head"') || fnBody.includes("'head'"),
+    'planIteration must use head branch strategy (no worktree)',
+  );
+  assert(
+    !fnBody.includes('createLightHooks') && !fnBody.includes('createBuilderHooks'),
+    'planIteration with head must NOT use hooks that modify host files',
+  );
+  assert(
+    !fnBody.includes('setRulesVisible'),
+    'planIteration must NOT call setRulesVisible',
   );
 });
 
-test('K2: mergeCompleted uses setRulesVisible to hide rules', () => {
+test('K2: mergeCompleted uses deterministic PR merge (no LLM agent)', () => {
   const src = readFileSync('.sandcastle/lib/phases.mts', 'utf8');
   const fnStart = src.indexOf('export async function mergeCompleted');
   const fnEnd = src.indexOf('\n}', fnStart) + 2;
   const fnBody = src.slice(fnStart, fnEnd);
 
   assert(
-    fnBody.includes('setRulesVisible') && fnBody.includes('false'),
-    'mergeCompleted must call setRulesVisible(hooks, false)',
+    fnBody.includes('gh pr create'),
+    'mergeCompleted must create PRs via gh CLI',
+  );
+  assert(
+    fnBody.includes('gh pr merge'),
+    'mergeCompleted must merge PRs via gh CLI',
+  );
+  assert(
+    !fnBody.includes('setRulesVisible'),
+    'mergeCompleted must NOT call setRulesVisible',
+  );
+  assert(
+    !fnBody.includes('timedRun'),
+    'mergeCompleted must NOT use an LLM agent',
   );
 });
 
@@ -306,15 +329,15 @@ test('K2: mergeCompleted uses setRulesVisible to hide rules', () => {
 // Test L: executeIssue does NOT hide rules (implementer needs them)
 // ═══════════════════════════════════════════════════════════════════════════
 
-test('L: executeIssue does not hide rules via setRulesVisible(hooks)', () => {
+test('L: executeIssue does not call setRulesVisible', () => {
   const src = readFileSync('.sandcastle/lib/phases.mts', 'utf8');
   const fnStart = src.indexOf('async function executeIssue');
   const fnEnd = src.indexOf('\n}', fnStart) + 2;
   const fnBody = src.slice(fnStart, fnEnd);
 
   assert(
-    !fnBody.includes('setRulesVisible(opts.hooks') && !fnBody.includes('setRulesVisible(opts.hooks,'),
-    'executeIssue must NOT call setRulesVisible on hooks — the implementer writes code and needs rules',
+    !fnBody.includes('setRulesVisible'),
+    'executeIssue must NOT call setRulesVisible — the implementer writes code and needs rules',
   );
 });
 

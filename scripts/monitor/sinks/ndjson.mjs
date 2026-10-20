@@ -79,6 +79,10 @@ function matchesFilter(event, filter) {
   if (filter.tier && event.tier !== filter.tier) return false;
   if (filter.ruleId && event.ruleId !== filter.ruleId) return false;
   if (filter.sessionId && event.sessionId !== filter.sessionId) return false;
+  if (filter.agent !== undefined) {
+    const eventAgent = event.agent ?? 'implementer';
+    if (eventAgent !== filter.agent) return false;
+  }
   if (filter.from && event.timestamp < filter.from) return false;
   if (filter.to && event.timestamp < filter.to && !event.timestamp.startsWith(filter.to)) return false;
   return true;

@@ -1,0 +1,1 @@
+3. Reread `.claude/rules/`. For every T3 enforcement block — regardless of which agent it names — review each file you touched against that rule. Fix any violation you find. T3 rules describe the standard; the `agent` field only says who gates it, not who must follow it.

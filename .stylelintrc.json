@@ -11,6 +11,7 @@
     "alpha-value-notation": null,
     "color-hex-length": null,
     "value-keyword-case": null,
+    "selector-class-pattern": ["^([a-z][a-z0-9]*)(-[a-z0-9]+)*$", { "message": "Use kebab-case class names (no BEM __ or -- separators)" }],
     "shelf/keyframes-in-layer": true,
     "shelf/animation-properties": true,
     "shelf/transition-properties": true,

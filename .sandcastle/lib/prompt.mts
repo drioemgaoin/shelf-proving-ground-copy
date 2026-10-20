@@ -39,6 +39,8 @@ const STAGE1_WHITELIST = new Set([
   "BRANCHES",
   "ISSUES",
   "CLOSE_TASK_COMMAND",
+  // Violations memory (implementer learning)
+  "VIOLATIONS_MEMORY",
   // QA gate vars (gates.mts)
   "FINDINGS_FILE",
   "VERIFY_COMMAND",

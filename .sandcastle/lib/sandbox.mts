@@ -225,10 +225,17 @@ export function setRulesVisible(worktree: string, visible: boolean): void {
   }
   const active = join(worktree, RULES_DIR);
   const stashed = join(worktree, RULES_STASH);
-  if (visible && existsSync(stashed)) {
-    renameSync(stashed, active);
-  } else if (!visible && existsSync(active)) {
-    renameSync(active, stashed);
+  try {
+    if (visible && existsSync(stashed)) {
+      renameSync(stashed, active);
+    } else if (!visible && existsSync(active)) {
+      renameSync(active, stashed);
+    }
+  } catch (e) {
+    // Log but don't throw — a rename failure is degraded but not fatal.
+    // Visible-to-checker: redundant context (rules + T3 payloads), harmless.
+    // Hidden-from-fixer: fixer still gets rules via prompt, functional.
+    console.error(`⚠️  setRulesVisible(${visible}) failed for ${worktree}: ${e}`);
   }
 }
 

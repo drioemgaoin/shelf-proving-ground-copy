@@ -15,6 +15,7 @@ import {
   setPhase,
   findingsOverlap,
 } from "./qa-gates.mjs";
+import { recordViolation } from "./violations-memory.mjs";
 
 // ---------------------------------------------------------------------------
 // Visual QA gate
@@ -148,6 +149,33 @@ export function createReviewGate(
           `Round ${round}: ${fixerMsg}\n\n`;
       } catch {
         // No commit from fixer — nothing to record.
+      }
+
+      // Persist violations to rolling memory for future implementers.
+      try {
+        const findingsPath = `${ctx.worktree}/.qa/review-r${round}.md`;
+        if (existsSync(findingsPath)) {
+          const findings = readFileSync(findingsPath, "utf8");
+          // Parse FINDINGS entries: "- src/file.ext:line `selector`\n  Cause: [rule] ...\n  Current: ...\n  Fix: ..."
+          const entryRe = /^- (\S+?):(\d+)\s+`([^`]*)`\n\s+Cause:\s+\[([^\]]+)\]\s+(.*)\n\s+Current:\s+(.*)\n\s+Fix:\s+(.*)/gm;
+          let m;
+          while ((m = entryRe.exec(findings)) !== null) {
+            const [, file, , , ruleRef, , current, fix] = m;
+            // Extract ruleId from "[.claude/rules/ui-base.md > Values > values-from-tokens]"
+            const ruleId = ruleRef.split(">").pop()?.trim() ?? ruleRef;
+            recordViolation({
+              ts: new Date().toISOString(),
+              issueId,
+              ruleId,
+              file,
+              wrote: current.trim().slice(0, 80),
+              fix: fix.trim().slice(0, 120),
+              gate: "review",
+            });
+          }
+        }
+      } catch {
+        // Violations memory is best-effort — never breaks the gate.
       }
     },
 

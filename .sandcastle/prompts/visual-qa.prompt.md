@@ -27,7 +27,7 @@ Do NOT run `npx playwright test`, `grep`, `cat`, or any other command to underst
 1. Start the dev server: `npm run dev &`
 2. Wait for it to be ready (poll `curl -s http://localhost:5173` until 200)
 3. Run the filtered gate command from TEST FILTERING above — exactly once
-4. Read `.ui-qa/report.json` for structured results
+4. Read `.ui-qa/report.json` using the Read tool for structured results. Do not use `cat`, `python`, `jq`, or any script to parse it.
 
 ## Triage
 
@@ -63,7 +63,9 @@ This is the only extra command allowed per finding. Do NOT run debug probes, do 
 
 - Step 1: 0 or 1 replay command (the `npx playwright test` single-test rerun from Step 1 above)
 - Step 2: 1 targeted file read (the CSS/TSX file named in the error). Use the Read tool, not grep/find/cat.
-- Total: ≤2 commands per finding. No `grep`. No `find`. No broad searches.
+- Total: ≤2 commands per finding. No `grep`. No `find`. No `ls`. No broad searches.
+
+Do not write or execute inline scripts (python, bash, jq). Every file read must use the Read tool.
 
 If you cannot identify the root cause from the error message + 1 file read, classify as **DEFER**.
 

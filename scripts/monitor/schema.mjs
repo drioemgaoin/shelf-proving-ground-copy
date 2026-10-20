@@ -11,7 +11,7 @@ export const TIERS = Object.freeze(['T1', 'T2', 'T3']);
 export const OUTCOMES = Object.freeze(['blocked', 'passed', 'violation_found', 'fixed']);
 
 /** @type {readonly string[]} */
-export const AGENTS = Object.freeze(['visual-qa', 'reviewer']);
+export const AGENTS = Object.freeze(['implementer', 'visual-qa', 'reviewer']);
 
 /**
  * Create a monitoring event, filling defaults for id and timestamp.

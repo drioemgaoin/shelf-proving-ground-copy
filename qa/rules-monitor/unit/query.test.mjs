@@ -31,6 +31,10 @@ function mockSink(events) {
         if (filter.tier && e.tier !== filter.tier) return false;
         if (filter.ruleId && e.ruleId !== filter.ruleId) return false;
         if (filter.sessionId && e.sessionId !== filter.sessionId) return false;
+        if (filter.agent !== undefined) {
+          const eventAgent = e.agent ?? 'implementer';
+          if (eventAgent !== filter.agent) return false;
+        }
         return true;
       });
     },
@@ -141,6 +145,45 @@ test('empty dataset returns empty metrics', () => {
   const api = createQueryApi(mockSink([]));
   const metrics = api.getMetrics();
   assert(metrics.length === 0, `Expected 0, got ${metrics.length}`);
+});
+
+test('getMetrics includes byAgent breakdown', () => {
+  const events = [
+    ev({ ruleId: 'a', outcome: 'blocked', agent: null }),
+    ev({ ruleId: 'a', outcome: 'blocked', agent: 'visual-qa' }),
+    ev({ ruleId: 'a', outcome: 'blocked', agent: 'visual-qa' }),
+    ev({ ruleId: 'a', outcome: 'fixed', agent: 'reviewer' }),
+  ];
+  const api = createQueryApi(mockSink(events));
+  const metrics = api.getMetrics();
+  const ruleA = metrics.find(m => m.ruleId === 'a');
+  assert(ruleA.byAgent.implementer.triggers === 1, `Expected implementer triggers=1, got ${ruleA.byAgent.implementer?.triggers}`);
+  assert(ruleA.byAgent['visual-qa'].triggers === 2, `Expected visual-qa triggers=2, got ${ruleA.byAgent['visual-qa']?.triggers}`);
+  assert(ruleA.byAgent.reviewer.triggers === 1, `Expected reviewer triggers=1, got ${ruleA.byAgent.reviewer?.triggers}`);
+});
+
+test('getMetrics filters by agent', () => {
+  const events = [
+    ev({ ruleId: 'a', outcome: 'blocked', agent: null }),
+    ev({ ruleId: 'a', outcome: 'blocked', agent: 'visual-qa' }),
+    ev({ ruleId: 'b', outcome: 'blocked', agent: 'visual-qa' }),
+  ];
+  const api = createQueryApi(mockSink(events));
+  const metrics = api.getMetrics({ agent: 'visual-qa' });
+  assert(metrics.length === 2, `Expected 2 rules, got ${metrics.length}`);
+  const ruleA = metrics.find(m => m.ruleId === 'a');
+  assert(ruleA.triggerCount === 1, `Expected triggerCount=1 for visual-qa filter, got ${ruleA.triggerCount}`);
+});
+
+test('getMetrics agent filter: implementer matches null agent', () => {
+  const events = [
+    ev({ ruleId: 'a', outcome: 'blocked', agent: null }),
+    ev({ ruleId: 'a', outcome: 'blocked', agent: 'visual-qa' }),
+  ];
+  const api = createQueryApi(mockSink(events));
+  const metrics = api.getMetrics({ agent: 'implementer' });
+  assert(metrics.length === 1, `Expected 1 rule, got ${metrics.length}`);
+  assert(metrics[0].triggerCount === 1, `Expected triggerCount=1 for implementer, got ${metrics[0].triggerCount}`);
 });
 
 // ═══════════════════════════════════════════════════════════════════

@@ -1,11 +1,12 @@
 #!/usr/bin/env node
 /**
- * TGF-13: Merger maxIterations must be 3 (spec says 3, not 1)
+ * TGF-13: mergeCompleted uses deterministic PR merge (no LLM agent)
  *
- * Single attempt means any merge conflict immediately fails with no retry.
- * Spec: "Merger iterations | 3 | Hard → Escalate merge-failure" (line 1213)
+ * Previously the Merger was an LLM agent with maxIterations: 3.
+ * Now it's deterministic: git push + gh pr create + gh pr merge.
+ * This test verifies the new approach is in place.
  *
- * Seam: mergeCompleted() configuration in .sandcastle/lib/phases.mts:302
+ * Seam: mergeCompleted() in .sandcastle/lib/phases.mts
  * Level: unit (source inspection)
  */
 import { readFileSync } from 'node:fs';
@@ -19,32 +20,39 @@ function test(label, fn) {
 }
 function assert(condition, message) { if (!condition) throw new Error(message); }
 
-// ---------------------------------------------------------------------------
-// Read the source and extract maxIterations from the mergeCompleted function
-// ---------------------------------------------------------------------------
-
 const phasesSrc = readFileSync('.sandcastle/lib/phases.mts', 'utf8');
+const mergerSection = phasesSrc.slice(phasesSrc.indexOf('export async function mergeCompleted'));
 
-// Find the maxIterations value inside mergeCompleted (the timedRun call)
-// We look for the pattern after "async function mergeCompleted" to scope it
-const mergerSection = phasesSrc.slice(phasesSrc.indexOf('async function mergeCompleted'));
-const iterMatch = mergerSection.match(/maxIterations:\s*(\d+)/);
-
-test('TGF-13a: maxIterations is extractable from mergeCompleted', () => {
-  assert(iterMatch !== null, 'Could not find maxIterations in mergeCompleted');
+test('TGF-13a: mergeCompleted does not use timedRun (no LLM agent)', () => {
+  assert(
+    !mergerSection.includes('timedRun'),
+    'mergeCompleted must not call timedRun — merger is now deterministic',
+  );
 });
 
-test('TGF-13b: merger maxIterations === 3 (spec line 1213)', () => {
-  assert(iterMatch !== null, 'maxIterations not found');
-  const value = Number(iterMatch[1]);
+test('TGF-13b: mergeCompleted pushes branches to remote', () => {
   assert(
-    value === 3,
-    `Expected maxIterations to be 3, got ${value}`
+    mergerSection.includes('git push'),
+    'mergeCompleted must push branches to the remote',
+  );
+});
+
+test('TGF-13c: mergeCompleted creates PRs via gh CLI', () => {
+  assert(
+    mergerSection.includes('gh pr create'),
+    'mergeCompleted must create PRs via gh CLI',
+  );
+});
+
+test('TGF-13d: mergeCompleted merges PRs via gh CLI', () => {
+  assert(
+    mergerSection.includes('gh pr merge'),
+    'mergeCompleted must merge PRs via gh CLI',
   );
 });
 
 // --- Report ---
 console.log('');
 if (failures.length > 0) { for (const f of failures) console.log(f); console.log(''); }
-console.log(`merger-iterations tests: ${passed} passed, ${failed} failed, ${passed + failed} total`);
+console.log(`merger tests: ${passed} passed, ${failed} failed, ${passed + failed} total`);
 process.exit(failed > 0 ? 1 : 0);
