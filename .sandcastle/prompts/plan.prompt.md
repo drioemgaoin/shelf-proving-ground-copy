@@ -1,3 +1,13 @@
+# ISSUES
+
+Here are the open issues in the repo (pre-filtered to issues ready for work):
+
+<issues-json>
+
+{{READY_ISSUES}}
+
+</issues-json>
+
 # TASK
 
 Analyze the open issues and build a dependency graph. For each issue, determine whether it **blocks** or **is blocked by** any other open issue.
@@ -28,13 +38,3 @@ For each issue:
 Include only unblocked issues. If every issue is blocked, include the single highest-priority candidate (the one with the fewest or weakest dependencies).
 
 Always emit the `<plan>` tags, even when there is nothing to do. If there are no issues to work on at all, output `<plan>{"issues": []}</plan>` so the run can exit cleanly.
-
-# ISSUES
-
-Here are the open issues in the repo (pre-filtered to issues ready for work):
-
-<issues-json>
-
-{{READY_ISSUES}}
-
-</issues-json>
