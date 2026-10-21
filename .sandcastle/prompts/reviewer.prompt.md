@@ -26,7 +26,7 @@ Do NOT read source files, run commands, or produce findings. An empty diff means
 
 Apply both axes:
 
-1. **Standards**: Does the code follow the project's coding standards? (auto-loaded from `.claude/rules/`)
+1. **Standards**: Does the code follow the project's coding standards? (from the T3 review checks below)
 2. **Spec**: Does the code match what the originating issue asked for? Use the issue details from CONTEXT.
 3. **T3 review checks**: Evaluate each rule in the T3 review checks section in CONTEXT below. Those are the only enforcement rules in scope for this gate.
 

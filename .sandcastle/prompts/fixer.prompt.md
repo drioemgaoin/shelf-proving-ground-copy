@@ -50,3 +50,5 @@ Once done, output the completion signal below as the **very last tokens you gene
 ## Verify command
 
 {{VERIFY_COMMAND}}
+
+{{CONSTRAINTS}}
