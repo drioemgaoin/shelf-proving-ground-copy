@@ -22,3 +22,8 @@ export const VISUAL_FIXER = claude("claude-opus-4-8", { env: CACHE_ENV });
 export const REVIEWER = claude("claude-sonnet-4-6", { env: CACHE_ENV });
 export const CODE_FIXER = claude("claude-opus-4-8", { env: CACHE_ENV });
 export const MERGER = claude("claude-opus-4-8", { env: CACHE_ENV });
+
+// Test author gate — NOT PLUGGED IN. To enable, import createTestAuthorGate
+// from gates-test-author.mts and add it to the gates array in phases.mts.
+export const TEST_AUTHOR = claude("claude-sonnet-4-6", { env: CACHE_ENV });
+export const TEST_AUTHOR_FIXER = claude("claude-opus-4-8", { env: CACHE_ENV });
