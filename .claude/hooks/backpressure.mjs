@@ -118,11 +118,13 @@ const base = report?.base ?? resolveBase();
 const changes = changedWithStatus(base);
 
 // 1. Locked files.
+// .claude/settings.json is excluded — sandbox hooks intentionally modify it
+// (permissions.deny injection) and the guard hook already prevents agent writes.
+// Including it here creates a deadlock: Stop demands restore, guard blocks it.
 const violations = changes.filter(({ status, path }) => {
   if (/__screenshots__\//.test(path)) return status !== 'A'; // new baselines ok, edits/deletes not
-  // .claude/hooks and .claude/settings are locked; .claude/rules and .claude/skills
-  // are not checked — rules are prompt-injected (T1/T3), not loaded from files.
-  return /^(tests\/acceptance\/|tests\/support\/|playwright\.config\.|scripts\/ui-qa\/|\.claude\/hooks\/|\.claude\/settings)/.test(path);
+  if (/^\.claude\/settings/.test(path)) return false; // modified by sandbox hooks, not the agent
+  return /^(tests\/acceptance\/|tests\/support\/|playwright\.config\.|scripts\/ui-qa\/|\.claude\/hooks\/)/.test(path);
 });
 if (violations.length) {
   block(

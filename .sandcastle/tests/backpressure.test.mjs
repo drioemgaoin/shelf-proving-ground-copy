@@ -389,7 +389,7 @@ describe('locked files', () => {
 export function repoRoot() { return ${JSON.stringify(WORK)}; }
 export function resolveBase() { return 'abc123'; }
 export function changedWithStatus() {
-  return [{ status: 'M', path: 'e2e/acceptance/shelf-grid.spec.ts' }];
+  return [{ status: 'M', path: 'tests/acceptance/shelf-grid.spec.ts' }];
 }
 export function fingerprint() { return 'abc'; }
 `,

@@ -73,6 +73,10 @@ console.log('  → restore T1 cache: OK');
 execSync('rm -rf .claude/skills .claude/agents', { cwd: WORKTREE });
 console.log('  → rm skills + agents: OK');
 
+// 5. Prune unused hooks (keep only guard, apply-t1, backpressure + lib/)
+execSync("find .claude/hooks -maxdepth 1 -name 'check-*.mjs' -delete", { cwd: WORKTREE });
+console.log('  → prune unused hooks: OK');
+
 // ── Verify final state ──────────────────────────────────────────────
 
 console.log('\n--- Verification ---\n');
@@ -101,8 +105,17 @@ test('4. .claude/agents/ does NOT exist', () => {
   assert(!existsSync(join(WORKTREE, '.claude', 'agents')), '.claude/agents/ still exists');
 });
 
-test('5. .claude/hooks/ still exists', () => {
+test('5. .claude/hooks/ contains only settings.json-referenced hooks + lib/', () => {
   assert(existsSync(join(WORKTREE, '.claude', 'hooks')), '.claude/hooks/ is missing');
+  const hookEntries = readdirSync(join(WORKTREE, '.claude', 'hooks')).sort();
+  // Only guard.mjs, apply-t1.mjs, backpressure.mjs, and lib/ should remain
+  const allowed = new Set(['apply-t1.mjs', 'backpressure.mjs', 'guard.mjs', 'lib']);
+  const unexpected = hookEntries.filter(e => !allowed.has(e));
+  assert(unexpected.length === 0, `unexpected hooks: ${unexpected.join(', ')}`);
+  // All required hooks must be present
+  for (const required of ['apply-t1.mjs', 'backpressure.mjs', 'guard.mjs', 'lib']) {
+    assert(hookEntries.includes(required), `required hook missing: ${required}`);
+  }
 });
 
 test('6. .claude/settings.json still exists', () => {

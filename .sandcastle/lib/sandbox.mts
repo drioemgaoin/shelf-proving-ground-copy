@@ -68,7 +68,7 @@ export function createBuilderHooks(overlay: boolean): SandboxHooks {
           command:
             // Strip Beads block and Agent skills section — irrelevant inside sandbox
             "sed -i.bak '/<!-- BEGIN BEADS/,/<!-- END BEADS/d' CLAUDE.md && " +
-            "sed -i.bak '/^## Agent skills$/,$d' CLAUDE.md && " +
+            "sed -i.bak '/^## UI rules$/,$d' CLAUDE.md && " +
             "rm -f CLAUDE.md.bak",
         },
         // Deny tools the implementer never uses.  permissions.deny removes
@@ -100,7 +100,10 @@ export function createBuilderHooks(overlay: boolean): SandboxHooks {
         { command: "mkdir -p .claude/rules && cp .sandcastle/.rules-stash/.t1-cache.json .claude/rules/ 2>/dev/null; true" },
         // Remove skills and agents — not used inside sandbox (Skill tool is
         // denied) and their presence lets agents read prompt prose by accident.
+        // Also prune hooks to only those referenced in settings.json
+        // (guard, apply-t1, backpressure + lib/).
         { command: "rm -rf .claude/skills .claude/agents" },
+        { command: "find .claude/hooks -maxdepth 1 -name 'check-*.mjs' -delete" },
         ...(overlay
           ? [
               {
@@ -140,6 +143,7 @@ export function createLightHooks(): SandboxHooks {
         // Stash rules so planner doesn't waste context on ~330 lines of prose.
         { command: "test -d .claude/rules && mv .claude/rules .sandcastle/.rules-stash || true" },
         { command: "rm -rf .claude/skills .claude/agents" },
+        { command: "find .claude/hooks -maxdepth 1 -name 'check-*.mjs' -delete" },
       ],
     },
   };
@@ -167,6 +171,7 @@ export function createReplayHooks(): SandboxHooks {
         { command: "mv .claude/rules .sandcastle/.rules-stash" },
         { command: "mkdir -p .claude/rules && cp .sandcastle/.rules-stash/.t1-cache.json .claude/rules/ 2>/dev/null; true" },
         { command: "rm -rf .claude/skills .claude/agents" },
+        { command: "find .claude/hooks -maxdepth 1 -name 'check-*.mjs' -delete" },
         { command: "node .claude/hooks/backpressure.mjs --baseline" },
       ],
     },
