@@ -16,9 +16,9 @@ Do NOT explore the repo. Do NOT read test files, spec files, or scripts. Run the
 
 ## Test filtering
 
-Run the exact command from the issue's "Tests to turn green" → "Run visual" line. One invocation. Zero exploration.
+Run the exact command from the issue's "Visual tests (orchestrator only)" section. One invocation. Zero exploration.
 
-If the issue has no "Run visual" line (legacy ticket), fall back: extract the prefix before the colon in the issue title (e.g., "Shelf grid: page load …" → `Shelf grid`) and build `npm run ui:qa -- --grep "<prefix>.*@visual"`.
+If the issue has no "Visual tests" section (legacy ticket), look for a "Run visual" line under "Tests to turn green". If neither exists, fall back: extract the prefix before the colon in the issue title (e.g., "Shelf grid: page load …" → `Shelf grid`) and build `npm run ui:qa -- --grep "<prefix>.*@visual"`.
 
 Do NOT run `npx playwright test`, `grep`, `cat`, or any other command to understand test scoping or verify coverage. Do NOT run `npm run ui:qa` a second time. If you run more than one `npm run ui:qa`, you have violated your contract.
 

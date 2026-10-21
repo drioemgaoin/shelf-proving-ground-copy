@@ -6,7 +6,14 @@ import { claude } from "../lib/tagged-agent.mjs";
 // 1-hour prompt cache TTL — the default 5-min TTL expires mid-pipeline
 // (a full ticket flow takes ~12 min). 1h ensures the entire flow and the
 // next run both benefit from cached prefixes.
-const CACHE_ENV = { ENABLE_PROMPT_CACHING_1H: "1" };
+//
+// CLAUDE_CODE_DISABLE_AUTO_MEMORY removes ~2K tokens of memory-system
+// instructions from the system prompt.  Agents in Docker don't persist
+// across sessions so auto-memory is pure overhead.
+const CACHE_ENV = {
+  ENABLE_PROMPT_CACHING_1H: "1",
+  CLAUDE_CODE_DISABLE_AUTO_MEMORY: "1",
+};
 
 export const PLANNER = claude("claude-opus-4-8", { env: CACHE_ENV });
 export const IMPLEMENTER = claude("claude-opus-4-8", { env: CACHE_ENV });

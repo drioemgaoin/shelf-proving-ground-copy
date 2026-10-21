@@ -71,6 +71,24 @@ export function createBuilderHooks(overlay: boolean): SandboxHooks {
             "sed -i.bak '/^## Agent skills$/,$d' CLAUDE.md && " +
             "rm -f CLAUDE.md.bak",
         },
+        // Deny tools the implementer never uses.  permissions.deny removes
+        // tool definitions from the system prompt, saving ~5-10K tokens/turn.
+        {
+          command:
+            `node -e "` +
+            `const f='.claude/settings.json';` +
+            `const s=JSON.parse(require('fs').readFileSync(f,'utf8'));` +
+            `s.permissions=s.permissions||{};` +
+            `s.permissions.deny=[` +
+            `'WebSearch','WebFetch','Agent','Skill',` +
+            `'EnterPlanMode','ExitPlanMode','EnterWorktree','ExitWorktree',` +
+            `'CronCreate','CronDelete','CronList','RemoteTrigger',` +
+            `'NotebookEdit','AskUserQuestion','LSP','ToolSearch',` +
+            `'TaskCreate','TaskGet','TaskList','TaskOutput','TaskStop','TaskUpdate'` +
+            `];` +
+            `require('fs').writeFileSync(f,JSON.stringify(s,null,2));` +
+            `"`,
+        },
         // Write T1 cache for in-container hooks, then stash rules dir
         // so Claude Code loads zero rules into LLM context.
         // T1 hooks read from .t1-cache.json; T3 payloads injected into prompts.

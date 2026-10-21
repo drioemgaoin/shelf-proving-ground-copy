@@ -467,11 +467,19 @@ def _auto_expand_scope(scope: str) -> str:
         parts = dir_path.rsplit("/", 1)
         if len(parts) < 2:
             return scope  # already at root
+        # Don't expand if parent is a top-level directory — that crosses
+        # scope boundaries (e.g. tests/acceptance/** → tests/** leaks
+        # sibling dirs like tests/investigation/).
+        if "/" not in parts[0]:
+            return scope
         return f"{parts[0]}/**"
 
     # File glob — expand to parent directory
     parts = scope.rsplit("/", 1)
     if len(parts) < 2:
+        return scope
+    # Same guard: don't expand to a top-level directory.
+    if "/" not in parts[0]:
         return scope
     return f"{parts[0]}/**"
 

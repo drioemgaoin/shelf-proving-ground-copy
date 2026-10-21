@@ -115,13 +115,22 @@ function scopeOverlaps(ruleScope, ticketScope) {
 // Constraint formatting
 // ---------------------------------------------------------------------------
 
+const RULE_TEXT_MAX_CHARS = 180;
+
 function formatConstraint(index, block) {
-  const text = block.ruleText || block.sectionHeading || block.id;
-  let line = `${index}. ${text}`;
-  if (block.fix) {
-    line += `\n   WRONG → ${block.fix}`;
+  let text = block.ruleText || block.sectionHeading || block.id;
+  // Truncate long rule prose — the fix carries the actionable instruction.
+  if (text.length > RULE_TEXT_MAX_CHARS) {
+    text = text.slice(0, RULE_TEXT_MAX_CHARS).replace(/\s+\S*$/, '') + '…';
   }
-  return line;
+  // Compact format: one line per constraint.  The fix is the FIRST
+  // semicolon-delimited action (the rest are pattern variants of the same
+  // advice).  Keeping it terse saves ~800 tokens across 30 constraints.
+  const firstFix = block.fix ? block.fix.split(';')[0].trim() : '';
+  if (firstFix) {
+    return `${index}. ${text} → ${firstFix}`;
+  }
+  return `${index}. ${text}`;
 }
 
 // ---------------------------------------------------------------------------
