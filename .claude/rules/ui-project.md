@@ -12,6 +12,27 @@ Personality: **warm, calm, personal**. Every visual choice supports this.
 
 All tokens use `--shelf-`.
 
+## Token tiers
+
+`src/styles/tokens.css` has three tiers (values flow downward only: primitive → semantic → component). Component CSS uses only the semantic tier.
+
+- **Primitive** (`--shelf-base-*`): raw values, stay in tokens.css. Never reference in component CSS.
+- **Semantic** (`--shelf-{role}-*` where role is `fgColor`, `bgColor`, `borderColor`, `borderWidth`, `font`, `space`, `radius`, `shadow`, `z`, `motion`, `focusRing`): role-based tokens. Use these in component CSS.
+- **Component** (`--shelf-{component}-*` where component is a UI element name like `chip`, `skeleton`, `button`, `shelf`): aliases scoped to one component. Only that component's CSS file uses them.
+
+  CORRECT: `border: var(--shelf-borderWidth-thin) solid var(--shelf-borderColor-default);`
+  WRONG: `border: var(--shelf-chip-borderWidth) solid var(--shelf-borderColor-default);` — chip-scoped token used on a non-chip element
+
+  ```enforcement
+  id: "semantic-tokens-only"
+  tier: T1
+  - pattern: "var\\(--shelf-(?!(fgColor-|bgColor-|borderColor-|borderWidth-|font-|space-|radius-|shadow-|z-|motion-|focusRing))"
+    assert: absent
+    scope: "src/**/*.css"
+    exclude: "src/styles/tokens.css"
+    fix: "Use a semantic-tier token. Primitive (--shelf-base-*) and component (--shelf-chip-*, --shelf-skeleton-*) tokens stay in tokens.css."
+  ```
+
 ## Color roles
 
 | Role           | Token                           | Use for                                 |

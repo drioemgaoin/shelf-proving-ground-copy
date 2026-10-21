@@ -10,6 +10,9 @@ These apply to every project. Project values and names are in `ui-project.md`. S
 
 - Every color, size, spacing, radius, shadow, duration and easing comes from a token. No raw values in components.
 
+  CORRECT: `color: var(--shelf-fgColor-default);`
+  WRONG: `color: #333;`
+
   ```enforcement
   id: "values-from-tokens"
   tier: T1
