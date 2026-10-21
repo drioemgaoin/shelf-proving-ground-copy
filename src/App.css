@@ -102,7 +102,7 @@
   .shelf-skeleton-bar {
     display: block;
     border-radius: var(--shelf-radius-sm);
-    background-color: var(--shelf-fgColor-muted);
+    background-color: var(--shelf-borderColor-subtle);
     opacity: 0.1;
     animation: shelf-shimmer var(--shelf-motion-duration-slow) var(--shelf-motion-easing-enter)
       infinite alternate;

@@ -10,16 +10,8 @@ const STATUS_FILTERS: { label: string; status: Status }[] = [
 
 const SKELETON_COUNT = 6;
 
-function statusLabel(status: Status): string {
-  switch (status) {
-    case 'to-read':
-      return 'To Read';
-    case 'reading':
-      return 'Reading';
-    case 'finished':
-      return 'Finished';
-  }
-}
+const statusLabel = (status: Status): string =>
+  STATUS_FILTERS.find((f) => f.status === status)?.label ?? status;
 
 export function App(): React.JSX.Element {
   const [books, setBooks] = useState<Book[] | null>(null);
