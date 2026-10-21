@@ -168,7 +168,8 @@ assert(
 
 const sandboxSource = readFileSync('.sandcastle/lib/sandbox.mts', 'utf8');
 
-// Rules are stashed (not stripped) — write-t1-cache then mv to .rules-stashed
+// Rules are stashed (not stripped) — write-t1-cache then mv to .sandcastle/.rules-stash
+// Stash lives outside .claude/ so agents exploring .claude/ for config can't discover it.
 assert(
   'GREEN: sandbox hooks include write-t1-cache command',
   sandboxSource.includes('node scripts/write-t1-cache.mjs'),
@@ -177,16 +178,32 @@ assert(
 
 assert(
   'GREEN: sandbox hooks stash rules directory',
-  sandboxSource.includes('.rules-stashed'),
-  'Sandbox hooks must stash .claude/rules to .claude/.rules-stashed',
+  sandboxSource.includes('.sandcastle/.rules-stash'),
+  'Sandbox hooks must stash .claude/rules to .sandcastle/.rules-stash',
 );
 
 // Verify stash appears in builder, replay, and light hooks
-const stashMatches = sandboxSource.match(/\.rules-stashed/g) || [];
+const stashMatches = sandboxSource.match(/\.rules-stash/g) || [];
 assert(
   'GREEN: rules stash in builder, replay, and light hooks',
   stashMatches.length >= 3,
   `Expected ≥3 occurrences (builder + replay + light), found ${stashMatches.length}`,
+);
+
+// Regression guard: stash must NOT be under .claude/
+assert(
+  'GREEN: stash is NOT under .claude/ (agent discovery prevention)',
+  !sandboxSource.includes('.claude/.rules-stash'),
+  'Stash must NOT be under .claude/ — agents explore .claude/ and discover stashed rules',
+);
+
+// Skills and agents are removed from all hook types so agents can't
+// browse .claude/skills/ or .claude/agents/ and read prompt prose.
+const skillsRmMatches = sandboxSource.match(/rm -rf .claude\/skills .claude\/agents/g) || [];
+assert(
+  'GREEN: skills and agents removed in all hook types',
+  skillsRmMatches.length >= 3,
+  `Expected ≥3 occurrences (builder + replay + light), found ${skillsRmMatches.length}`,
 );
 
 // ─── Results ────────────────────────────────────────────────────────────────

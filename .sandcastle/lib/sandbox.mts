@@ -68,7 +68,7 @@ export function createBuilderHooks(overlay: boolean): SandboxHooks {
           command:
             // Strip Beads block and Agent skills section — irrelevant inside sandbox
             "sed -i.bak '/<!-- BEGIN BEADS/,/<!-- END BEADS/d' CLAUDE.md && " +
-            "sed -i.bak '/^## UI rules$/,$d' CLAUDE.md && " +
+            "sed -i.bak '/^## Agent skills$/,$d' CLAUDE.md && " +
             "rm -f CLAUDE.md.bak",
         },
         // Deny tools the implementer never uses.  permissions.deny removes
@@ -92,8 +92,15 @@ export function createBuilderHooks(overlay: boolean): SandboxHooks {
         // Write T1 cache for in-container hooks, then stash rules dir
         // so Claude Code loads zero rules into LLM context.
         // T1 hooks read from .t1-cache.json; T3 payloads injected into prompts.
+        // Stash goes to .sandcastle/ (not .claude/) so agents exploring
+        // .claude/ for config can't discover and read the raw rule files.
         { command: "node scripts/write-t1-cache.mjs" },
-        { command: "mv .claude/rules .claude/.rules-stashed" },
+        { command: "mv .claude/rules .sandcastle/.rules-stash" },
+        // Restore T1 cache to the path apply-t1.mjs expects (.claude/rules/.t1-cache.json)
+        { command: "mkdir -p .claude/rules && cp .sandcastle/.rules-stash/.t1-cache.json .claude/rules/ 2>/dev/null; true" },
+        // Remove skills and agents — not used inside sandbox (Skill tool is
+        // denied) and their presence lets agents read prompt prose by accident.
+        { command: "rm -rf .claude/skills .claude/agents" },
         ...(overlay
           ? [
               {
@@ -131,7 +138,8 @@ export function createLightHooks(): SandboxHooks {
             "bd init --reinit-local --non-interactive -q 2>/dev/null; true",
         },
         // Stash rules so planner doesn't waste context on ~330 lines of prose.
-        { command: "test -d .claude/rules && mv .claude/rules .claude/.rules-stashed || true" },
+        { command: "test -d .claude/rules && mv .claude/rules .sandcastle/.rules-stash || true" },
+        { command: "rm -rf .claude/skills .claude/agents" },
       ],
     },
   };
@@ -156,7 +164,9 @@ export function createReplayHooks(): SandboxHooks {
         },
         // Write T1 cache then stash rules (same as builder hooks).
         { command: "node scripts/write-t1-cache.mjs" },
-        { command: "mv .claude/rules .claude/.rules-stashed" },
+        { command: "mv .claude/rules .sandcastle/.rules-stash" },
+        { command: "mkdir -p .claude/rules && cp .sandcastle/.rules-stash/.t1-cache.json .claude/rules/ 2>/dev/null; true" },
+        { command: "rm -rf .claude/skills .claude/agents" },
         { command: "node .claude/hooks/backpressure.mjs --baseline" },
       ],
     },
@@ -222,7 +232,7 @@ export function buildOverlayFileList(): string[] {
 // ---------------------------------------------------------------------------
 
 const RULES_DIR = ".claude/rules";
-const RULES_STASH = ".claude/.rules-stashed";
+const RULES_STASH = ".sandcastle/.rules-stash";
 
 /**
  * Show or hide `.claude/rules` inside a sandcastle worktree.

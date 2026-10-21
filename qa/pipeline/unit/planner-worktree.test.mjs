@@ -93,14 +93,20 @@ test('write-t1-cache is safe to run on host (only writes cache file)', () => {
 
 test('sandbox hooks stash rules via mv (not rm -rf)', () => {
   const src = readFileSync('.sandcastle/lib/sandbox.mts', 'utf8');
-  // The stash uses mv (rename), not rm -rf — rules are preserved for fixer fallback
+  // The stash uses mv (rename), not rm -rf — rules are preserved for fixer fallback.
+  // Stash lives in .sandcastle/ (not .claude/) so agents can't discover it
+  // by exploring .claude/ for config.
   assert(
-    src.includes('.rules-stashed'),
-    'Sandbox hooks must stash rules to .rules-stashed, not delete them',
+    src.includes('.sandcastle/.rules-stash'),
+    'Sandbox hooks must stash rules to .sandcastle/.rules-stash, not delete them',
   );
   assert(
     !src.includes('rm -rf .claude/rules'),
     'Sandbox hooks must NOT rm -rf rules — stash (mv) preserves them for fixer',
+  );
+  assert(
+    !src.includes('.claude/.rules-stashed'),
+    'Stash must NOT be under .claude/ — agents explore .claude/ and discover stashed rules',
   );
 });
 
@@ -113,15 +119,16 @@ test('setRulesVisible(false) does not throw when rules dir is read-only', () => 
   const tmp = mkdtempSync(join(tmpdir(), 'worktrees-rules-crash-'));
   const rulesDir = join(tmp, '.claude', 'rules');
   mkdirSync(rulesDir, { recursive: true });
+  mkdirSync(join(tmp, '.sandcastle'), { recursive: true });
   writeFileSync(join(rulesDir, 'test.md'), '# test');
 
-  // Make .claude read-only so rename fails
-  execSync(`chmod 555 "${join(tmp, '.claude')}"`, { encoding: 'utf8' });
+  // Make .sandcastle read-only so rename into it fails
+  execSync(`chmod 555 "${join(tmp, '.sandcastle')}"`, { encoding: 'utf8' });
 
   // Read the actual function from sandbox.mts and test it
   // We mirror the implementation to test the try/catch behavior
   const RULES_DIR = '.claude/rules';
-  const RULES_STASH = '.claude/.rules-stashed';
+  const RULES_STASH = '.sandcastle/.rules-stash';
 
   function setRulesVisible(worktree, visible) {
     const active = join(worktree, RULES_DIR);
@@ -147,7 +154,7 @@ test('setRulesVisible(false) does not throw when rules dir is read-only', () => 
   }
 
   // Restore permissions for cleanup
-  execSync(`chmod 755 "${join(tmp, '.claude')}"`, { encoding: 'utf8' });
+  execSync(`chmod 755 "${join(tmp, '.sandcastle')}"`, { encoding: 'utf8' });
   rmSync(tmp, { recursive: true, force: true });
 
   assert(!threw, 'setRulesVisible must not throw on rename failure');

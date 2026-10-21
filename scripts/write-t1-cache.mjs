@@ -4,7 +4,7 @@
  * Reads .claude/rules/*.md, parses all T1 enforcement blocks,
  * writes them to .claude/rules/.t1-cache.json. This file is read
  * by apply-t1.mjs when the rules directory has been stashed
- * (renamed to .rules-stashed) so Claude Code doesn't load them.
+ * (moved to .sandcastle/.rules-stash) so Claude Code doesn't load them.
  *
  * Run this BEFORE stashing .claude/rules/ in onSandboxReady.
  */

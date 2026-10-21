@@ -31,7 +31,7 @@ function assert(condition, message) { if (!condition) throw new Error(message); 
 import { renameSync } from 'node:fs';
 
 const RULES_DIR = ".claude/rules";
-const RULES_STASH = ".claude/.rules-stashed";
+const RULES_STASH = ".sandcastle/.rules-stash";
 
 function setRulesVisible(worktree, visible) {
   const active = join(worktree, RULES_DIR);
@@ -51,6 +51,8 @@ function makeTempWorktree() {
   const tmp = mkdtempSync(join(tmpdir(), 'rules-vis-test-'));
   const rulesDir = join(tmp, RULES_DIR);
   mkdirSync(rulesDir, { recursive: true });
+  // Create .sandcastle/ parent so the stash target dir can be created by rename
+  mkdirSync(join(tmp, '.sandcastle'), { recursive: true });
   writeFileSync(join(rulesDir, 'ui-base.md'), '# UI Base rules');
   writeFileSync(join(rulesDir, 'ui-project.md'), '# UI Project rules');
   writeFileSync(join(rulesDir, 'coding-standards.md'), '# Coding standards');
@@ -69,6 +71,13 @@ test('A: setRulesVisible(false) hides .claude/rules', () => {
 
   assert(!existsSync(join(tmp, RULES_DIR)), 'rules dir must be gone after hide');
   assert(existsSync(join(tmp, RULES_STASH)), 'stash dir must exist after hide');
+
+  // Stash must NOT be under .claude/ — agents explore .claude/ and discover it
+  const claudeEntries = readdirSync(join(tmp, '.claude'));
+  assert(
+    !claudeEntries.some(e => e.includes('rules') || e.includes('stash')),
+    `stash must not be discoverable under .claude/ — found: ${claudeEntries}`,
+  );
 
   rmSync(tmp, { recursive: true, force: true });
 });
@@ -214,6 +223,17 @@ test('H: setRulesVisible is exported from sandbox.mts', () => {
   assert(
     src.includes('export function setRulesVisible'),
     'setRulesVisible must be exported from sandbox.mts',
+  );
+});
+
+test('H1b: RULES_STASH must NOT be under .claude/ (agent discovery prevention)', () => {
+  const src = readFileSync('.sandcastle/lib/sandbox.mts', 'utf8');
+  // Extract the RULES_STASH constant value
+  const match = src.match(/const RULES_STASH\s*=\s*"([^"]+)"/);
+  assert(match, 'RULES_STASH constant must exist in sandbox.mts');
+  assert(
+    !match[1].startsWith('.claude'),
+    `RULES_STASH must NOT be under .claude/ — agents explore .claude/ and discover stashed rules (got: "${match[1]}")`,
   );
 });
 
