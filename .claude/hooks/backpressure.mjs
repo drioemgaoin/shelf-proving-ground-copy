@@ -120,7 +120,9 @@ const changes = changedWithStatus(base);
 // 1. Locked files.
 const violations = changes.filter(({ status, path }) => {
   if (/__screenshots__\//.test(path)) return status !== 'A'; // new baselines ok, edits/deletes not
-  return /^(e2e\/acceptance\/|e2e\/support\/|playwright\.config\.|scripts\/ui-qa\/|\.claude\/)/.test(path);
+  // .claude/hooks and .claude/settings are locked; .claude/rules and .claude/skills
+  // are not checked — rules are prompt-injected (T1/T3), not loaded from files.
+  return /^(tests\/acceptance\/|tests\/support\/|playwright\.config\.|scripts\/ui-qa\/|\.claude\/hooks\/|\.claude\/settings)/.test(path);
 });
 if (violations.length) {
   block(
