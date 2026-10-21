@@ -9,6 +9,15 @@
           }
         ],
         "matcher": "Edit|Write|MultiEdit|NotebookEdit|Bash|Agent"
+      },
+      {
+        "hooks": [
+          {
+            "command": "node \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/apply-t1.mjs",
+            "type": "command"
+          }
+        ],
+        "matcher": "Edit|Write|MultiEdit"
       }
     ],
     "SessionStart": [
