@@ -1,5 +1,6 @@
 {"id":"testing-colocated-unit-tests","scope":"src/**/*.test.{ts,tsx}","reason":"no matching files in diff"}
 {"id":"architecture-data-via-api","scope":"src/**/*.{ts,tsx}","reason":"no matching files in diff"}
+{"id":"no-outer-margin","scope":"src/components/**/*.css","reason":"no matching files in diff"}
 {"id":"state-needs-acceptance-test","scope":"src/components/**/*.{ts,tsx}","reason":"no matching files in diff"}
 {"id":"data-dynamic-on-changing-content","scope":"src/components/**/*.{ts,tsx}","reason":"no matching files in diff"}
 {"id":"comment-style","scope":"src/**/*.{ts,tsx,css}","reason":"no matching files in diff"}
