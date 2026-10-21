@@ -119,7 +119,8 @@ test('values-from-tokens blocks unitless opacity via T1 hook', () => {
 });
 
 test('values-from-tokens allows var() token references for unitless properties', () => {
-  const result = runT1(PROJECT_ROOT, 'src/components/test.css', '@layer components {\n  .chip { line-height: var(--shelf-line-height-body); }\n}');
+  // Line-height tokens use the font- prefix (typography semantic category)
+  const result = runT1(PROJECT_ROOT, 'src/components/test.css', '@layer components {\n  .chip { line-height: var(--shelf-font-lineHeight-body); }\n}');
   assert(result.exitCode === 0, `Expected exit 0 (allowed), got ${result.exitCode}. Token reference was incorrectly blocked.`);
 });
 
@@ -145,27 +146,27 @@ test('values-from-tokens still blocks raw px in declarations', () => {
 
 console.log('\n--- Gap E: Temporal comment references ---');
 
-test('no-temporal-comment-refs T1 rule exists', () => {
-  const blocks = t1Blocks.filter(b => b.id === 'no-temporal-comment-refs');
-  assert(blocks.length >= 1, 'No no-temporal-comment-refs T1 block found in coding-standards.md');
+test('no-ticket-references T1 rule exists', () => {
+  const blocks = t1Blocks.filter(b => b.id === 'no-ticket-references');
+  assert(blocks.length >= 1, 'No no-ticket-references T1 block found in coding-standards.md');
 });
 
-test('temporal ref pattern matches "this ticket"', () => {
-  const blocks = t1Blocks.filter(b => b.id === 'no-temporal-comment-refs');
+test('temporal ref pattern matches "in this ticket"', () => {
+  const blocks = t1Blocks.filter(b => b.id === 'no-ticket-references');
   assert(blocks.length > 0, 'Rule not found');
   let matched = false;
   for (const block of blocks) {
     const re = new RegExp(block.pattern, 'gi');
-    if (re.test('// This ticket wires only the chip bar')) {
+    if (re.test('// Filtering wires in this ticket only')) {
       matched = true;
       break;
     }
   }
-  assert(matched, 'Pattern does not match "this ticket" in a comment');
+  assert(matched, 'Pattern does not match "in this ticket" in a comment');
 });
 
 test('temporal ref pattern matches "a later ticket"', () => {
-  const blocks = t1Blocks.filter(b => b.id === 'no-temporal-comment-refs');
+  const blocks = t1Blocks.filter(b => b.id === 'no-ticket-references');
   assert(blocks.length > 0, 'Rule not found');
   let matched = false;
   for (const block of blocks) {
@@ -179,7 +180,7 @@ test('temporal ref pattern matches "a later ticket"', () => {
 });
 
 test('temporal ref blocks via T1 hook', () => {
-  const result = runT1(PROJECT_ROOT, 'src/components/ChipBar.tsx', '// This ticket wires only the pressed state\nfunction ChipBar() { return null; }');
+  const result = runT1(PROJECT_ROOT, 'src/components/ChipBar.tsx', '// Filtering wires in this ticket only\nfunction ChipBar() { return null; }');
   assert(result.exitCode === 2, `Expected exit 2 (blocked), got ${result.exitCode}. Temporal reference was not caught.`);
 });
 

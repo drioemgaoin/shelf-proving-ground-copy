@@ -14,7 +14,7 @@ import { buildWarmImage, createBuilderHooks, buildOverlayFileList } from "./lib/
 import { readTicketFiles, ticketsToReadyJson } from "./lib/tickets.mjs";
 import { planIteration, executeInParallel, mergeCompleted, resumeQAGates } from "./lib/phases.mjs";
 import type { PlannedIssue } from "./lib/phases.mjs";
-import { CostCeilingExceededError } from "./lib/tagged-agent.mjs";
+import { CostCeilingExceededError, printCostSummary } from "./lib/tagged-agent.mjs";
 import { MAX_ITERATIONS } from "./config/constants.mjs";
 import {
   VIEW_TASK_COMMAND,
@@ -42,6 +42,7 @@ import { collectAllWorktrees } from "./lib/monitor-collect.mjs";
 
 for (const sig of ["SIGINT", "SIGTERM"] as const) {
   process.on(sig, () => {
+    printCostSummary();
     collectAllWorktrees();
     releaseLock(process.cwd());
     process.exit(128 + (sig === "SIGINT" ? 2 : 15));
@@ -352,11 +353,14 @@ try {
 } catch (e) {
   if (e instanceof CostCeilingExceededError) {
     // Spec line 1255: labeling already done in executeInParallel; halt pipeline
+    printCostSummary();
     log("⛔ Pipeline halted: cost ceiling exceeded.");
   } else {
+    printCostSummary();
     throw e;
   }
 }
 
+printCostSummary();
 releaseLock(process.cwd());
 log("All done.");

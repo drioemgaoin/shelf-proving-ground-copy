@@ -71,9 +71,11 @@ export function createBuilderHooks(overlay: boolean): SandboxHooks {
             "sed -i.bak '/^## Agent skills$/,$d' CLAUDE.md && " +
             "rm -f CLAUDE.md.bak",
         },
-        // Strip enforcement blocks from rules — LLM needs prose only;
-        // T1/T2/T3 scripts read originals from the host.
-        { command: "node scripts/strip-enforcement.mjs" },
+        // Write T1 cache for in-container hooks, then stash rules dir
+        // so Claude Code loads zero rules into LLM context.
+        // T1 hooks read from .t1-cache.json; T3 payloads injected into prompts.
+        { command: "node scripts/write-t1-cache.mjs" },
+        { command: "mv .claude/rules .claude/.rules-stashed" },
         ...(overlay
           ? [
               {
@@ -110,6 +112,8 @@ export function createLightHooks(): SandboxHooks {
             "rm -rf ./.beads && cp -a /warm/.beads ./.beads && chmod 700 .beads && " +
             "bd init --reinit-local --non-interactive -q 2>/dev/null; true",
         },
+        // Stash rules so planner doesn't waste context on ~330 lines of prose.
+        { command: "test -d .claude/rules && mv .claude/rules .claude/.rules-stashed || true" },
       ],
     },
   };
@@ -132,9 +136,9 @@ export function createReplayHooks(): SandboxHooks {
             "rm -rf ./.beads && cp -a /warm/.beads ./.beads && chmod 700 .beads && " +
             "bd init --reinit-local --non-interactive -q 2>/dev/null; true",
         },
-        // Strip enforcement blocks from rules — LLM needs prose only;
-        // T1/T2/T3 scripts read originals from the host.
-        { command: "node scripts/strip-enforcement.mjs" },
+        // Write T1 cache then stash rules (same as builder hooks).
+        { command: "node scripts/write-t1-cache.mjs" },
+        { command: "mv .claude/rules .claude/.rules-stashed" },
         { command: "node .claude/hooks/backpressure.mjs --baseline" },
       ],
     },
@@ -187,12 +191,11 @@ export function buildOverlayFileList(): string[] {
     // Agent instruction files
     "CLAUDE.md",
     "AGENTS.md",
-    ".claude/rules",
-    ".claude/skills",
+    // Only hooks and settings — rules are prompt-injected (T1/T3),
+    // skills are not used in containers.
     ".claude/hooks",
     ".claude/settings.json",
-    ".claude/settings.local.json",
-    "e2e",
+    "tests",
   ]);
 }
 

@@ -110,25 +110,24 @@ test('stripped rules yield 0 T1 blocks (proves the bug)', () => {
 // Test 2: strip-enforcement.mjs creates .t1-cache.json
 // ══════════════════════════════════════════════════════════════════════
 
-test('strip-enforcement creates .t1-cache.json with T1 blocks', () => {
+test('write-t1-cache creates .t1-cache.json with T1 blocks', () => {
   const root = createTempProject();
   const rulesDir = join(root, '.claude', 'rules');
   const cachePath = join(rulesDir, '.t1-cache.json');
 
-  // Copy strip-enforcement.mjs to the temp project
-  const stripScript = join(root, 'scripts', 'strip-enforcement.mjs');
+  // Copy write-t1-cache.mjs to the temp project
+  const cacheScript = join(root, 'scripts', 'write-t1-cache.mjs');
   mkdirSync(join(root, 'scripts'), { recursive: true });
-  cpSync(join(PROJECT_ROOT, 'scripts', 'strip-enforcement.mjs'), stripScript);
+  cpSync(join(PROJECT_ROOT, 'scripts', 'write-t1-cache.mjs'), cacheScript);
 
-  // Run strip-enforcement inside the temp project
-  const result = spawnSync('node', [stripScript], {
+  // Run write-t1-cache inside the temp project
+  const result = spawnSync('node', [cacheScript], {
     cwd: root,
-    env: { ...process.env, SANDCASTLE_WORKTREE: '1' },
     encoding: 'utf8',
     timeout: 10000,
   });
 
-  assert(result.status === 0, `strip-enforcement exited with ${result.status}: ${result.stderr}`);
+  assert(result.status === 0, `write-t1-cache exited with ${result.status}: ${result.stderr}`);
   assert(existsSync(cachePath), '.t1-cache.json was not created');
 
   const cached = JSON.parse(readFileSync(cachePath, 'utf8'));
@@ -149,10 +148,6 @@ test('strip-enforcement creates .t1-cache.json with T1 blocks', () => {
   // T3 blocks should NOT be in cache
   const toastBlock = cached.find(b => b.id === 'toast-pattern');
   assert(!toastBlock, 'T3 toast-pattern should not be in T1 cache');
-
-  // Markdown should be stripped
-  const mdContent = readFileSync(join(rulesDir, 'test-rules.md'), 'utf8');
-  assert(!mdContent.includes('```enforcement'), 'Enforcement fences not stripped');
 
   rmSync(root, { recursive: true, force: true });
 });
@@ -213,16 +208,15 @@ test('real project rules: cache contains expected T1 block ids', () => {
   cpSync(join(PROJECT_ROOT, '.claude', 'hooks', 'lib', 'rules.mjs'), join(hooksLibDir, 'rules.mjs'));
 
   mkdirSync(join(root, 'scripts'), { recursive: true });
-  cpSync(join(PROJECT_ROOT, 'scripts', 'strip-enforcement.mjs'), join(root, 'scripts', 'strip-enforcement.mjs'));
+  cpSync(join(PROJECT_ROOT, 'scripts', 'write-t1-cache.mjs'), join(root, 'scripts', 'write-t1-cache.mjs'));
 
-  const result = spawnSync('node', [join(root, 'scripts', 'strip-enforcement.mjs')], {
+  const result = spawnSync('node', [join(root, 'scripts', 'write-t1-cache.mjs')], {
     cwd: root,
-    env: { ...process.env, SANDCASTLE_WORKTREE: '1' },
     encoding: 'utf8',
     timeout: 10000,
   });
 
-  assert(result.status === 0, `strip-enforcement failed: ${result.stderr}`);
+  assert(result.status === 0, `write-t1-cache failed: ${result.stderr}`);
 
   const cachePath = join(rulesDir, '.t1-cache.json');
   assert(existsSync(cachePath), 'Cache not created for real rules');

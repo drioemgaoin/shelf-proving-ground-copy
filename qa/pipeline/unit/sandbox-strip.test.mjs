@@ -168,18 +168,25 @@ assert(
 
 const sandboxSource = readFileSync('.sandcastle/lib/sandbox.mts', 'utf8');
 
+// Rules are stashed (not stripped) — write-t1-cache then mv to .rules-stashed
 assert(
-  'GREEN: createBuilderHooks includes strip-enforcement command',
-  sandboxSource.includes('node scripts/strip-enforcement.mjs'),
-  'createBuilderHooks() must include the enforcement stripping command',
+  'GREEN: sandbox hooks include write-t1-cache command',
+  sandboxSource.includes('node scripts/write-t1-cache.mjs'),
+  'Sandbox hooks must write .t1-cache.json before stashing rules',
 );
 
-// Verify it appears in both createBuilderHooks and createReplayHooks
-const hookMatches = sandboxSource.match(/node scripts\/strip-enforcement\.mjs/g) || [];
 assert(
-  'GREEN: strip-enforcement in both createBuilderHooks and createReplayHooks',
-  hookMatches.length >= 2,
-  `Expected ≥2 occurrences (createBuilderHooks + createReplayHooks), found ${hookMatches.length}`,
+  'GREEN: sandbox hooks stash rules directory',
+  sandboxSource.includes('.rules-stashed'),
+  'Sandbox hooks must stash .claude/rules to .claude/.rules-stashed',
+);
+
+// Verify stash appears in builder, replay, and light hooks
+const stashMatches = sandboxSource.match(/\.rules-stashed/g) || [];
+assert(
+  'GREEN: rules stash in builder, replay, and light hooks',
+  stashMatches.length >= 3,
+  `Expected ≥3 occurrences (builder + replay + light), found ${stashMatches.length}`,
 );
 
 // ─── Results ────────────────────────────────────────────────────────────────

@@ -17,6 +17,78 @@ export function getCumulativeCost(): number {
   return cumulativeCostUsd;
 }
 
+// ---------------------------------------------------------------------------
+// Cost ledger — records every phase cost for per-ticket summaries
+// ---------------------------------------------------------------------------
+
+export interface CostEntry {
+  label: string;
+  model: string;
+  input: number;
+  cacheRead: number;
+  cacheWrite: number;
+  output: number;
+  cost: number;
+}
+
+const costLedger: CostEntry[] = [];
+
+export function getCostLedger(): readonly CostEntry[] {
+  return costLedger;
+}
+
+function resolvePricing(model: string) {
+  return MODEL_PRICING.find((p) => model.toLowerCase().includes(p.pattern)) ?? FALLBACK_PRICING;
+}
+
+function costBreakdown(entry: CostEntry): string {
+  const p = resolvePricing(entry.model);
+  const cw = (entry.cacheWrite / 1_000_000) * p.cacheWrite;
+  const cr = (entry.cacheRead / 1_000_000) * p.cacheRead;
+  const out = (entry.output / 1_000_000) * p.output;
+  const inp = (entry.input / 1_000_000) * p.input;
+  const parts: string[] = [];
+  if (cw >= 0.001) parts.push(`cw:$${cw.toFixed(3)}`);
+  if (cr >= 0.001) parts.push(`cr:$${cr.toFixed(3)}`);
+  if (inp >= 0.001) parts.push(`in:$${inp.toFixed(3)}`);
+  if (out >= 0.001) parts.push(`out:$${out.toFixed(3)}`);
+  return parts.join(" ");
+}
+
+/**
+ * Print a cost summary grouped by ticket, with per-phase breakdown.
+ * Safe to call at any point (SIGINT, end-of-flow) — shows whatever was recorded.
+ */
+export function printCostSummary(): void {
+  if (costLedger.length === 0) return;
+
+  log("");
+  log("💰 Cost summary");
+  log("─".repeat(72));
+
+  // Group by ticket — extract ticket ID from labels like "Implementer [foo-123]"
+  const byTicket = new Map<string, CostEntry[]>();
+  for (const entry of costLedger) {
+    const match = entry.label.match(/\[([^\]]+)\]/);
+    const ticket = match ? match[1] : "_pipeline";
+    if (!byTicket.has(ticket)) byTicket.set(ticket, []);
+    byTicket.get(ticket)!.push(entry);
+  }
+
+  for (const [ticket, entries] of byTicket) {
+    const ticketTotal = entries.reduce((s, e) => s + e.cost, 0);
+    log(`  ${ticket}: $${ticketTotal.toFixed(2)}`);
+    for (const e of entries) {
+      const phase = e.label.replace(/\s*\[[^\]]+\]\s*/, "");
+      log(`    ${phase.padEnd(24)} $${e.cost.toFixed(3)}  (${costBreakdown(e)})`);
+    }
+  }
+
+  log("─".repeat(72));
+  log(`  Total: $${cumulativeCostUsd.toFixed(2)}`);
+  log("");
+}
+
 export class CostCeilingExceededError extends Error {
   constructor(cost: number, ceiling: number) {
     super(`Pipeline cost ceiling exceeded: $${cost.toFixed(2)} >= $${ceiling}`);
@@ -133,15 +205,21 @@ function logRunStats(
     ? "✅ ≤100K"
     : `⚠️  ${Math.round(totalContextTokens / 1000)}K`;
 
-  const lower = model.toLowerCase();
-  const pricing =
-    MODEL_PRICING.find((p) => lower.includes(p.pattern)) ?? FALLBACK_PRICING;
+  const pricing = resolvePricing(model);
   const cost =
     (totalInput / 1_000_000) * pricing.input +
     (totalCacheRead / 1_000_000) * pricing.cacheRead +
     (totalCacheWrite / 1_000_000) * pricing.cacheWrite +
     (totalOutput / 1_000_000) * pricing.output;
-  const costPart = cost > 0 ? ` | ~$${cost.toFixed(2)}` : "";
+
+  // Record to the ledger for the end-of-flow summary.
+  const entry: CostEntry = {
+    label, model,
+    input: totalInput, cacheRead: totalCacheRead,
+    cacheWrite: totalCacheWrite, output: totalOutput,
+    cost,
+  };
+  costLedger.push(entry);
 
   // Gap 12: Accumulate cost and check ceiling.
   if (cost > 0) {
@@ -151,6 +229,8 @@ function logRunStats(
       throw new CostCeilingExceededError(cumulativeCostUsd, costCeilingUsd);
     }
   }
+
+  const costPart = cost > 0 ? ` | ~$${cost.toFixed(2)} (${costBreakdown(entry)})` : "";
 
   const cacheParts =
     totalCacheRead || totalCacheWrite

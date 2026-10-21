@@ -2,7 +2,6 @@
 
 ## values-from-tokens
 **Source:** .claude/rules/ui-base.md > Values
-**Rule:** Every color, size, spacing, radius, shadow, duration and easing comes from a token. No raw values in components.
 
 Check that each design token is used for its intended semantic role. A violation is using a token outside its role — e.g., a spacing token for font-size, a danger color for non-error content, or a shadow token for a non-elevated element. Correct: each token maps to the role described in ui-project.md's token tables.
 

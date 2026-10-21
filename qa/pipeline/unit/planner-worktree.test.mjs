@@ -69,55 +69,39 @@ test('planIteration does not use hooks that modify host files', () => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
-// 2. strip-enforcement.mjs refuses to run on host root
+// 2. Rules stashing is container-only (setRulesVisible guards host)
 // ═══════════════════════════════════════════════════════════════════════════
 
-test('strip-enforcement has a cwd guard against host root', () => {
-  const src = readFileSync('scripts/strip-enforcement.mjs', 'utf8');
-
-  // Must check cwd before touching any files
-  const guardIndex = src.indexOf('worktrees');
-  const rulesAccessIndex = src.indexOf("readdirSync(rulesDir)");
-  assert(guardIndex !== -1, 'strip-enforcement must check for "worktrees" in cwd');
+test('setRulesVisible refuses non-worktree paths', () => {
+  // setRulesVisible already guards against host paths — verify it still does
+  const src = readFileSync('.sandcastle/lib/sandbox.mts', 'utf8');
   assert(
-    guardIndex < rulesAccessIndex,
-    'cwd guard must come BEFORE reading/writing rule files',
+    src.includes('does not look like a sandcastle worktree'),
+    'setRulesVisible must guard against non-worktree paths',
   );
 });
 
-test('strip-enforcement exits non-zero when run from project root', () => {
-  // Run from the actual project root — must fail
-  try {
-    execSync('node scripts/strip-enforcement.mjs', {
-      encoding: 'utf8',
-      cwd: resolve('.'),
-      env: { ...process.env, SANDCASTLE_WORKTREE: '' },
-    });
-    // If it didn't throw, it must have exited 0 — that's a failure
-    assert(false, 'strip-enforcement must exit non-zero when run from project root');
-  } catch (e) {
-    assert(e.status !== 0, `Expected non-zero exit, got ${e.status}`);
-  }
+test('write-t1-cache is safe to run on host (only writes cache file)', () => {
+  // write-t1-cache writes .t1-cache.json — verify it does NOT modify rule files
+  const src = readFileSync('scripts/write-t1-cache.mjs', 'utf8');
+  // Must not call stripEnforcementFences or writeFileSync to rule .md files
+  assert(
+    !src.includes('stripEnforcementFences'),
+    'write-t1-cache must not strip enforcement fences (that was the old approach)',
+  );
 });
 
-test('strip-enforcement succeeds inside a path containing "worktrees"', () => {
-  // Create a temp dir that mimics a worktree path
-  const tmp = mkdtempSync(join(tmpdir(), 'worktrees-strip-test-'));
-  const fakeWorktree = join(tmp, 'worktrees', 'sandcastle-issue-test');
-  const rulesDir = join(fakeWorktree, '.claude', 'rules');
-  mkdirSync(rulesDir, { recursive: true });
-  writeFileSync(join(rulesDir, 'test-rule.md'), '# Rule\n\n```enforcement\ncode\n```\n');
-
-  // Copy the script and its dependency so we can run it from the fake worktree
-  try {
-    execSync(`node ${resolve('scripts/strip-enforcement.mjs')}`, {
-      encoding: 'utf8',
-      cwd: fakeWorktree,
-    });
-    // Should succeed — no assertion needed, if it throws the test fails
-  } finally {
-    rmSync(tmp, { recursive: true, force: true });
-  }
+test('sandbox hooks stash rules via mv (not rm -rf)', () => {
+  const src = readFileSync('.sandcastle/lib/sandbox.mts', 'utf8');
+  // The stash uses mv (rename), not rm -rf — rules are preserved for fixer fallback
+  assert(
+    src.includes('.rules-stashed'),
+    'Sandbox hooks must stash rules to .rules-stashed, not delete them',
+  );
+  assert(
+    !src.includes('rm -rf .claude/rules'),
+    'Sandbox hooks must NOT rm -rf rules — stash (mv) preserves them for fixer',
+  );
 });
 
 // ═══════════════════════════════════════════════════════════════════════════

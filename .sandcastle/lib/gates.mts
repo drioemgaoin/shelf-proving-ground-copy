@@ -2,6 +2,7 @@
 
 import { execSync } from "child_process";
 import { existsSync, readFileSync } from "fs";
+import { buildConstraints } from "../../scripts/build-constraints.mjs";
 import {
   VISUAL_QA,
   VISUAL_FIXER,
@@ -47,12 +48,16 @@ export function createVisualGate(
       FINDINGS_FILE: `.qa/visual-r${round}.md`,
     }),
 
-    buildFixerArgs: (round, ctx) => ({
-      BRANCH: branch,
-      TASK_ID: issueId,
-      FINDINGS_FILE: `.qa/visual-r${round}.md`,
-      VERIFY_COMMAND: `npm run ui:qa -- --grep "@visual.*@${escapedId}"`,
-    }),
+    buildFixerArgs: (round, ctx) => {
+      const { constraints } = buildConstraints(process.cwd());
+      return {
+        BRANCH: branch,
+        TASK_ID: issueId,
+        FINDINGS_FILE: `.qa/visual-r${round}.md`,
+        VERIFY_COMMAND: `npm run ui:qa -- --grep "@visual.*@${escapedId}"`,
+        CONSTRAINTS: constraints,
+      };
+    },
 
     beforeCheck: (round, ctx) => {
       archiveTestResults(ctx.worktree, `visual-qa-r${round}`);
@@ -116,14 +121,18 @@ export function createReviewGate(
       };
     },
 
-    buildFixerArgs: (round, ctx) => ({
-      BRANCH: branch,
-      TASK_ID: issueId,
-      FINDINGS_FILE: `.qa/review-r${round}.md`,
-      VERIFY_COMMAND:
-        `npm run typecheck && npm run lint && npm run test && ` +
-        `npx playwright test --grep "@${escapedId}" --grep-invert "@visual"`,
-    }),
+    buildFixerArgs: (round, ctx) => {
+      const { constraints } = buildConstraints(process.cwd());
+      return {
+        BRANCH: branch,
+        TASK_ID: issueId,
+        FINDINGS_FILE: `.qa/review-r${round}.md`,
+        VERIFY_COMMAND:
+          `npm run typecheck && npm run lint && npm run test && ` +
+          `npx playwright test --grep "@${escapedId}" --grep-invert "@visual"`,
+        CONSTRAINTS: constraints,
+      };
+    },
 
     beforeCheck: (round, ctx) => {
       setPhase(ctx.worktree, "review");

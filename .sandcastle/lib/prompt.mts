@@ -41,6 +41,8 @@ const STAGE1_WHITELIST = new Set([
   "CLOSE_TASK_COMMAND",
   // Violations memory (implementer learning)
   "VIOLATIONS_MEMORY",
+  // Prompt-injected T1 constraints (replaces .claude/rules/ loading)
+  "CONSTRAINTS",
   // QA gate vars (gates.mts)
   "FINDINGS_FILE",
   "VERIFY_COMMAND",

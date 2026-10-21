@@ -17,6 +17,7 @@ import { runGateLoop, escalate, type GateContext } from "./qa-gates.mjs";
 import { createVisualGate, createReviewGate } from "./gates.mjs";
 import { collectMonitorData } from "./monitor-collect.mjs";
 import { loadViolationsMemory, recordViolation } from "./violations-memory.mjs";
+import { buildConstraints } from "../../scripts/build-constraints.mjs";
 import {
   PLANNER,
   IMPLEMENTER,
@@ -233,6 +234,9 @@ async function runImplementer(
   opts: ExecuteOptions,
 ): Promise<RunResult> {
   log(`  Sandbox ready for ${issue.id}. Implementer starting...`);
+  const { constraints } = buildConstraints(process.cwd(), {
+    ticketScope: issue.scope,
+  });
   const implArgs = {
     TASK_ID: issue.id,
     ISSUE_TITLE: issue.title,
@@ -241,6 +245,7 @@ async function runImplementer(
     CODEMAP: opts.codemaps.get(issue.id) ?? "",
     // VIOLATIONS_MEMORY: loadViolationsMemory(), // temporarily disabled for testing
     VIOLATIONS_MEMORY: "",
+    CONSTRAINTS: constraints,
     COMMENT_TASK_COMMAND: opts.trackerCommands!.COMMENT_TASK_COMMAND.replace("<ID>", issue.id),
     LABEL_TASK_COMMAND: opts.trackerCommands!.LABEL_TASK_COMMAND.replace("<ID>", issue.id),
     CREATE_BUG_COMMAND: opts.trackerCommands!.CREATE_BUG_COMMAND,
