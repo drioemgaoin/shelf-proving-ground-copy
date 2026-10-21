@@ -29,13 +29,16 @@ test('implementer prompt template includes {{VIOLATIONS_MEMORY}}', () => {
   assert(content.includes('{{VIOLATIONS_MEMORY}}'), '{{VIOLATIONS_MEMORY}} not in implementer prompt');
 });
 
-test('VIOLATIONS_MEMORY is before COLD START in prompt', () => {
+test('VIOLATIONS_MEMORY is before ESCALATION in prompt', () => {
+  // Violations must be visible before the agent reaches the escalation/completion
+  // sections. COLD START is in the static prefix (for caching), so we check
+  // against ESCALATION which follows the dynamic CONTEXT block.
   const content = readFileSync('.sandcastle/prompts/implementer.prompt.md', 'utf8');
   const vmIdx = content.indexOf('{{VIOLATIONS_MEMORY}}');
-  const csIdx = content.indexOf('# COLD START');
+  const escIdx = content.indexOf('# ESCALATION');
   assert(vmIdx >= 0, 'VIOLATIONS_MEMORY not found');
-  assert(csIdx >= 0, 'COLD START not found');
-  assert(vmIdx < csIdx, 'VIOLATIONS_MEMORY should appear before COLD START');
+  assert(escIdx >= 0, 'ESCALATION not found');
+  assert(vmIdx < escIdx, 'VIOLATIONS_MEMORY should appear before ESCALATION');
 });
 
 test('phases.mts imports loadViolationsMemory', () => {

@@ -176,6 +176,38 @@ test('Phase name strips ticket ID bracket from label', () => {
   assert(phase === 'Visual QAr1', `Phase name should strip bracket: got "${phase}"`);
 });
 
+// ── Prompt ordering validation ──
+// Verifies that prompt templates follow the static-first pattern for prefix caching.
+// The first {{VAR}} placeholder must appear after at least N lines of static content.
+
+import { readFileSync } from 'fs';
+
+const PROMPT_DIR = '.sandcastle/prompts';
+const MIN_STATIC_PREFIX_LINES = {
+  'plan.prompt.md': 10,           // TASK + OUTPUT sections before {{READY_ISSUES}}
+  'implementer.prompt.md': 20,    // EXECUTION + BOUNDARIES + COLD START + COMPLETION before dynamic
+  'reviewer.prompt.md': 30,       // INSTRUCTIONS section is ~88 lines of static
+  'visual-qa.prompt.md': 50,      // INSTRUCTIONS section is ~178 lines of static
+  'fixer.prompt.md': 10,          // INSTRUCTIONS section is ~38 lines of static
+};
+
+for (const [file, minLines] of Object.entries(MIN_STATIC_PREFIX_LINES)) {
+  test(`Prompt ordering: ${file} has ≥${minLines} static lines before first {{VAR}}`, () => {
+    const content = readFileSync(`${PROMPT_DIR}/${file}`, 'utf8');
+    const lines = content.split('\n');
+    let firstVarLine = -1;
+    for (let i = 0; i < lines.length; i++) {
+      if (/\{\{[A-Z_]+\}\}/.test(lines[i])) {
+        firstVarLine = i + 1; // 1-based
+        break;
+      }
+    }
+    assert(firstVarLine > 0, `No {{VAR}} found in ${file}`);
+    assert(firstVarLine >= minLines,
+      `First {{VAR}} at line ${firstVarLine}, expected ≥${minLines} lines of static prefix`);
+  });
+}
+
 // ── Report ──
 console.log('');
 if (failures.length > 0) { for (const f of failures) console.log(f); console.log(''); }
