@@ -68,7 +68,7 @@ export function createBuilderHooks(overlay: boolean): SandboxHooks {
           command:
             // Strip Beads block and Agent skills section — irrelevant inside sandbox
             "sed -i.bak '/<!-- BEGIN BEADS/,/<!-- END BEADS/d' CLAUDE.md && " +
-            "sed -i.bak '/^## Agent skills$/,$d' CLAUDE.md && " +
+            "sed -i.bak '/^## UI rules$/,$d' CLAUDE.md && " +
             "rm -f CLAUDE.md.bak",
         },
         // Deny tools the implementer never uses.  permissions.deny removes
