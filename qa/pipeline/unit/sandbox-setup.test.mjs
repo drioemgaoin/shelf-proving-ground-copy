@@ -3,11 +3,12 @@
  * Integration test: simulate the full sandcastle onSandboxReady hook
  * sequence in /tmp and verify:
  *
- * 1. .claude/ contains ONLY hooks/ and settings.json (no rules, skills, agents)
+ * 1. .claude/ contains ONLY hooks/ + settings.json + rules/.t1-cache.json
  * 2. Rules stash is at .sandcastle/.rules-stash/ (not under .claude/)
  * 3. T1 cache is findable by apply-t1.mjs after the stash
- * 4. build-constraints.mjs can still read rules from the stash
- * 5. Host .claude/ is completely untouched
+ * 4. qa/ is excluded from the worktree
+ * 5. Sandbox mutations are hidden from git diff (skip-worktree)
+ * 6. Host .claude/ is completely untouched
  */
 import {
   mkdtempSync, mkdirSync, writeFileSync, readFileSync,
@@ -28,28 +29,35 @@ function test(label, fn) {
 }
 function assert(cond, msg) { if (!cond) throw new Error(msg); }
 
-// ── Create a fake worktree in /tmp ──────────────────────────────────
+// ── Create a git-backed fake worktree in /tmp ───────────────────────
 
 const WORKTREE = mkdtempSync(join(tmpdir(), 'sandbox-setup-test-'));
 console.log(`\nWorktree: ${WORKTREE}`);
+
+// Init a git repo so skip-worktree can be tested
+execSync('git init -q && git config user.email "test@test" && git config user.name "test" && git config commit.gpgsign false', { cwd: WORKTREE });
 
 // Populate .claude/ with everything that exists in the real repo
 const realClaude = join(PROJECT, '.claude');
 cpSync(realClaude, join(WORKTREE, '.claude'), { recursive: true });
 
-// Populate .sandcastle/ (just needs to exist as parent for stash)
+// Populate .sandcastle/ (needs to exist as parent for stash)
 mkdirSync(join(WORKTREE, '.sandcastle'), { recursive: true });
 
 // Copy the scripts needed by hooks
 mkdirSync(join(WORKTREE, 'scripts'), { recursive: true });
 cpSync(join(PROJECT, 'scripts/write-t1-cache.mjs'), join(WORKTREE, 'scripts/write-t1-cache.mjs'));
 
+// Commit everything so git diff has a base
+execSync('git add -A && git commit -q -m "initial"', { cwd: WORKTREE });
+const base = execSync('git rev-parse HEAD', { cwd: WORKTREE, encoding: 'utf8' }).trim();
+
 // ── Snapshot: what's in .claude/ BEFORE hooks ───────────────────────
 
 const beforeEntries = readdirSync(join(WORKTREE, '.claude')).filter(e => !e.startsWith('.')).sort();
 console.log(`\nBefore hooks — .claude/ contains: ${beforeEntries.join(', ')}`);
 
-// ── Run the hook commands (subset relevant to .claude/ cleanup) ─────
+// ── Run the hook commands (same sequence as createBuilderHooks) ─────
 
 console.log('\nRunning hook commands...');
 
@@ -73,9 +81,10 @@ console.log('  → restore T1 cache: OK');
 execSync('rm -rf .claude/skills .claude/agents', { cwd: WORKTREE });
 console.log('  → rm skills + agents: OK');
 
-// 5. Prune unused hooks (keep only guard, apply-t1, backpressure + lib/)
-execSync("find .claude/hooks -maxdepth 1 -name 'check-*.mjs' -delete", { cwd: WORKTREE });
-console.log('  → prune unused hooks: OK');
+// 5. Skip-worktree on .claude/ (unconditional — hides sandbox mutations from git diff)
+//    .git/info/exclude hides new untracked files (e.g. .t1-cache.json)
+execSync("echo '.claude/rules/.t1-cache.json' >> .git/info/exclude; git ls-files -z .claude/ | xargs -0 git update-index --skip-worktree 2>/dev/null; true", { cwd: WORKTREE });
+console.log('  → skip-worktree .claude/: OK');
 
 // ── Verify final state ──────────────────────────────────────────────
 
@@ -105,14 +114,10 @@ test('4. .claude/agents/ does NOT exist', () => {
   assert(!existsSync(join(WORKTREE, '.claude', 'agents')), '.claude/agents/ still exists');
 });
 
-test('5. .claude/hooks/ contains only settings.json-referenced hooks + lib/', () => {
+test('5. .claude/hooks/ has required hooks (guard, apply-t1, backpressure, lib/)', () => {
   assert(existsSync(join(WORKTREE, '.claude', 'hooks')), '.claude/hooks/ is missing');
   const hookEntries = readdirSync(join(WORKTREE, '.claude', 'hooks')).sort();
-  // Only guard.mjs, apply-t1.mjs, backpressure.mjs, and lib/ should remain
-  const allowed = new Set(['apply-t1.mjs', 'backpressure.mjs', 'guard.mjs', 'lib']);
-  const unexpected = hookEntries.filter(e => !allowed.has(e));
-  assert(unexpected.length === 0, `unexpected hooks: ${unexpected.join(', ')}`);
-  // All required hooks must be present
+  // check-*.mjs stay on disk (prompt boundaries keep agent away); only verify required hooks present
   for (const required of ['apply-t1.mjs', 'backpressure.mjs', 'guard.mjs', 'lib']) {
     assert(hookEntries.includes(required), `required hook missing: ${required}`);
   }
@@ -130,8 +135,6 @@ test('7. Rules stash is at .sandcastle/.rules-stash/', () => {
 });
 
 test('8. No rule markdown or stash directories under .claude/', () => {
-  // .claude/hooks/lib/rules.mjs is the hook library — that's fine.
-  // We're checking for stashed rule CONTENT (.md files, stash dirs).
   const claudeAll = readdirSync(join(WORKTREE, '.claude'), { recursive: true, withFileTypes: true });
   const stashDirs = claudeAll.filter(e => e.name.includes('stash'));
   assert(stashDirs.length === 0, `stash dirs found in .claude/: ${stashDirs.map(e => e.name)}`);
@@ -150,26 +153,40 @@ test('9. T1 cache exists in the stash', () => {
 });
 
 test('10. apply-t1.mjs can find T1 cache at .claude/rules/.t1-cache.json', () => {
-  // This is where apply-t1.mjs looks (line 96 of apply-t1.mjs)
   const expectedPath = join(WORKTREE, '.claude', 'rules', '.t1-cache.json');
   assert(existsSync(expectedPath),
-    `T1 CACHE UNREACHABLE: apply-t1.mjs looks at .claude/rules/.t1-cache.json but it was moved with the stash. ` +
-    `T1 enforcement is broken in the container!`);
+    `T1 CACHE UNREACHABLE: apply-t1.mjs looks at .claude/rules/.t1-cache.json but it was moved with the stash`);
+});
+
+// ── git diff sees NO .claude/ changes (skip-worktree) ───────────────
+
+test('11. git diff reports NO .claude/ changes after sandbox mutations', () => {
+  const diff = execSync(`git diff --name-status ${base}`, { cwd: WORKTREE, encoding: 'utf8' }).trim();
+  const claudeChanges = diff.split('\n').filter(l => l && l.includes('.claude/'));
+  assert(claudeChanges.length === 0,
+    `backpressure would see these as locked-file violations:\n${claudeChanges.join('\n')}`);
+});
+
+test('12. git ls-files -o shows NO .claude/ untracked files', () => {
+  const untracked = execSync('git ls-files -o --exclude-standard', { cwd: WORKTREE, encoding: 'utf8' }).trim();
+  const claudeUntracked = untracked.split('\n').filter(l => l && l.startsWith('.claude/'));
+  assert(claudeUntracked.length === 0,
+    `untracked .claude/ files visible to backpressure:\n${claudeUntracked.join('\n')}`);
 });
 
 // ── Host safety verification ────────────────────────────────────────
 
-test('11. Host .claude/rules/ is untouched', () => {
+test('13. Host .claude/rules/ is untouched', () => {
   const hostRules = readdirSync(join(PROJECT, '.claude', 'rules')).filter(f => f.endsWith('.md'));
   assert(hostRules.length >= 3, `host rules missing: ${hostRules}`);
 });
 
-test('12. Host .claude/skills/ is untouched', () => {
+test('14. Host .claude/skills/ is untouched', () => {
   const hostSkills = readdirSync(join(PROJECT, '.claude', 'skills'));
   assert(hostSkills.length >= 10, `host skills missing: only ${hostSkills.length}`);
 });
 
-test('13. Host .claude/agents/ is untouched', () => {
+test('15. Host .claude/agents/ is untouched', () => {
   assert(existsSync(join(PROJECT, '.claude', 'agents', 'visual-qa.md')), 'host agents missing');
 });
 

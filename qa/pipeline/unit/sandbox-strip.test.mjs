@@ -206,6 +206,35 @@ assert(
   `Expected ≥3 occurrences (builder + replay + light), found ${skillsRmMatches.length}`,
 );
 
+// ═══════════════════════════════════════════════════════════════════════════
+// Implementer prompt boundary enforcement
+// ═══════════════════════════════════════════════════════════════════════════
+
+const implPrompt = readFileSync('.sandcastle/prompts/implementer.prompt.md', 'utf8');
+
+// The boundaries section must explicitly restrict to src/ + acceptance specs only
+assert(
+  'GREEN: implementer prompt has allowlist boundary (src/ only)',
+  implPrompt.includes('ONLY read and write files inside `src/`'),
+  'Implementer prompt must have an allowlist boundary restricting to src/',
+);
+
+// Must ban exploration commands (find, ls) that let the agent escape boundaries
+assert(
+  'GREEN: implementer prompt bans find/ls exploration',
+  /do NOT run.*(?:find|ls)/i.test(implPrompt),
+  'Implementer prompt must explicitly ban find/ls exploration commands',
+);
+
+// Must list off-limits directories so the agent has no ambiguity
+for (const dir of ['qa/', '.claude/', '.sandcastle/', 'scripts/']) {
+  assert(
+    `GREEN: implementer prompt marks ${dir} as off-limits`,
+    implPrompt.includes(dir),
+    `Implementer prompt must explicitly list ${dir} as off-limits`,
+  );
+}
+
 // ─── Results ────────────────────────────────────────────────────────────────
 
 console.log(`\n${passed} passed, ${failed} failed`);
