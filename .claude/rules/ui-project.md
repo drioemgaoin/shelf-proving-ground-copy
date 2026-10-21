@@ -184,7 +184,7 @@ Breakpoints: 768px (tablet layout), 1024px (desktop layout). Card grid: 1 column
     scope: "src/**/*.css"
     exclude: "src/styles/tokens.css"
     strip: comments
-    fix: "Use kebab-case: .card-title not .card__title"
+    fix: "Use kebab-case: .card-skeleton not .card--skeleton"
   ```
 
 - Media queries use range notation: `@media (width >= 768px)`. The linter enforces `media-feature-range-notation` (modern range syntax).
