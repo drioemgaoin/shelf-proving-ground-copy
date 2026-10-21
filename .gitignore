@@ -15,7 +15,6 @@ dist/
 *.p12
 
 # Claude Code local state (settings, plugins, skills, cache)
-.claude/
 rules/.registry
 
 # DeepEval

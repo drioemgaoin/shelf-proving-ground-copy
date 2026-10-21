@@ -1,0 +1,21 @@
+{
+  "name": "syntax-test-app",
+  "description": "A minimal app with stylelint-config-standard for testing syntax enforcement generation",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint:css": "stylelint 'src/**/*.css'"
+  },
+  "dependencies": {
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0",
+    "typescript": "^5.5.0",
+    "stylelint": "^16.0.0",
+    "stylelint-config-standard": "^36.0.0"
+  }
+}

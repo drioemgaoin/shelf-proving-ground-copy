@@ -1,0 +1,216 @@
+{
+  "skill_name": "rule-creator",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "I have a Python project with coding standards in .claude/rules/python-standards.md. I want you to add enforcement blocks to the two error handling rules: 'No bare except: clauses' and 'No type: ignore comments without an error code'. Classify them and add the blocks.",
+      "expected_output": "Both rules should be classified as T1 (deterministic — regex can match bare `except:` and bare `type: ignore` in Python files). The skill should discover the rules file, recommend T1 with reasoning for both, then generate two T1 enforcement blocks with appropriate regex patterns and scopes targeting *.py files. It should NOT over-classify these as T2 or T3.",
+      "files": ["evals/fixtures/python-project/.claude/rules/python-standards.md"],
+      "expectations": [
+        "Both rules are classified as T1",
+        "The `pattern` fields are specific to the violation — e.g., `except:` for bare excepts, `type: ignore` without a bracket for bare ignores — not overly broad patterns that would false-positive on valid code",
+        "The scope field targets Python files (e.g., **/*.py or src/**/*.py)",
+        "The blocks are placed immediately after each rule's text in the Error handling section",
+        "A budget check is performed after generating blocks",
+        "Each T1 block includes a `tool` field naming a specific Python linter or checker (e.g., `flake8 E722`, `pylint bare-except`, `mypy`)",
+        "Blocks use the ```enforcement fence type, not ```yaml",
+        "The `assert` field is set to `absent` for both rules (banning patterns, not requiring them)"
+      ]
+    },
+    {
+      "id": 1,
+      "prompt": "I have an API standards file at .claude/rules/api-standards.md. I need enforcement on these three rules: 'Every endpoint responds within 200ms at p95 under normal load', 'Error messages should be helpful and suggest next steps to the caller', and 'Reject unknown fields in request bodies (strict mode)'. Classify each and add blocks.",
+      "expected_output": "This tests the T2-vs-T3-vs-Human boundary. The latency rule should be T2 (measurable with a load test, deterministic pass/fail). The error message quality rule should be Human or T3 (judging 'helpful' requires understanding context). The strict mode rule should be T2 (a test can send a request with unknown fields and assert 400). The skill must discriminate correctly between these — getting the latency rule wrong (T1 or T3) or the strict mode wrong (T3) would indicate the decision tree isn't working.",
+      "files": ["evals/fixtures/mixed-stack/.claude/rules/api-standards.md"],
+      "expectations": [
+        "The latency rule is classified as T2 (runtime test, not static analysis)",
+        "The error message rule is classified as Human or T3 (subjective judgment required)",
+        "The strict mode rule is classified as T2 (deterministic test: send unknown fields, assert rejection)",
+        "The skill does NOT classify the latency rule as T1 (can't regex-check latency)",
+        "The error message rule is NOT classified as T1 (no regex can judge 'helpful')",
+        "Each T2 block has both a `scope` field (per-component or global) and an `assert` field",
+        "For each T2 classification, the reasoning states what runtime mechanism checks it (e.g., load test for latency, synthetic request for strict mode). For the Human/T3 classification, the reasoning identifies 'helpful' as the qualifying adjective that prevents deterministic automation"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "My Go project has rules in .claude/rules/go-standards.md. Look at the rules under 'Types' and 'Error handling'. Some of them look like they need code understanding but actually have syntactic shortcuts. Classify them all with enforcement blocks.",
+      "expected_output": "This tests syntactic proxy detection including partial coverage. 'Use any instead of interface{}' is T1 (regex matches interface{}). 'Always check returned errors' is T1 (linter/vet catches _ = funcThatReturnsError()). 'Wrap errors with context using fmt.Errorf' is T1 for the structural part (wrapcheck catches bare return err, regex catches %v instead of %w), but the skill should surface that context message quality is not covered by T1 and suggest it as a candidate for a separate rule. 'Error messages start with lowercase' is T1 (regex on error string literals). The skill should find the syntactic proxies and avoid defaulting to T3 for rules that have T1 shortcuts.",
+      "files": ["evals/fixtures/go-project/.claude/rules/go-standards.md"],
+      "expectations": [
+        "interface{} vs any rule is classified as T1",
+        "Unchecked errors rule is classified as T1 (go vet / errcheck catches this)",
+        "Error message casing rule is classified as T1 (regex on string literals)",
+        "Error wrapping rule is classified as T1 and the skill surfaces that context message quality is not covered by the T1 check, suggesting it as a candidate for a separate rule if the team cares",
+        "For each rule classified as T1, the skill references at least one specific linter, tool, or AST check that enforces it (e.g., errcheck for unchecked errors, regex for interface{})",
+        "Blocks are placed correctly after each rule in the bulleted list format",
+        "The gap surfacing for error wrapping suggests a separate rule for context quality — it does NOT split the existing rule into two enforcement tiers within the same block"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "I need enforcement blocks on ALL rules in .claude/rules/frontend-standards.md. Go through the whole file. There are about 15 rules across Code Style, CSS, Accessibility, Performance, and Architecture sections.",
+      "expected_output": "This tests batch mode. The skill should present rules in groups of 3-5 (not dump all 15 at once). Expected classifications: as any → T1, export default → T1, nested ternary → T1, hardcoded values → T1, animation properties → T1, raw z-index → T1, alt text → T1, color-alone-meaning → T3 visual-qa, tab order → T2/T3, sync localStorage → T1, image loading → T1, bundle size → T2, business logic in components → T3 reviewer, single responsibility → Human, side effects in handlers → T3 reviewer. The skill should get most T1s right (they all have syntactic signatures) and correctly escalate the judgment calls.",
+      "files": ["evals/fixtures/batch-file/.claude/rules/frontend-standards.md"],
+      "expectations": [
+        "Rules are presented in groups of 3-5, not all at once",
+        "Each group shows a table or list with rule, recommended tier, and reasoning",
+        "At least 8 of the 9 syntactically detectable rules (as any, export default, nested ternary, hardcoded values, animation properties, raw z-index, alt text, sync localStorage, image loading) are correctly classified as T1",
+        "The 'single responsibility' rule is classified as Human (inherently subjective)",
+        "The 'color alone does not convey meaning' rule is T3 visual-qa (requires visual inspection)",
+        "The 'bundle size exceeds 200kb' rule is classified as T2 (requires a build and measurement), NOT T1",
+        "Budget checks run after all blocks are generated",
+        "The total rule count matches the actual number of rules in the file",
+        "Rules are NOT all presented in a single group — batch pacing is enforced"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "I have a UI rules file at .claude/rules/ui-rules.md that already has 11 T3 enforcement blocks (2 of which are critical, and 8 are scopeless with scope '*'). There are 3 new rules at the bottom that need enforcement. Add blocks to those 3 new rules. Watch the budgets.",
+      "expected_output": "This tests budget awareness. The file already has 11 T3 rules (under the 150 warn threshold but notable), 2 critical (under the 10 cap), and 8 scopeless blocks (approaching the 10 cap — only 2 slots left). When classifying the 3 new rules, the skill should: (1) count existing T3/scopeless/critical before adding, (2) classify the new rules (empty states → T3 visual-qa, error states → T3 visual-qa, modal centering → T2 or T3), (3) warn about approaching the 10-scopeless cap since 8 of 10 are used, (4) suggest narrowing scopes or promoting to T2 where possible instead of adding more scopeless T3 rules.",
+      "files": ["evals/fixtures/budget-pressure/.claude/rules/ui-rules.md"],
+      "expectations": [
+        "The budget report shows pre-classification totals: 11 T3, 8 scopeless (of 10 max), 2 critical (of 10 max) — these numbers match the actual blocks in the fixture file",
+        "New rules are classified appropriately (empty/error states as T3 visual-qa, modal as T2 or T3)",
+        "It warns about approaching the scopeless cap (8 of 10 used)",
+        "It suggests concrete mitigation: narrow scope to specific components instead of '*'",
+        "The blocks for new rules include specific component scopes, not '*'",
+        "The modal centering rule is NOT classified as T1 (centering in a viewport is a runtime property, not a syntactic pattern)",
+        "The budget report identifies all discovered rules files (even if only one exists in this fixture)"
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "I have coding standards in .claude/rules/code-quality.md. Add enforcement blocks to all 5 rules in the file: 'Use descriptive variable names', 'Functions should do one thing well', 'No unused imports', 'Group imports by source', and 'Log errors with sufficient context'.",
+      "expected_output": "This tests resistance to the adjective trap — rules that SOUND syntactic but require judgment. 'Descriptive variable names' → Human (what's 'descriptive' is subjective — no regex can judge whether `x` is an acceptable name in context). 'Functions do one thing' → Human (SRP is inherently subjective). 'No unused imports' → T1 (lint rule catches this trivially). 'Group imports by source' → T1 (import-order lint rule). 'Log errors with sufficient context' → Human or T3 (what's 'sufficient context' requires judgment). The critical test is that the skill does NOT classify 'descriptive variable names' or 'do one thing' as T1 — a regex on name length or function length is NOT the same as judging quality.",
+      "files": ["evals/fixtures/deceptive-semantic/.claude/rules/code-quality.md"],
+      "expectations": [
+        "'Use descriptive variable names' is classified as Human, NOT T1 or T3 — qualifying adjectives with no objective referent that reviewers would disagree on are Human, not automatable at any tier",
+        "'Functions should do one thing' is classified as Human, NOT T1, T2, or T3 — SRP is inherently subjective with no stable standard across reviewers",
+        "'No unused imports' is classified as T1 (lint rule catches this deterministically)",
+        "'Group imports by source' is classified as T1 (import-order linting)",
+        "'Log errors with sufficient context' is classified as Human or T3 (judgment required on what 'sufficient' means)",
+        "The reasoning identifies that 'descriptive' and 'one thing' are qualifying adjectives where no regex or LLM can consistently judge violations — different reviewers would flag different code — making them Human-tier, not a naming convention (T1) or a convergent judgment (T3)",
+        "The T1 blocks for 'unused imports' and 'group imports' each include a `tool` field (e.g., `ESLint no-unused-imports`, `ESLint import/order`)",
+        "The reasoning for 'log errors with sufficient context' identifies 'sufficient' as the qualifying adjective that prevents T1 classification"
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "I want to add a new rule to my project. We keep having issues where developers use console.log for debugging and forget to remove them before committing. My rules are in .claude/rules/team-standards.md. Can you create a rule for this?",
+      "expected_output": "This tests the new-rule creation flow (not just classifying existing rules). The skill should: (1) discover the rules file and read it, (2) suggest which section the rule belongs in (Code Style or Debugging are thematically appropriate), (3) write the rule text in imperative mood ('Do not commit console.log statements' or similar — one sentence, not a paragraph), (4) classify as T1 (regex matches console.log), (5) generate the enforcement block, (6) place in the correct section, (7) run budget checks. The key test is that the skill follows the full creation flow rather than just dropping a rule+block at the end of the file.",
+      "files": ["evals/fixtures/new-rule-creation/.claude/rules/team-standards.md"],
+      "expectations": [
+        "The new rule is written into the existing team-standards.md file — not into a newly created file",
+        "The new rule is placed in either the Code Style or Debugging section — both are thematically appropriate. It is NOT appended after the Testing section as a free-floating rule outside any section",
+        "The rule text is exactly one imperative sentence — not two sentences, not a paragraph",
+        "The rule text does not include remediation like 'remove before committing' or 'use a logger instead' — remediation belongs only in the enforcement block's `fix` field",
+        "The rule is classified as T1 (console.log has a clear syntactic signature)",
+        "The enforcement block has a regex pattern matching console.log",
+        "Budget checks run after generating the block",
+        "The T1 block includes a `strip` field (e.g., `strip: comments` or `strip: comments+strings`) or the pattern is specific enough to avoid false-positives on console.log mentioned inside comments or string literals"
+      ]
+    },
+    {
+      "id": 7,
+      "prompt": "Add enforcement blocks to all 4 rules in .claude/rules/review-rules.md. Two are visual quality rules and two are code structure rules. I want to make sure each gets the right T3 agent — visual-qa for things you judge from screenshots, reviewer for things you judge from code.",
+      "expected_output": "This tests T3 agent selection precision. 'Loading skeletons match content shape' → T3 visual-qa (whether shapes match requires visual comparison — a screenshot check). 'Dark mode toggle causes no layout shift' → T2 or T3 visual-qa (CLS can be measured with a test, but 'visible shift' judgment leans visual-qa). 'No business logic in components' → T3 reviewer (code structure judgment — visible in source, not screenshots). 'Functions over 50 lines' → T1 (line count is syntactic — wc -l or AST can check this). The critical test: the model must not assign reviewer to visual rules or visual-qa to code rules.",
+      "files": ["evals/fixtures/agent-selection/.claude/rules/review-rules.md"],
+      "expectations": [
+        "'Loading skeletons match content shape' gets T3 visual-qa (requires screenshot comparison, not code review)",
+        "'Dark mode layout shift' gets T2 (CLS measurement) or T3 visual-qa (visual judgment), NOT T3 reviewer",
+        "'No business logic in components' gets T3 reviewer (code structure judgment), NOT visual-qa",
+        "'Functions over 50 lines' gets T1 (line count is syntactic), NOT T3",
+        "Each T3 block is followed by a blockquote starting with '> **Agent:**' that states whether the violation is visible in a screenshot (visual-qa) or in code structure (reviewer)",
+        "T3 instructions include what to look for, what counts as a violation, and what correct looks like",
+        "For the 50-line rule, the model classifies the threshold at T1 and surfaces that 'focused' is a qualifier not covered by the line-count check — if the team cares about 'focused' independently, that is a separate rule",
+        "T3 blocks have a `scope` field with component names (for visual-qa) or file globs (for reviewer), NOT '*'",
+        "The T1 block for 50-line functions references a tool (e.g., `ESLint max-lines-per-function`) and includes a `tool` field"
+      ]
+    },
+    {
+      "id": 8,
+      "prompt": "Add a T3 enforcement block to this rule in .claude/rules/visual-rules.md: 'Empty states show a helpful illustration, not just text'. I've already decided it's T3 visual-qa — just generate the block. Also add blocks to the other two rules in the file: 'Page transitions are smooth and do not flash white' and 'Cards in a grid maintain equal gutters at every breakpoint'.",
+      "expected_output": "This tests T3 instruction quality. The skill should generate instruction fields that contain all three required parts: (1) what to look for, (2) what counts as a violation, (3) what correct looks like. A vague instruction like 'Check empty states' should not pass. The empty-state instruction should describe: look for screens with zero data, violation = text only with no illustration/graphic, correct = illustration alongside text message. The transition instruction should specify: navigate between routes, violation = white flash or abrupt jump, correct = smooth cross-fade or slide. The gutter instruction should specify: breakpoints to check, violation = unequal spacing between cards, correct = consistent gap values.",
+      "files": ["evals/fixtures/instruction-quality/.claude/rules/visual-rules.md"],
+      "expectations": [
+        "The empty-state instruction contains all 3 parts: what to look for (zero-data screens), violation (text only, no illustration), correct (illustration alongside text)",
+        "The transition instruction specifies what to look for (route navigation), what's wrong (white flash, abrupt change), what's right (smooth transition)",
+        "The gutter instruction specifies breakpoints, what's wrong (unequal gaps), what's right (consistent spacing)",
+        "No instruction is a vague one-liner like 'Check that X looks good'",
+        "Each instruction is specific enough that a visual-qa agent could deterministically judge pass/fail",
+        "Each block has the fields required by its tier: T3 blocks have agent, scope, group, and instruction; no block carries fields from a different tier's schema",
+        "The empty-state rule uses the user's pre-decided classification (T3 visual-qa) without re-running the sorting test — the prompt says 'I've already decided'",
+        "The transition and gutter rules are independently classified through the sorting test — their tier is NOT assumed from the first rule",
+        "All three blocks use `scope` with component names (not '*'), since these are visual-qa rules"
+      ]
+    },
+    {
+      "id": 9,
+      "prompt": "Two changes in .claude/rules/frontend-standards.md: (1) We built a custom stylelint plugin that catches raw z-index values now, so I want the 'Never set a raw z-index value' rule classified as T1 — it currently has no enforcement block. (2) The 'Color alone does not convey meaning' rule is currently T3 visual-qa but our visual-qa agent can't reliably judge this — too many false positives. I want to reclassify it as Human. Can you handle both?",
+      "expected_output": "This tests editing/reclassifying existing enforcement blocks. For z-index: straightforward T1 block creation (regex for raw z-index values not using token variables). For color-alone: the skill should read the existing T3 block, replace it entirely with a Human block (don't patch fields across tier templates), update the reason field to explain why T3 didn't work (false positive rate too high for visual-qa). After both changes, the skill should re-run budget checks noting the T3 count decreased by 1 (T3→Human promotion). The critical test: the skill should not try to merge T3 and Human fields — each tier has its own schema.",
+      "files": ["evals/fixtures/edit-reclassify/.claude/rules/frontend-standards.md"],
+      "expectations": [
+        "The z-index rule gets a new T1 enforcement block with a regex pattern for raw z-index values",
+        "The color-alone rule's existing T3 block is REPLACED (not patched) with a Human block",
+        "The Human block has review and reason fields (not agent/instruction/group fields from T3)",
+        "The reason field explains why T3 didn't work (e.g., 'visual-qa produces too many false positives')",
+        "Budget checks report before/after totals for each budget line that changed (total T3, scopeless, critical), showing the delta from the reclassification",
+        "The z-index T1 block includes a `tool` field referencing the custom stylelint plugin the user mentioned in the prompt",
+        "The 'as any' rule and the 'design tokens' rule in the same fixture file do NOT receive enforcement blocks — the user only asked about z-index and color-alone",
+        "After the edit, the file contains zero ```enforcement blocks with an `agent:` field (the only T3 was color-alone, which is now Human)"
+      ]
+    },
+    {
+      "id": 10,
+      "prompt": "I have two rules files: .claude/rules/ui-rules.md (8 T3 blocks, 2 critical, 3 scopeless) and .claude/rules/code-rules.md (4 T3 blocks, 0 critical, 0 scopeless). I need enforcement blocks on the 3 new rules at the bottom of code-rules.md. Make sure you count budgets across BOTH files.",
+      "expected_output": "This tests cross-file budget aggregation. The skill must read BOTH files, count T3 blocks across both (8 + 4 = 12 total T3, 2 critical, 3 scopeless — all from ui-rules.md). Then classify the 3 new rules: 'Utility functions must be pure' → T3 reviewer or T1 (partial — no side-effect calls is partially syntactic), 'Test files must not import from other test files' → T1 (regex matches import paths from test directories), 'Components must not exceed 200 lines' → T1 (line count is syntactic). After adding blocks, report updated totals aggregated across both files. The critical test: budget counts must include ui-rules.md even though the user is only editing code-rules.md.",
+      "files": [
+        "evals/fixtures/multi-file-budget/.claude/rules/ui-rules.md",
+        "evals/fixtures/multi-file-budget/.claude/rules/code-rules.md"
+      ],
+      "expectations": [
+        "The budget report contains a per-file breakdown for both ui-rules.md and code-rules.md, proving both were read",
+        "The pre-classification totals are exactly 12 T3 (8 from ui-rules + 4 from code-rules), 2 critical (both from ui-rules), 3 scopeless (all from ui-rules) — matching the actual fixture content",
+        "'Test files must not import from other test files' is classified as T1 (regex on import paths)",
+        "'Components must not exceed 200 lines' is classified as T1 (line count is syntactic)",
+        "Post-classification budget report includes T3 counts from ui-rules.md even though only code-rules.md was edited",
+        "The per-file breakdown is shown alongside the aggregated totals",
+        "'Utility functions must be pure' is classified as either T1 (with gap surfaced for full purity judgment) or T3 reviewer — the model must justify which classification it chose and why",
+        "New blocks are added only to code-rules.md — ui-rules.md is NOT modified"
+      ]
+    },
+    {
+      "id": 11,
+      "prompt": "I have a rule in .claude/rules/styling-rules.md: 'Durations and easing come from motion tokens.' This rule has two facets — a syntactic one (raw duration values in CSS) and a semantic one (using the wrong motion token for the context). I want both facets enforced in a single multi-tier block. Classify each facet separately and generate the block.",
+      "expected_output": "This tests multi-tier rule handling. The syntactic facet (raw duration values like '200ms' in transition/animation declarations) is T1 — a regex catches it. The semantic facet (using --shelf-motion-duration-slow for a hover effect that should be fast) is T3 reviewer — it requires understanding the use case to judge token selection. The skill should generate one enforcement block with two entries separated by '---'. Each entry belongs to exactly one tier. The same assertion must not appear at both tiers. The T1 entry catches raw values; the T3 entry catches semantic misuse of valid tokens.",
+      "files": ["evals/fixtures/multi-tier/.claude/rules/styling-rules.md"],
+      "expectations": [
+        "The syntactic facet (raw duration values) is classified as T1",
+        "The semantic facet (wrong token for context) is classified as T3",
+        "Both facets are in a single enforcement block separated by '---', not two separate blocks",
+        "The T1 entry has pattern, assert, scope, and fix fields — no T3 fields (agent, instruction)",
+        "The T3 entry has agent, scope, instruction, and group fields — no T1 fields (pattern, assert)",
+        "The T3 agent is 'reviewer' (token selection is a code-structure judgment, not visible in screenshots)",
+        "The T3 instruction includes all 3 parts: what to look for (motion token usage), violation (wrong token for the interaction speed), correct (fast tokens for hover/focus, slow for layout shifts)",
+        "The same violation is NOT checked at both tiers — T1 catches missing tokens, T3 catches wrong tokens",
+        "A budget check is performed after generating the block"
+      ]
+    },
+    {
+      "id": 12,
+      "prompt": "My project keeps its coding standards in a top-level CODING_STANDARDS.md file, not in .claude/rules/. I need enforcement blocks on the 3 rules under the 'Imports' section. Can you find the file and add the blocks?",
+      "expected_output": "This tests discovery of non-standard rules file locations. The skill should NOT assume .claude/rules/ exists. It should discover CODING_STANDARDS.md at the project root and use it as the rules file. The 3 import rules are straightforward T1 classifications (no wildcard imports, no circular imports, sorted import groups). The critical test: the skill finds the file without hardcoded path assumptions.",
+      "files": ["evals/fixtures/non-standard-discovery/CODING_STANDARDS.md"],
+      "expectations": [
+        "The skill discovers CODING_STANDARDS.md at the project root — it does NOT fail or ask the user to move it to .claude/rules/",
+        "The skill does NOT create a .claude/rules/ directory or copy the file there",
+        "All 3 import rules are classified as T1 (all have syntactic signatures detectable by lint rules)",
+        "Each T1 block includes a `tool` field referencing a specific linter",
+        "The enforcement blocks are written into CODING_STANDARDS.md, not into a different file",
+        "Blocks are placed after each rule in the Imports section, preserving the existing file structure",
+        "A budget check is performed after generating blocks"
+      ]
+    }
+  ]
+}

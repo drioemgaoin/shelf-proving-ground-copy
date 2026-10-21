@@ -1,0 +1,53 @@
+{
+  "skill_name": "ui-foundation",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "Run ui-foundation in setup mode for this project. Skip the interview — here are all the design decisions pre-decided:\n\n- Personality: cozy, personal, bookish\n- Namespace: --nook-\n- Color modes: light and dark\n- Density: spacious, rounded corners\n- Accent color: terracotta hsl(18 55% 42%)\n- Neutral temperature: warm gray\n- Typography: system sans-serif stack, semibold headings\n- Target devices: mobile-first, responsive to desktop\n- Viewports: mobile 375×812, tablet 768×1024, desktop 1280×800\n- Toasts: bottom-center, 4s auto-dismiss\n- Confirmations: inline undo via toast\n- Forms: validate on blur and submit, errors below field\n\nWrite tokens.css and ui-project.md. The project uses Vite + React + TypeScript. The main CSS entry is src/styles/tokens.css. Do NOT read any ui-base.md — the skill and its references are your only guidance.",
+      "expected_output": "The skill should generate src/styles/tokens.css with @layer tokens (three tiers: primitive, semantic, component) AND a separate @layer base block that applies background-color and color to body using semantic tokens. Without @layer base, body/html keep browser-default white and the design system does not control the page surface. Also generates .claude/rules/ui-project.md with token names and usage rules using the --nook- namespace.",
+      "files": [
+        "evals/fixtures/base-layer-project/package.json",
+        "evals/fixtures/base-layer-project/.claude/rules/ui-project.md",
+        "evals/fixtures/base-layer-project/e2e/support/viewports.ts"
+      ],
+      "expectations": [
+        "The generated tokens.css contains a @layer base block (literal text '@layer base')",
+        "The @layer base block includes a body selector that sets background-color using var(--nook-bgColor-default)",
+        "The @layer base block includes a body selector that sets color using var(--nook-fgColor-default)",
+        "The @layer tokens block exists with primitive, semantic, and component tiers",
+        "Dark mode overrides exist under :root[data-theme='dark'] inside @layer tokens",
+        "The @layer base block is separate from @layer tokens — they are two distinct layer blocks",
+        "No raw color values (hex, hsl, rgb) appear outside of @layer tokens primitive tier",
+        "The generated ui-project.md references the --nook- namespace"
+      ]
+    },
+    {
+      "id": 1,
+      "prompt": "Run ui-foundation in setup mode for this project. Skip the interview — here are all the design decisions pre-decided:\n\n- Personality: clean, efficient, modern\n- Namespace: --syn-\n- Color modes: light and dark\n- Density: compact, sharp corners\n- Accent color: emerald hsl(160 50% 38%)\n- Neutral temperature: cool gray\n- Typography: system sans-serif stack, medium headings\n- Target devices: desktop-first, responsive to mobile\n- Viewports: mobile 375×812, tablet 768×1024, desktop 1280×800\n- Toasts: top-right, 3s auto-dismiss\n- Confirmations: dialog\n- Forms: validate on submit, errors below field\n\nThe project has stylelint-config-standard configured (see .stylelintrc.json). Write tokens.css and ui-project.md. The project uses Vite + React + TypeScript. The main CSS entry is src/styles/tokens.css. Do NOT read any ui-base.md — the skill and its references are your only guidance.",
+      "expected_output": "The skill should generate src/styles/tokens.css with @layer tokens and @layer base, AND .claude/rules/ui-project.md with a ## Syntax section containing T1 enforcement blocks. Because the project has stylelint-config-standard, the generated ui-project.md must include: (1) a no-bem-separators T1 block that catches BEM __ and -- in class selectors, and (2) a media-range-notation T1 block that catches legacy (min-width:) / (max-width:) syntax.",
+      "files": [
+        "evals/fixtures/syntax-enforcement-project/package.json",
+        "evals/fixtures/syntax-enforcement-project/.stylelintrc.json",
+        "evals/fixtures/syntax-enforcement-project/.claude/rules/ui-project.md",
+        "evals/fixtures/syntax-enforcement-project/e2e/support/viewports.ts"
+      ],
+      "expectations": [
+        "The generated ui-project.md contains a ## Syntax section",
+        "The ## Syntax section contains an enforcement block with id: \"no-bem-separators\"",
+        "The no-bem-separators block has tier: T1",
+        "The no-bem-separators block has a pattern matching BEM __ in class selectors",
+        "The no-bem-separators block has a pattern matching BEM -- in class selectors",
+        "The no-bem-separators block has assert: absent",
+        "The no-bem-separators block has scope: \"src/**/*.css\"",
+        "The no-bem-separators block has strip: comments",
+        "The ## Syntax section contains an enforcement block with id: \"media-range-notation\"",
+        "The media-range-notation block has tier: T1",
+        "The media-range-notation block has a pattern matching (min-width: or (max-width: or (min-height: or (max-height:",
+        "The media-range-notation block has assert: absent",
+        "The media-range-notation block has scope: \"src/**/*.css\"",
+        "The generated ui-project.md references the --syn- namespace",
+        "The generated tokens.css contains a @layer base block"
+      ]
+    }
+  ]
+}

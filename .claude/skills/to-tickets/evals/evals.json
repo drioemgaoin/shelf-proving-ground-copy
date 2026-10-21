@@ -1,0 +1,27 @@
+{
+  "skill_name": "to-tickets",
+  "evals": [
+    {
+      "id": 0,
+      "name": "interaction-boundary-partial-chip-bar",
+      "prompt": "Break this spec into 3 tracer-bullet tickets. The spec is in evals/fixtures/shelf-grid-interaction-boundary/spec.md. The pre-written acceptance test assignments are in evals/fixtures/shelf-grid-interaction-boundary/test-tags.md — each test is already tagged to a ticket, so your ticket acceptance criteria must match those assignments exactly.\n\nWrite the 3 tickets as local files under .scratch/shelf-grid-eval/issues/ using the local-ticket-template.",
+      "expected_output": "3 ticket files under .scratch/shelf-grid-eval/issues/. Ticket 1 describes the chip bar with explicit interaction boundary: clicking a chip toggles aria-pressed and selected/unselected styling, but does NOT filter the grid (filtering deferred to ticket 2). No abstract labels like 'structural' or 'placeholder'. Tickets 2 and 3 cover filter behavior and stagger animation respectively, with correct blocking edges.",
+      "files": [
+        "evals/fixtures/shelf-grid-interaction-boundary/spec.md",
+        "evals/fixtures/shelf-grid-interaction-boundary/test-tags.md"
+      ],
+      "expectations": [
+        "Ticket 1 does NOT use the words 'structural', 'placeholder', 'shell', 'scaffolding', or 'basic' to describe the chip bar's interactivity",
+        "Ticket 1 explicitly states that clicking a chip updates aria-pressed and applies selected/unselected styling (accent fill vs subtle border)",
+        "Ticket 1 explicitly states that clicking a chip does NOT filter the grid, and defers grid filtering to ticket 2 by reference",
+        "Ticket 1 acceptance criteria include 'chip visual states' (the @visual test that clicks a chip and checks the accent background)",
+        "Ticket 1 acceptance criteria list exactly 16 items matching the @djk.1 test tags",
+        "Ticket 2 acceptance criteria list exactly 5 items matching the @djk.2 test tags",
+        "Ticket 3 acceptance criteria list exactly 5 items matching the @djk.3 test tags",
+        "Ticket 1 has no blockers, ticket 2 is blocked by ticket 1, ticket 3 is blocked by at least ticket 2 (blocking by both 1 and 2 is also acceptable since 1 is a transitive dependency)",
+        "Every user interaction mentioned in the acceptance criteria (chip click, keyboard toggle) is also mentioned in the corresponding ticket description — no contradiction between description and criteria",
+        "3 ticket files are written to .scratch/shelf-grid-eval/issues/"
+      ]
+    }
+  ]
+}
