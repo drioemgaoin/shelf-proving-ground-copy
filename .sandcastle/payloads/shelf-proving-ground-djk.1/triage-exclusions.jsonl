@@ -1,6 +1,11 @@
 {"id":"testing-colocated-unit-tests","scope":"src/**/*.test.{ts,tsx}","reason":"no matching files in diff"}
 {"id":"architecture-data-via-api","scope":"src/**/*.{ts,tsx}","reason":"no matching files in diff"}
-{"id":"no-outer-margin","scope":"src/components/**/*.css","reason":"no matching files in diff"}
+{"id":"no-deep-imports","scope":"src/**/*.{ts,tsx,js,jsx}","reason":"no matching files in diff"}
+{"id":"no-io-in-components","scope":"src/components/**/*.{ts,tsx}","reason":"no matching files in diff"}
+{"id":"no-scattered-env","scope":"src/**/*.{ts,tsx}","reason":"no matching files in diff"}
+{"id":"single-responsibility","scope":"src/**/*.{ts,tsx}","reason":"no matching files in diff"}
+{"id":"swap-readiness","scope":"src/**/*.{ts,tsx}","reason":"no matching files in diff"}
+{"id":"independent-testability","scope":"src/**/*.{ts,tsx}","reason":"no matching files in diff"}
 {"id":"state-needs-acceptance-test","scope":"src/components/**/*.{ts,tsx}","reason":"no matching files in diff"}
 {"id":"data-dynamic-on-changing-content","scope":"src/components/**/*.{ts,tsx}","reason":"no matching files in diff"}
 {"id":"comment-style","scope":"src/**/*.{ts,tsx,css}","reason":"no matching files in diff"}

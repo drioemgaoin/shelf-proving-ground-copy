@@ -87,19 +87,11 @@ function scopeOverlaps(ruleScope, ticketScope) {
   const ticketGlobs = splitOutsideBraces(ticketScope);
   const ruleGlobs = splitOutsideBraces(ruleScope);
 
-  // For each rule glob, check if any ticket glob could produce files matching it.
-  // Strategy: check if the directory portions overlap. A rule scoped to "src/**/*.css"
-  // overlaps with a ticket scoped to "src/components/Foo/**" if files in the ticket
-  // scope could match the rule scope.
-  //
-  // Simple approach: generate representative paths from ticket globs and test them
-  // against rule globs.
-  const representatives = ticketGlobs.flatMap(tg => {
-    // Specific file (no wildcard) — use as-is
-    if (!tg.includes('*')) return [tg];
-
-    // Directory glob — strip trailing wildcards, generate representative files
-    const base = tg.replace(/\/?\*+$/, '').replace(/\/\{[^}]+\}$/, '');
+  // Check overlap bidirectionally: a broad ticket scope (src/**) is a superset
+  // of a narrow rule scope (src/components/**), so we must test both directions.
+  const reps = (globs) => globs.flatMap(g => {
+    if (!g.includes('*')) return [g];
+    const base = g.replace(/\/?\*+$/, '').replace(/\/\{[^}]+\}$/, '');
     if (!base) return [];
     return [
       `${base}/file.css`,
@@ -110,9 +102,13 @@ function scopeOverlaps(ruleScope, ticketScope) {
     ];
   });
 
-  return ruleGlobs.some(rg =>
-    representatives.some(rep => globMatch(rg, rep))
-  );
+  const ticketReps = reps(ticketGlobs);
+  const ruleReps = reps(ruleGlobs);
+
+  // Direction 1: ticket reps match rule globs (ticket narrower than rule)
+  // Direction 2: rule reps match ticket globs (rule narrower than ticket)
+  return ruleGlobs.some(rg => ticketReps.some(rep => globMatch(rg, rep)))
+      || ticketGlobs.some(tg => ruleReps.some(rep => globMatch(tg, rep)));
 }
 
 // ---------------------------------------------------------------------------

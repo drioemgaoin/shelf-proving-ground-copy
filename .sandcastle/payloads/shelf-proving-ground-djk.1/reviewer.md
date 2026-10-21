@@ -2,10 +2,21 @@
 
 ## values-from-tokens
 **Source:** .claude/rules/ui-base.md > Values
+**Rule:** Every color, size, spacing, radius, shadow, duration and easing comes from a token. No raw values in components.
 
 Check that each design token is used for its intended semantic role. A violation is using a token outside its role — e.g., a spacing token for font-size, a danger color for non-error content, or a shadow token for a non-elevated element. Correct: each token maps to the role described in ui-project.md's token tables.
 
 **Triage hint:** Flag when: token variable referenced, color/spacing/size property changed
+
+---
+
+## no-outer-margin
+**Source:** .claude/rules/ui-base.md > Values
+**Rule:** Components own no space outside themselves. Spacing between components is the parent's job.
+
+Scan component root selectors in the diff for margin properties. A violation is a component setting margin on its own root element — the parent layout owns spacing via gap or padding. Correct: components have zero margin on their root; parents use gap, padding, or wrapper margin to space children.
+
+**Triage hint:** Flag when: margin property appears in component CSS, new component root selector added
 
 ---
 

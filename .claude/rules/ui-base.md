@@ -69,7 +69,7 @@ These apply to every project. Project values and names are in `ui-project.md`. S
   instruction: "Check that each design token is used for its intended semantic role. A violation is using a token outside its role — e.g., a spacing token for font-size, a danger color for non-error content, or a shadow token for a non-elevated element. Correct: each token maps to the role described in ui-project.md's token tables."
   ```
 
-- Every project must include a `@layer base` that applies design tokens to bare HTML elements. This is the layer where the design system takes control from the browser UA stylesheet. At minimum, `body` receives the page-surface background, default text color, base font family, and `margin: 0`. Without a base layer, bare elements render with UA defaults (white background, black text, 8px margin) and the design system is not in control of the page surface.
+- Every project must include a `@layer base` that applies design tokens to bare HTML elements. This is the layer where the design system takes control from the browser UA stylesheet. It must include the universal `box-sizing: border-box` reset (on `*, *::before, *::after`) so that `height` and `width` include padding — without this, any element with `height: 100%` and `padding` overflows its parent and covers grid/flex gaps. At minimum, `body` receives the page-surface background, default text color, base font family, and `margin: 0`. Without a base layer, bare elements render with UA defaults (white background, black text, 8px margin, content-box sizing) and the design system is not in control of the page surface.
 
   ```enforcement
   id: "base-layer-exists"
@@ -79,7 +79,12 @@ These apply to every project. Project values and names are in `ui-project.md`. S
     strip: comments
     scope: "src/**/*.{css,ts,tsx}"
     cross-check: "src/styles/tokens.css"
-    fix: "Add a @layer base block after @layer tokens that sets body { margin: 0; background-color: var(--<ns>-bgColor-default); color: var(--<ns>-fgColor-default); font-family: var(--<ns>-font-family-base); }"
+    fix: "Add a @layer base block after @layer tokens that sets *, *::before, *::after { box-sizing: border-box; } and body { margin: 0; background-color: var(--<ns>-bgColor-default); color: var(--<ns>-fgColor-default); font-family: var(--<ns>-font-family-base); }"
+  - pattern: "box-sizing:\\s*border-box"
+    assert: present
+    strip: comments
+    scope: "src/styles/tokens.css"
+    fix: "Add *, *::before, *::after { box-sizing: border-box; } inside @layer base. Without this, elements with height: 100% and padding overflow their containers and cover grid/flex gaps."
   ```
 
 - Components own no space outside themselves. Spacing between components is the parent's job.
@@ -166,6 +171,19 @@ These apply to every project. Project values and names are in `ui-project.md`. S
   ```
 
   > **Agent:** `visual-qa` — the violation is visible in screenshots during loading states (content jumping, missing placeholders); code review cannot verify rendered dimensions.
+
+- Grid and list gaps produce visible spacing between items. Child elements do not overflow their grid/flex cells.
+
+  ```enforcement
+  id: "visible-container-spacing"
+  tier: T3
+  agent: visual-qa
+  scope: "*"
+  group: layout
+  instruction: "For each grid or list layout, verify that gaps between items are visually perceptible in both light and dark modes. Check that no child element overflows its container cell to cover the gap — look for cards, panels, or list items that appear to touch when the CSS specifies a gap. Compare row spacing to column spacing: if columns have visible gaps but rows do not, a child is likely overflowing vertically (common cause: height: 100% with padding and no box-sizing: border-box). A violation is any layout where declared gaps are visually absent or uneven between axes. Correct: gaps are uniformly visible between all adjacent items in both directions."
+  ```
+
+  > **Agent:** `visual-qa` — gap visibility is a rendered behavior; the overflow may not be obvious from code review alone since the CSS gap property is correct but a child sizing interaction hides it visually.
 
 - Layer order is fixed by tokens. Never invent a z-index.
 
