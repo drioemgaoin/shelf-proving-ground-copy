@@ -24,9 +24,20 @@ RUN corepack enable
 # Serialize concurrent `git config --global` writes with flock.
 # Wrapper at /usr/local/bin/git shadows /usr/bin/git via PATH precedence.
 # flock calls bypass the wrapper using the absolute path /usr/bin/git.
-# See git-config-lock.sh for rationale.
-COPY .sandcastle/docker/git-config-lock.sh /usr/local/bin/git
-RUN chmod +x /usr/local/bin/git
+#
+# Created inline (not COPY) because sandcastle's build-image command uses
+# a build context that may not include .sandcastle/docker/ files.
+RUN printf '#!/bin/sh\n\
+case "$1" in\n\
+  config)\n\
+    for arg in "$@"; do\n\
+      if [ "$arg" = "--global" ]; then\n\
+        exec flock /tmp/git-global-config.lock /usr/bin/git "$@"\n\
+      fi\n\
+    done\n\
+    ;;\n\
+esac\n\
+exec /usr/bin/git "$@"\n' > /usr/local/bin/git && chmod +x /usr/local/bin/git
 
 # Build-args for UID/GID alignment: sandcastle docker build-image
 # defaults these to the host user's UID/GID so image-built files

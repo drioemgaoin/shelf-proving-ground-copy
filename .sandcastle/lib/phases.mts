@@ -10,10 +10,11 @@ import { execSync } from "child_process";
 import { existsSync, rmSync } from "fs";
 import { z } from "zod";
 import { log } from "./logging.mjs";
+import { createLogFormatter } from "./log-formatter.mjs";
 import { expandAndSave } from "./prompt.mjs";
 import { type SandboxHooks, getGuardBase } from "./sandbox.mjs";
 import { timedRun, timedSandboxRun, CostCeilingExceededError } from "./tagged-agent.mjs";
-import { runGateLoop, runUnifiedGateLoop, escalate, type GateContext, type Gate, type UnifiedFixerConfig } from "./qa-gates.mjs";
+import { runGateLoop, runUnifiedGateLoop, isClean, escalate, type GateContext, type Gate, type UnifiedFixerConfig } from "./qa-gates.mjs";
 import { createVisualGate, createReviewGate } from "./gates.mjs";
 import { createTestAuthorGate } from "./gates-test-author.mjs";
 import { collectMonitorData } from "./monitor-collect.mjs";
@@ -31,6 +32,7 @@ import {
   CREATE_BUG_COMMAND,
   CLOSE_TASK_COMMAND,
 } from "../config/tracker.mjs";
+import { MAX_GATE_ROUNDS } from "../config/constants.mjs";
 import type { TicketFile } from "./tickets.mjs";
 
 // ---------------------------------------------------------------------------
@@ -68,11 +70,20 @@ function promptPath(name: string, issueId?: string): string {
 }
 
 function loggingConfig(name: string, _verbose: boolean, issueId?: string) {
-  // Always enable verbose file logging so every raw stream-json line
-  // (including thinking blocks, tool results, etc.) reaches the log.
-  // Without verbose the display layer only writes parsed text/tool_call
-  // events, leaving minutes of silence whenever the LLM is thinking.
-  return { type: "file" as const, verbose: true, path: logPath(name, issueId) };
+  const path = logPath(name, issueId);
+  // The formatter (onAgentStreamEvent) owns the main log file.  It parses
+  // raw stream-json and writes every meaningful event with a [HH:MM:SS]
+  // timestamp — thinking, text, tool results, and errors.
+  //
+  // The display layer (FileDisplay, driven by type:"file" + path) writes
+  // text chunks, tool-call names, and status messages WITHOUT timestamps.
+  // Sending it to /dev/null prevents untimestamped duplicates from
+  // interleaving with the formatter's output.
+  return {
+    type: "file" as const,
+    path: "/dev/null",
+    onAgentStreamEvent: createLogFormatter(path),
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -271,6 +282,41 @@ async function runImplementer(
 
 const IMPLEMENTER_MAX_ITERATIONS = 100;
 
+// ---------------------------------------------------------------------------
+// Resume skip: detect prior gate outcomes from findings files
+// ---------------------------------------------------------------------------
+
+/**
+ * Scan findings files in the worktree to determine if gates already
+ * completed in a prior run.  Checks rounds MAX_GATE_ROUNDS down to 1,
+ * returning the status of the latest round where ALL gates have a file.
+ *
+ * - "clean":      latest round's files all start with their passWord
+ * - "deferred":   latest round has at least one DEFER file
+ * - "incomplete": no round has all files, or latest has unresolved findings
+ */
+function priorGateStatus(
+  worktree: string,
+  gates: Array<{ findingsFile: (round: number) => string; passWord: string }>,
+): "clean" | "deferred" | "incomplete" {
+  for (let round = MAX_GATE_ROUNDS; round >= 1; round--) {
+    const paths = gates.map((g) => `${worktree}/${g.findingsFile(round)}`);
+    const allExist = paths.every((p) => existsSync(p));
+    if (!allExist) continue;
+
+    // All files exist for this round — check their content
+    const allClean = gates.every((g, i) => isClean(paths[i], g.passWord));
+    if (allClean) return "clean";
+
+    const anyDeferred = paths.some((p) => isClean(p, "DEFER"));
+    if (anyDeferred) return "deferred";
+
+    // Files exist but have unresolved findings
+    return "incomplete";
+  }
+  return "incomplete";
+}
+
 async function runQAGates(
   issue: PlannedIssue,
   sandbox: sandcastle.Sandbox,
@@ -309,18 +355,39 @@ async function runQAGates(
     log(`  ⚠️  apply-t3 failed for ${issue.id} (exit ${exitCode}), continuing without T3 rules.`);
   }
 
-  // Phase A: Test author (always — agent decides if tests needed)
-  const testAuthorEscalated = await runGateLoop(
-    createTestAuthorGate(issue.id, issue.branch, issueDetails),
-    ctx,
-    opts.verbose,
-  );
-  if (testAuthorEscalated) return true;
+  // Phase A: Test author — skip if a previous run already passed or deferred.
+  // On --resume, findings files from the prior run persist in the worktree.
+  // Scan all rounds (R1..MAX_GATE_ROUNDS) to find the latest outcome.
+  const testAuthorGate = createTestAuthorGate(issue.id, issue.branch, issueDetails);
+  const phaseAStatus = priorGateStatus(worktree, [testAuthorGate]);
 
-  // Phase B: Quality checkers (parallel) + verified fixer
+  if (phaseAStatus === "clean") {
+    log(`  Test author already clean for ${issue.id}. Skipping.`);
+  } else if (phaseAStatus === "deferred") {
+    log(`  Test author deferred for ${issue.id}. Escalating.`);
+    escalate(issue.id, "Test author deferred (prior run).");
+    return true;
+  } else {
+    const testAuthorEscalated = await runGateLoop(testAuthorGate, ctx, opts.verbose);
+    if (testAuthorEscalated) return true;
+  }
+
+  // Phase B: Quality checkers (parallel) + verified fixer.
+  // Skip if all checkers already passed in a prior run.
   const checkers: Gate[] = [];
   if (issue.touchesUI) checkers.push(createVisualGate(issue.id, issue.branch, issueDetails));
   checkers.push(createReviewGate(issue.id, issue.branch, issueDetails));
+
+  const phaseBStatus = priorGateStatus(worktree, checkers);
+
+  if (phaseBStatus === "clean") {
+    log(`  All checkers already clean for ${issue.id}. Skipping.`);
+    return false;
+  } else if (phaseBStatus === "deferred") {
+    log(`  Checker deferred for ${issue.id}. Escalating.`);
+    escalate(issue.id, "Quality checker deferred (prior run).");
+    return true;
+  }
 
   const shortId = issue.id.replace(/^.*?-(?=[a-z0-9]+(?:\.[0-9]+)?$)/, "");
   const escapedId = shortId.replace(/\./g, "\\.");

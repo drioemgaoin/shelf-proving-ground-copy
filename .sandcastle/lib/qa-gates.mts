@@ -8,6 +8,7 @@ import { execSync } from "child_process";
 import { existsSync, readdirSync, readFileSync, writeFileSync } from "fs";
 import { join } from "path";
 import { log } from "./logging.mjs";
+import { createLogFormatter } from "./log-formatter.mjs";
 import { expandAndSave } from "./prompt.mjs";
 import { timedSandboxRun, type TaggedAgent } from "./tagged-agent.mjs";
 import {
@@ -98,7 +99,7 @@ export async function runGateLoop(
       await timedSandboxRun(`${gate.name} [${ctx.issueId}] r${round}`, gate.checker, ctx.sandbox, {
         name: checkerLogName,
         maxIterations: gate.checkerMaxIterations,
-        logging: { type: "file", verbose: true, path: logFilePath(checkerLogName, ctx.issueId) },
+        logging: gateLoggingConfig(checkerLogName, ctx.issueId),
         promptFile: `./${checkerExpandedPath}`,
         promptArgs: {},
       });
@@ -140,7 +141,7 @@ export async function runGateLoop(
       await timedSandboxRun(`${gate.name}-Fixer [${ctx.issueId}] r${round}`, gate.fixer, ctx.sandbox, {
         name: fixerLogName,
         maxIterations: gate.fixerMaxIterations,
-        logging: { type: "file", verbose: true, path: logFilePath(fixerLogName, ctx.issueId) },
+        logging: gateLoggingConfig(fixerLogName, ctx.issueId),
         promptFile: `./${fixerExpandedPath}`,
         promptArgs: {},
       });
@@ -203,7 +204,7 @@ async function runChecker(
   await timedSandboxRun(`${gate.name} [${ctx.issueId}] r${round}`, gate.checker, ctx.sandbox, {
     name: checkerLogName,
     maxIterations: gate.checkerMaxIterations,
-    logging: { type: "file", verbose: true, path: logFilePath(checkerLogName, ctx.issueId) },
+    logging: gateLoggingConfig(checkerLogName, ctx.issueId),
     promptFile: `./${checkerExpandedPath}`,
     promptArgs: {},
   });
@@ -286,7 +287,7 @@ export async function runVerifiedFixer(
         {
           name: logName,
           maxIterations: fixer.maxIterations,
-          logging: { type: "file", verbose: true, path: logFilePath(logName, ctx.issueId) },
+          logging: gateLoggingConfig(logName, ctx.issueId),
           promptFile: `./${expandedPath}`,
           promptArgs: {},
         },
@@ -496,6 +497,17 @@ function slugify(name: string): string {
 
 function logFilePath(name: string, issueId: string): string {
   return `.sandcastle/logs/${issueId}/${name}.log`;
+}
+
+function gateLoggingConfig(name: string, issueId: string) {
+  const path = logFilePath(name, issueId);
+  // Formatter owns the log; display layer → /dev/null to avoid
+  // untimestamped duplicates (see loggingConfig in phases.mts).
+  return {
+    type: "file" as const,
+    path: "/dev/null",
+    onAgentStreamEvent: createLogFormatter(path),
+  };
 }
 
 function promptPath(name: string, issueId: string): string {

@@ -1,192 +1,305 @@
-// Proof that verbose logging captures ALL LLM output (thinking, tool calls,
-// text) in real time, both inside and outside Docker.
+// Proof that the log formatter produces human-readable output from raw
+// stream-json events — no raw JSON, no noise, all meaningful LLM activity.
 //
 // Run: npx tsx --test .sandcastle/tests/verbose-logging-proof.test.mts
-//
-// This test verifies:
-// 1. loggingConfig always returns verbose: true (unit)
-// 2. Simulated stream-json events are all captured by the verbose sink (unit)
-// 3. (Integration, if Docker + claude available) Real LLM output is fully logged
 
 import assert from "node:assert/strict";
 import { describe, test, beforeEach, afterEach } from "node:test";
-import { readFileSync, writeFileSync, mkdirSync, rmSync, existsSync, appendFileSync } from "node:fs";
+import { readFileSync, writeFileSync, appendFileSync, mkdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { execSync, spawn } from "node:child_process";
 import { createInterface } from "node:readline";
 import { tmpdir } from "node:os";
+import { createLogFormatter } from "../lib/log-formatter.mjs";
 
 // ═══════════════════════════════════════════════════════════════════
-// Unit: loggingConfig always enables verbose
+// Unit: thinking events are logged readably
 // ═══════════════════════════════════════════════════════════════════
 
-describe("loggingConfig always verbose", () => {
-  // Inline the logic to test without importing the module (avoids mock.module)
-  function loggingConfig(name: string, verbose: boolean, issueId?: string) {
-    return { type: "file" as const, verbose: true, path: issueId
-      ? `.sandcastle/logs/${issueId}/${name}.log`
-      : `.sandcastle/logs/${name}.log` };
-  }
+describe("log formatter: thinking", () => {
+  let logPath: string;
+  beforeEach(() => { logPath = join(tmpdir(), `fmt-${Date.now()}-${Math.random().toString(36).slice(2)}.log`); });
+  afterEach(() => { try { rmSync(logPath); } catch {} });
 
-  test("returns verbose:true even when verbose flag is false", () => {
-    const config = loggingConfig("implementer", false, "test-123");
-    assert.equal(config.verbose, true);
-    assert.equal(config.type, "file");
-    assert.equal(config.path, ".sandcastle/logs/test-123/implementer.log");
+  test("thinking produces a line with duration and content, no label", () => {
+    const fmt = createLogFormatter(logPath);
+    fmt({ type: "raw", line: '{"type":"assistant","message":{"content":[{"type":"thinking","thinking":"I need to read the acceptance tests first, then check the component structure."}]},"thinking_duration_ms":1515}' });
+
+    const log = readFileSync(logPath, "utf8");
+    assert.ok(log.includes("(1.5s)"), "should show duration");
+    assert.ok(log.includes("acceptance tests first"), "should include thinking content");
+    assert.ok(!log.includes("thinking"), "no 'thinking' label prefix");
+    assert.ok(!log.includes('"type"'), "no raw JSON");
   });
 
-  test("returns verbose:true when verbose flag is true", () => {
-    const config = loggingConfig("implementer", true, "test-123");
-    assert.equal(config.verbose, true);
-  });
+  test("empty thinking (signature block) is excluded", () => {
+    const fmt = createLogFormatter(logPath);
+    fmt({ type: "raw", line: '{"type":"assistant","message":{"content":[{"type":"thinking","thinking":"","signature":"base64sig"}]}}' });
 
-  test("returns verbose:true without issueId", () => {
-    const config = loggingConfig("planner", false);
-    assert.equal(config.verbose, true);
-    assert.equal(config.path, ".sandcastle/logs/planner.log");
+    let log = "";
+    try { log = readFileSync(logPath, "utf8"); } catch {}
+    assert.equal(log, "", "empty thinking should produce nothing");
   });
 });
 
 // ═══════════════════════════════════════════════════════════════════
-// Unit: verbose raw line sink captures all stream-json event types
+// Unit: tool results are correlated with their tool calls
 // ═══════════════════════════════════════════════════════════════════
 
-describe("verbose sink captures all event types", () => {
+describe("log formatter: tool result correlation", () => {
   let logPath: string;
+  beforeEach(() => { logPath = join(tmpdir(), `fmt-${Date.now()}-${Math.random().toString(36).slice(2)}.log`); });
+  afterEach(() => { try { rmSync(logPath); } catch {} });
 
-  beforeEach(() => {
-    logPath = join(tmpdir(), `verbose-test-${Date.now()}-${Math.random().toString(36).slice(2)}.log`);
-  });
+  test("successful Read shows file path and line count, no ANSI codes", () => {
+    const fmt = createLogFormatter(logPath);
 
-  afterEach(() => {
-    try { rmSync(logPath); } catch {}
-  });
-
-  // Simulate buildVerboseRawLineSink behavior
-  function buildVerboseRawLineSink(logFilePath: string) {
-    mkdirSync(join(logFilePath, ".."), { recursive: true });
-    return (line: string) => {
-      appendFileSync(logFilePath, line + "\n");
-    };
-  }
-
-  const SAMPLE_EVENTS = {
-    init: '{"type":"system","subtype":"init","session_id":"sess-abc123"}',
-    thinking: '{"type":"assistant","message":{"content":[{"type":"thinking","thinking":"Let me analyze the requirements..."}]}}',
-    text: '{"type":"assistant","message":{"content":[{"type":"text","text":"Now let me implement the feature."}]}}',
-    tool_use: '{"type":"assistant","message":{"content":[{"type":"tool_use","id":"tu_1","name":"Write","input":{"file_path":"src/App.tsx","content":"// code"}}]}}',
-    tool_result: '{"type":"user","message":{"content":[{"type":"tool_result","tool_use_id":"tu_1","content":"File written"}]}}',
-    result: '{"type":"result","result":"Implementation complete."}',
-  };
-
-  test("all stream-json event types are written to the log", () => {
-    const sink = buildVerboseRawLineSink(logPath);
-
-    for (const [_name, json] of Object.entries(SAMPLE_EVENTS)) {
-      sink(json);
-    }
+    fmt({ type: "raw", line: '{"type":"assistant","message":{"content":[{"type":"tool_use","id":"t1","name":"Read","input":{"file_path":"/home/agent/workspace/src/App.tsx"}}]}}' });
+    fmt({ type: "raw", line: '{"type":"user","message":{"content":[{"type":"tool_result","tool_use_id":"t1","content":"1\\texport function App() {}\\n2\\t  return <div />;\\n3\\t}"}]},"tool_use_result":{"type":"text","file":{"filePath":"/home/agent/workspace/src/App.tsx","numLines":3,"totalLines":3}}}' });
 
     const log = readFileSync(logPath, "utf8");
-    const lines = log.trim().split("\n");
-
-    assert.equal(lines.length, Object.keys(SAMPLE_EVENTS).length,
-      `Expected ${Object.keys(SAMPLE_EVENTS).length} lines, got ${lines.length}`);
-
-    // Verify each event type is present
-    assert.ok(log.includes('"type":"system"'), "init event missing");
-    assert.ok(log.includes('"type":"thinking"'), "thinking event missing");
-    assert.ok(log.includes('"type":"text"'), "text event missing");
-    assert.ok(log.includes('"type":"tool_use"'), "tool_use event missing");
-    assert.ok(log.includes('"type":"tool_result"'), "tool_result event missing");
-    assert.ok(log.includes('"type":"result"'), "result event missing");
+    assert.ok(!log.includes("\x1b["), "success lines should have no ANSI codes");
+    assert.ok(log.includes("Read(src/App.tsx)"), "should show tool name + short path");
+    assert.ok(log.includes("3 lines"), "should show line count from structured result");
   });
 
-  test("without verbose, only display events would be logged (the old bug)", () => {
-    // Simulate what the old parseStreamJsonLine extracts — ONLY text and tool_use
-    const displayEvents: string[] = [];
+  test("failed Read is wrapped in red ANSI", () => {
+    const fmt = createLogFormatter(logPath);
 
-    for (const [_name, json] of Object.entries(SAMPLE_EVENTS)) {
-      const obj = JSON.parse(json);
-      if (obj.type === "assistant" && Array.isArray(obj.message?.content)) {
-        for (const block of obj.message.content) {
-          if (block.type === "text") {
-            displayEvents.push(`text: ${block.text}`);
-          } else if (block.type === "tool_use") {
-            displayEvents.push(`${block.name}(${block.input?.file_path ?? ""})`);
-          }
-          // NOTE: thinking blocks are NOT extracted — this was the bug
+    fmt({ type: "raw", line: '{"type":"assistant","message":{"content":[{"type":"tool_use","id":"t1","name":"Read","input":{"file_path":"/home/agent/workspace/tests/acceptance/shelf-grid.spec.ts"}}]}}' });
+    fmt({ type: "raw", line: '{"type":"user","message":{"content":[{"type":"tool_result","tool_use_id":"t1","content":"File does not exist. Note: your current working directory is /home/agent/workspace.","is_error":true}]},"tool_use_result":"Error: File does not exist."}' });
+
+    const log = readFileSync(logPath, "utf8");
+    assert.ok(log.includes("\x1b[31m"), "error lines should start with red ANSI");
+    assert.ok(log.includes("\x1b[0m"), "error lines should end with ANSI reset");
+    assert.ok(log.includes("Read(tests/acceptance/shelf-grid.spec.ts)"), "should show tool + path");
+    assert.ok(log.includes("File does not exist"), "should show error message");
+  });
+
+  test("Bash result shows output summary", () => {
+    const fmt = createLogFormatter(logPath);
+
+    fmt({ type: "raw", line: '{"type":"assistant","message":{"content":[{"type":"tool_use","id":"t1","name":"Bash","input":{"command":"npm run typecheck && npm run lint"}}]}}' });
+    fmt({ type: "raw", line: '{"type":"user","message":{"content":[{"type":"tool_result","tool_use_id":"t1","content":"All checks passed."}]}}' });
+
+    const log = readFileSync(logPath, "utf8");
+    assert.ok(log.includes("Bash(npm run typecheck && npm run lint)"), "should show command");
+    assert.ok(log.includes("All checks passed"), "should show output");
+  });
+
+  test("Write result shows file path", () => {
+    const fmt = createLogFormatter(logPath);
+
+    fmt({ type: "raw", line: '{"type":"assistant","message":{"content":[{"type":"tool_use","id":"t1","name":"Write","input":{"file_path":"/home/agent/workspace/src/ShelfGrid.tsx","content":"export function ShelfGrid() {}"}}]}}' });
+    fmt({ type: "raw", line: '{"type":"user","message":{"content":[{"type":"tool_result","tool_use_id":"t1","content":"File written successfully"}]}}' });
+
+    const log = readFileSync(logPath, "utf8");
+    assert.ok(log.includes("Write(src/ShelfGrid.tsx)"), "should show tool + short path");
+    assert.ok(log.includes("File written"), "should show result");
+  });
+
+  test("Bash error is wrapped in red ANSI", () => {
+    const fmt = createLogFormatter(logPath);
+
+    fmt({ type: "raw", line: '{"type":"assistant","message":{"content":[{"type":"tool_use","id":"t1","name":"Bash","input":{"command":"npm run typecheck"}}]}}' });
+    fmt({ type: "raw", line: '{"type":"user","message":{"content":[{"type":"tool_result","tool_use_id":"t1","content":"src/App.tsx(3,5): error TS2304: Cannot find name React.","is_error":true}]}}' });
+
+    const log = readFileSync(logPath, "utf8");
+    assert.ok(log.includes("\x1b[31m"), "should have red ANSI");
+    assert.ok(log.includes("Bash(npm run typecheck)"), "should show command");
+    assert.ok(log.includes("TS2304"), "should show error content");
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════
+// Unit: noise events are excluded
+// ═══════════════════════════════════════════════════════════════════
+
+describe("log formatter: noise exclusion", () => {
+  let logPath: string;
+  beforeEach(() => { logPath = join(tmpdir(), `fmt-${Date.now()}-${Math.random().toString(36).slice(2)}.log`); });
+  afterEach(() => { try { rmSync(logPath); } catch {} });
+
+  test("system events produce no output", () => {
+    const fmt = createLogFormatter(logPath);
+
+    fmt({ type: "raw", line: '{"type":"system","subtype":"init","session_id":"s1","tools":["Read","Write"],"model":"claude-opus-4-8"}' });
+    fmt({ type: "raw", line: '{"type":"system","subtype":"thinking_tokens","estimated_tokens":133}' });
+    fmt({ type: "raw", line: '{"type":"system","subtype":"hook_started","hook_id":"h1"}' });
+    fmt({ type: "raw", line: '{"type":"system","subtype":"hook_response","hook_id":"h1","output":"huge blob"}' });
+
+    let log = "";
+    try { log = readFileSync(logPath, "utf8"); } catch {}
+    assert.equal(log, "");
+  });
+
+  test("text events are written with a timestamp", () => {
+    const fmt = createLogFormatter(logPath);
+    fmt({ type: "raw", line: '{"type":"assistant","message":{"content":[{"type":"text","text":"Now implementing the feature."}]}}' });
+
+    const log = readFileSync(logPath, "utf8");
+    assert.match(log.trim(), /^\[\d{2}:\d{2}:\d{2}\]/, "text should have timestamp");
+    assert.ok(log.includes("Now implementing the feature"), "should contain text");
+  });
+
+  test("non-raw event types are ignored", () => {
+    const fmt = createLogFormatter(logPath);
+    fmt({ type: "text", message: "display text" });
+    fmt({ type: "toolCall", name: "Read", formattedArgs: "/path" });
+
+    let log = "";
+    try { log = readFileSync(logPath, "utf8"); } catch {}
+    assert.equal(log, "");
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════
+// Unit: every line gets a timestamp — no concatenation, no gaps
+// ═══════════════════════════════════════════════════════════════════
+
+describe("log formatter: every line timestamped", () => {
+  let logPath: string;
+  beforeEach(() => { logPath = join(tmpdir(), `fmt-${Date.now()}-${Math.random().toString(36).slice(2)}.log`); });
+  afterEach(() => { try { rmSync(logPath); } catch {} });
+
+  test("text events produce a timestamped line", () => {
+    const fmt = createLogFormatter(logPath);
+    fmt({ type: "raw", line: '{"type":"assistant","message":{"content":[{"type":"text","text":"Now implementing the shelf grid."}]}}' });
+
+    const log = readFileSync(logPath, "utf8");
+    assert.match(log.trim(), /^\[\d{2}:\d{2}:\d{2}\]/, "text line should start with [HH:MM:SS]");
+    assert.ok(log.includes("Now implementing the shelf grid"), "should contain text content");
+  });
+
+  test("display-layer text before formatter output does not concatenate", () => {
+    // Simulate the display layer writing text without a trailing newline
+    // (this is what happens when type:"file" is set — sandcastle writes
+    // text and toolCall events directly to the file).
+    const fmt = createLogFormatter(logPath);
+    appendFileSync(logPath, "All three are screenshot diff failures.");
+
+    // Now the formatter writes a tool result
+    fmt({ type: "raw", line: '{"type":"assistant","message":{"content":[{"type":"tool_use","id":"t1","name":"Read","input":{"file_path":"/home/agent/workspace/tests/foo.png"}}]}}' });
+    fmt({ type: "raw", line: '{"type":"user","message":{"content":[{"type":"tool_result","tool_use_id":"t1","content":"image data"}]}}' });
+
+    const log = readFileSync(logPath, "utf8");
+    const lines = log.split("\n").filter(Boolean);
+
+    // The formatter's timestamped output must NOT be on the same line as the display text
+    for (const line of lines) {
+      if (line.includes("[")) {
+        const tsIndex = line.indexOf("[");
+        if (tsIndex > 0) {
+          // There's content before the timestamp — this is the concatenation bug
+          assert.fail(`Timestamp not at start of line: "${line}"`);
         }
       }
     }
+  });
 
-    // Old behavior: only 2 events captured (text + tool_use)
-    // thinking, init, tool_result, result are all lost
-    assert.equal(displayEvents.length, 2,
-      "Display-only mode loses 4 of 6 event types");
+  test("all formatter output lines start with a timestamp", () => {
+    const fmt = createLogFormatter(logPath);
 
-    // Verify thinking is NOT in the display events (the root cause of the gap)
-    assert.ok(
-      !displayEvents.some(e => e.includes("analyze the requirements")),
-      "Thinking should NOT appear in display-only mode — this was the bug"
-    );
+    const session = [
+      '{"type":"assistant","message":{"content":[{"type":"thinking","thinking":"Planning the approach."}]},"thinking_duration_ms":500}',
+      '{"type":"assistant","message":{"content":[{"type":"text","text":"I will read the file first."}]}}',
+      '{"type":"assistant","message":{"content":[{"type":"tool_use","id":"t1","name":"Read","input":{"file_path":"/home/agent/workspace/src/App.tsx"}}]}}',
+      '{"type":"user","message":{"content":[{"type":"tool_result","tool_use_id":"t1","content":"code here"}]},"tool_use_result":{"type":"text","file":{"filePath":"/home/agent/workspace/src/App.tsx","totalLines":42}}}',
+    ];
+
+    for (const line of session) {
+      fmt({ type: "raw", line });
+    }
+
+    const log = readFileSync(logPath, "utf8");
+    const lines = log.trim().split("\n");
+    const tsPattern = /^\[\d{2}:\d{2}:\d{2}\]/;
+
+    for (const line of lines) {
+      assert.match(line, tsPattern, `Line missing timestamp: "${line}"`);
+    }
   });
 });
 
 // ═══════════════════════════════════════════════════════════════════
-// Unit: simulated streaming proves no gaps with verbose
+// Unit: full session — realistic sequence
 // ═══════════════════════════════════════════════════════════════════
 
-describe("simulated LLM stream with timing", () => {
+describe("log formatter: full session", () => {
   let logPath: string;
+  beforeEach(() => { logPath = join(tmpdir(), `fmt-${Date.now()}-${Math.random().toString(36).slice(2)}.log`); });
+  afterEach(() => { try { rmSync(logPath); } catch {} });
 
-  beforeEach(() => {
-    logPath = join(tmpdir(), `timing-test-${Date.now()}-${Math.random().toString(36).slice(2)}.log`);
-  });
+  test("realistic session produces meaningful, scannable log", () => {
+    const fmt = createLogFormatter(logPath);
 
-  afterEach(() => {
-    try { rmSync(logPath); } catch {}
-  });
+    const session = [
+      // Noise — all excluded
+      '{"type":"system","subtype":"init","session_id":"s1","tools":["Read"]}',
+      '{"type":"system","subtype":"hook_started","hook_id":"h1"}',
+      '{"type":"system","subtype":"hook_response","hook_id":"h1","output":"json"}',
+      '{"type":"system","subtype":"thinking_tokens","estimated_tokens":50}',
+      '{"type":"assistant","message":{"content":[{"type":"thinking","thinking":"","signature":"sig"}]}}',
 
-  test("thinking events fill the gap between 'Agent started' and first text", async () => {
-    // Simulate the exact scenario from the bug: agent starts, thinks for
-    // a while (producing thinking events), then emits text. With verbose
-    // logging, the thinking events should appear in the log immediately.
+      // Thinking — logged
+      '{"type":"assistant","message":{"content":[{"type":"thinking","thinking":"The App component is empty. I need to build the shelf grid."}]},"thinking_duration_ms":2300}',
 
-    const events = [
-      { delay: 0,   line: '{"type":"system","subtype":"init","session_id":"sess-1"}' },
-      { delay: 100, line: '{"type":"assistant","message":{"content":[{"type":"thinking","thinking":"First, I need to understand the current component structure..."}]}}' },
-      { delay: 200, line: '{"type":"assistant","message":{"content":[{"type":"thinking","thinking":"The design tokens need: --color-chip-bg, --color-chip-active..."}]}}' },
-      { delay: 300, line: '{"type":"assistant","message":{"content":[{"type":"thinking","thinking":"Now planning the FilterBar component with accessible chip buttons..."}]}}' },
-      { delay: 400, line: '{"type":"assistant","message":{"content":[{"type":"text","text":"Now let me update the design tokens, then build the components."}]}}' },
+      // Read file — tool_use not logged, result logged with correlation
+      '{"type":"assistant","message":{"content":[{"type":"tool_use","id":"t1","name":"Read","input":{"file_path":"/home/agent/workspace/src/App.tsx"}}]}}',
+      '{"type":"user","message":{"content":[{"type":"tool_result","tool_use_id":"t1","content":"1\\texport function App() {}"}]},"tool_use_result":{"type":"text","file":{"filePath":"/home/agent/workspace/src/App.tsx","totalLines":5}}}',
+
+      // Text output — logged with timestamp
+      '{"type":"assistant","message":{"content":[{"type":"text","text":"Now implementing the shelf grid."}]}}',
+
+      // Write file
+      '{"type":"assistant","message":{"content":[{"type":"tool_use","id":"t2","name":"Write","input":{"file_path":"/home/agent/workspace/src/ShelfGrid.tsx","content":"code"}}]}}',
+      '{"type":"user","message":{"content":[{"type":"tool_result","tool_use_id":"t2","content":"File written successfully"}]}}',
+
+      // Bash error
+      '{"type":"assistant","message":{"content":[{"type":"tool_use","id":"t3","name":"Bash","input":{"command":"npm run typecheck"}}]}}',
+      '{"type":"user","message":{"content":[{"type":"tool_result","tool_use_id":"t3","content":"error TS2304: Cannot find name React","is_error":true}]}}',
+
+      // Result — not logged
+      '{"type":"result","result":"done"}',
     ];
 
-    const timestamps: number[] = [];
-    const start = Date.now();
-
-    // Simulate verbose raw line sink
-    mkdirSync(join(logPath, ".."), { recursive: true });
-
-    for (const event of events) {
-      await new Promise(resolve => setTimeout(resolve, event.delay === 0 ? 0 : 100));
-      appendFileSync(logPath, event.line + "\n");
-      timestamps.push(Date.now() - start);
+    for (const line of session) {
+      fmt({ type: "raw", line });
     }
 
     const log = readFileSync(logPath, "utf8");
     const lines = log.trim().split("\n");
 
-    // All 5 events present
-    assert.equal(lines.length, 5, `Expected 5 lines, got ${lines.length}`);
+    // 5 meaningful lines: thinking, tool result, text, tool result, tool result (error)
+    assert.equal(lines.length, 5, `Expected 5 lines, got ${lines.length}:\n${log}`);
 
-    // The 3 thinking events fill the gap that was previously silent
-    const thinkingLines = lines.filter(l => l.includes('"type":"thinking"'));
-    assert.equal(thinkingLines.length, 3, "All 3 thinking events captured");
+    assert.ok(lines[0]!.includes("(2.3s)"), `L1 duration: ${lines[0]}`);
+    assert.ok(lines[0]!.includes("shelf grid"), `L1 content: ${lines[0]}`);
+    assert.ok(!lines[0]!.includes("\x1b["), "L1 no ANSI (not an error)");
 
-    // Verify incremental timing — events arrive over time, not in a burst
-    for (let i = 1; i < timestamps.length; i++) {
-      const gap = timestamps[i]! - timestamps[i - 1]!;
-      assert.ok(gap >= 50, `Gap between event ${i-1} and ${i} was only ${gap}ms — should be incremental`);
+    assert.ok(lines[1]!.includes("Read(src/App.tsx)"), `L2: ${lines[1]}`);
+    assert.ok(lines[1]!.includes("5 lines"), `L2 result: ${lines[1]}`);
+    assert.ok(!lines[1]!.includes("\x1b["), "L2 no ANSI (not an error)");
+
+    assert.ok(lines[2]!.includes("Now implementing the shelf grid"), `L3: ${lines[2]}`);
+    assert.match(lines[2]!, /^\[\d{2}:\d{2}:\d{2}\]/, "L3 text should have timestamp");
+
+    assert.ok(lines[3]!.includes("Write(src/ShelfGrid.tsx)"), `L4: ${lines[3]}`);
+    assert.ok(lines[3]!.includes("File written"), `L4 result: ${lines[3]}`);
+
+    assert.ok(lines[4]!.includes("Bash(npm run typecheck)"), `L5: ${lines[4]}`);
+    assert.ok(lines[4]!.includes("TS2304"), `L5 error: ${lines[4]}`);
+    assert.ok(lines[4]!.includes("\x1b[31m"), "L5 should be red (error)");
+
+    // Every line has a timestamp (may be preceded by ANSI color code for errors)
+    const tsPattern = /^(\x1b\[\d+m)?\[\d{2}:\d{2}:\d{2}\]/;
+    for (const line of lines) {
+      assert.match(line, tsPattern, `Line missing timestamp: "${line.slice(0, 60)}"`);
     }
+
+    // No raw JSON anywhere
+    assert.ok(!log.includes('{"type":'), "no raw JSON");
+    assert.ok(!log.includes("thinking_tokens"), "no noise");
   });
 });
 
@@ -194,97 +307,71 @@ describe("simulated LLM stream with timing", () => {
 // Integration: Docker stdbuf delivers events incrementally
 // ═══════════════════════════════════════════════════════════════════
 
-describe("Docker integration: stdbuf + verbose logging", () => {
-  test("events stream through Docker pipe incrementally", async () => {
-    // Skip if Docker not available
+describe("Docker integration: incremental delivery + formatting", () => {
+  test("events stream incrementally and format readably", async () => {
     try {
       execSync("docker info", { encoding: "utf8", stdio: "pipe" });
     } catch {
-      return; // Docker not available
+      return;
     }
 
-    // Build a minimal test image with stdbuf
     const testDir = join(tmpdir(), `docker-stream-test-${Date.now()}`);
     mkdirSync(testDir, { recursive: true });
 
-    const dockerfile = `FROM node:22-bookworm
+    writeFileSync(join(testDir, "Dockerfile"), `FROM node:22-bookworm
 RUN apt-get update && apt-get install -y coreutils && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY emit.sh /app/emit.sh
 RUN chmod +x /app/emit.sh
-`;
-    // Script that emits stream-json lines with delays (simulating LLM output)
-    const emitScript = `#!/bin/sh
-# Simulate Claude Code stream-json output with thinking gaps
-echo '{"type":"system","subtype":"init","session_id":"test-docker"}'
-sleep 0.3
-echo '{"type":"assistant","message":{"content":[{"type":"thinking","thinking":"Planning the implementation..."}]}}'
-sleep 0.3
-echo '{"type":"assistant","message":{"content":[{"type":"thinking","thinking":"Designing the component hierarchy..."}]}}'
-sleep 0.3
-echo '{"type":"assistant","message":{"content":[{"type":"text","text":"Now implementing the feature."}]}}'
+`);
+    writeFileSync(join(testDir, "emit.sh"), `#!/bin/sh
+echo '{"type":"system","subtype":"init","session_id":"s1"}'
+sleep 0.2
+echo '{"type":"assistant","message":{"content":[{"type":"thinking","thinking":"Planning the implementation..."}]},"thinking_duration_ms":200}'
+sleep 0.2
+echo '{"type":"assistant","message":{"content":[{"type":"tool_use","id":"t1","name":"Read","input":{"file_path":"/home/agent/workspace/src/App.tsx"}}]}}'
 sleep 0.1
-echo '{"type":"assistant","message":{"content":[{"type":"tool_use","id":"tu_1","name":"Write","input":{"file_path":"src/App.tsx","content":"code"}}]}}'
+echo '{"type":"user","message":{"content":[{"type":"tool_result","tool_use_id":"t1","content":"code here"}]},"tool_use_result":{"type":"text","file":{"filePath":"/home/agent/workspace/src/App.tsx","totalLines":42}}}'
 sleep 0.1
 echo '{"type":"result","result":"done"}'
-`;
+`);
 
-    writeFileSync(join(testDir, "Dockerfile"), dockerfile);
-    writeFileSync(join(testDir, "emit.sh"), emitScript);
+    const imageName = `sandcastle-fmt-test-${Date.now()}`;
+    const fmtLogPath = join(tmpdir(), `docker-fmt-${Date.now()}.log`);
 
-    const imageName = `sandcastle-stream-test-${Date.now()}`;
     try {
-      // Build image
       execSync(`docker build -t ${imageName} ${testDir}`, {
-        encoding: "utf8",
-        stdio: "pipe",
-        timeout: 120_000,
+        encoding: "utf8", stdio: "pipe", timeout: 120_000,
       });
 
-      // Run WITHOUT stdbuf (old behavior — shows the problem)
-      const withoutStdbuf = await collectDockerOutput(imageName, "/app/emit.sh");
+      const formatter = createLogFormatter(fmtLogPath);
+      const result = await collectDockerOutput(imageName, "stdbuf -oL /app/emit.sh");
 
-      // Run WITH stdbuf (new behavior — fixes the problem)
-      const withStdbuf = await collectDockerOutput(imageName, "stdbuf -oL /app/emit.sh");
+      assert.equal(result.lines.length, 5, `Expected 5 lines, got ${result.lines.length}`);
 
-      // Both should have all 6 lines
-      assert.equal(withoutStdbuf.lines.length, 6, `Without stdbuf: expected 6 lines, got ${withoutStdbuf.lines.length}`);
-      assert.equal(withStdbuf.lines.length, 6, `With stdbuf: expected 6 lines, got ${withStdbuf.lines.length}`);
+      const gaps = result.timestamps.slice(1).map((t, i) => t - result.timestamps[i]!);
+      assert.ok(gaps.some(g => g >= 80), `Expected incremental gaps: ${gaps.join(", ")}ms`);
 
-      // WITH stdbuf, lines should arrive incrementally (gaps between events)
-      const stdbufGaps = withStdbuf.timestamps.slice(1).map((t, i) => t - withStdbuf.timestamps[i]!);
-      const hasIncrementalDelivery = stdbufGaps.some(g => g >= 100);
-      assert.ok(hasIncrementalDelivery,
-        `With stdbuf, expected incremental delivery. Gaps: ${stdbufGaps.join(", ")}ms`);
-
-      // WITHOUT stdbuf, lines tend to arrive in a burst at the end
-      const noStdbufTotalSpread = withoutStdbuf.timestamps[withoutStdbuf.timestamps.length - 1]! - withoutStdbuf.timestamps[0]!;
-      const stdbufTotalSpread = withStdbuf.timestamps[withStdbuf.timestamps.length - 1]! - withStdbuf.timestamps[0]!;
-
-      // stdbuf delivery should span significantly more time (events delivered as they happen)
-      assert.ok(stdbufTotalSpread > noStdbufTotalSpread * 0.5,
-        `stdbuf spread (${stdbufTotalSpread}ms) should be comparable to actual emit time. ` +
-        `Without stdbuf: ${noStdbufTotalSpread}ms`);
-
-      // Verify ALL event types are present in both outputs
-      for (const output of [withStdbuf, withoutStdbuf]) {
-        const joined = output.lines.join("\n");
-        assert.ok(joined.includes('"type":"system"'), "init event present");
-        assert.ok(joined.includes('"type":"thinking"'), "thinking events present");
-        assert.ok(joined.includes('"type":"text"'), "text event present");
-        assert.ok(joined.includes('"type":"tool_use"'), "tool_use event present");
-        assert.ok(joined.includes('"type":"result"'), "result event present");
+      for (const line of result.lines) {
+        formatter({ type: "raw", line });
       }
 
+      const log = readFileSync(fmtLogPath, "utf8");
+      const logLines = log.trim().split("\n");
+
+      assert.equal(logLines.length, 2, `Expected 2 formatted lines:\n${log}`);
+      assert.ok(logLines[0]!.includes("Planning the implementation"), `L1: ${logLines[0]}`);
+      assert.ok(logLines[1]!.includes("Read(src/App.tsx) -> 42 lines"), `L2: ${logLines[1]}`);
+      assert.ok(!log.includes('{"type":'), "no raw JSON");
+
     } finally {
-      // Cleanup
       try { execSync(`docker rmi -f ${imageName}`, { stdio: "pipe" }); } catch {}
+      try { rmSync(fmtLogPath); } catch {}
       rmSync(testDir, { recursive: true, force: true });
     }
   });
 });
 
-// Helper: run a command in Docker and collect output with timestamps
 async function collectDockerOutput(
   image: string,
   command: string,
@@ -292,10 +379,8 @@ async function collectDockerOutput(
   const lines: string[] = [];
   const timestamps: number[] = [];
   const start = Date.now();
-
   const proc = spawn("docker", ["run", "--rm", image, "sh", "-c", command]);
   const rl = createInterface({ input: proc.stdout! });
-
   await new Promise<void>((resolve) => {
     rl.on("line", (line) => {
       lines.push(line);
@@ -303,6 +388,5 @@ async function collectDockerOutput(
     });
     proc.on("close", () => resolve());
   });
-
   return { lines, timestamps };
 }
