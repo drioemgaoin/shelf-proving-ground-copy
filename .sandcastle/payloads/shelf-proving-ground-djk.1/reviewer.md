@@ -10,16 +10,6 @@ Check that each design token is used for its intended semantic role. A violation
 
 ---
 
-## no-outer-margin
-**Source:** .claude/rules/ui-base.md > Values
-**Rule:** Components own no space outside themselves. Spacing between components is the parent's job.
-
-Scan component root selectors in the diff for margin properties. A violation is a component setting margin on its own root element — the parent layout owns spacing via gap or padding. Correct: components have zero margin on their root; parents use gap, padding, or wrapper margin to space children.
-
-**Triage hint:** Flag when: margin property appears in component CSS, new component root selector added
-
----
-
 ## motion-tokens
 **Source:** .claude/rules/ui-base.md > Motion
 **Rule:** Durations and easing come from motion tokens.

@@ -403,9 +403,9 @@ Include one entry per rule you evaluated. Use "passed" if the rule was satisfied
 function formatPayload(blocks) {
   const sorted = [...blocks].sort((a, b) => (a.priority ?? 2) - (b.priority ?? 2));
   const sections = sorted.map((b) => {
-    const source = b._relFile && b.sectionHeading
-      ? `${b._relFile} > ${b.sectionHeading}`
-      : b._relFile ?? '(unknown)';
+    // Strip file paths from Source to prevent agents from trying to read
+    // rules files directly — the full rule content is already inlined below.
+    const source = b.sectionHeading ?? '(unknown)';
     let section = `## ${b.id ?? '(unnamed)'}\n`;
     section += `**Source:** ${source}\n`;
     if (b.ruleText) {

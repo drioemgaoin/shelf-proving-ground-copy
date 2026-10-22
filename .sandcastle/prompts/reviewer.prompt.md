@@ -61,7 +61,7 @@ A finding the fixer intentionally skipped or traded off is settled. Do not re-ra
 
 Every finding must begin with a rule reference in brackets. Use the **Source** line from the T3 check:
 
-    `[<source> > <rule-id>]` — from the T3 review checks in CONTEXT (e.g. `[.claude/rules/ui-base.md > Values > values-from-tokens]`)
+    `[<source> > <rule-id>]` — from the T3 review checks in CONTEXT (e.g. `[Values > values-from-tokens]`)
     `[spec]` — divergence from the issue spec
     `[clarity]` — code clarity issue with no specific rule
 

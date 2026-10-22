@@ -114,7 +114,7 @@ For each screenshot, check every item — a violation on any item is a review fi
 
 Every `Cause` field must begin with a rule reference in brackets. Use the **Source** line from the T3 check:
 
-    `[<source> > <rule-id>]` — from the T3 visual checks in CONTEXT (e.g. `[.claude/rules/ui-base.md > States > interactive-states]`)
+    `[<source> > <rule-id>]` — from the T3 visual checks in CONTEXT (e.g. `[States > interactive-states]`)
     `[css]` — pure CSS mechanics (specificity, browser normalization) with no rule violation
 
 ## Output format
