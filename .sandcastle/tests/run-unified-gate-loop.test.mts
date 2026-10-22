@@ -2,7 +2,7 @@
 // conflict escalation.
 //
 // Mocks: timedSandboxRun (simulates agent output by writing findings files),
-//        expandAndSave (no-op), setRulesVisible (no-op).
+//        expandAndSave (no-op).
 // Captures: escalate calls via intercepted execSync.
 // Real: file I/O in a temp directory.
 //
@@ -55,12 +55,6 @@ await mock.module("../lib/tagged-agent.mjs", {
 await mock.module("../lib/prompt.mjs", {
   namedExports: {
     expandAndSave: () => {},
-  },
-});
-
-await mock.module("../lib/sandbox.mjs", {
-  namedExports: {
-    setRulesVisible: () => {},
   },
 });
 

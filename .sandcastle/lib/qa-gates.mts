@@ -9,7 +9,6 @@ import { existsSync, readdirSync, readFileSync, writeFileSync } from "fs";
 import { join } from "path";
 import { log } from "./logging.mjs";
 import { expandAndSave } from "./prompt.mjs";
-import { setRulesVisible } from "./sandbox.mjs";
 import { timedSandboxRun, type TaggedAgent } from "./tagged-agent.mjs";
 import {
   LABEL_TASK_COMMAND,
@@ -91,7 +90,6 @@ export async function runGateLoop(
       log(`  ${gate.name} round ${round}/${MAX_GATE_ROUNDS} for ${ctx.issueId}...`);
 
       // --- Checker ---
-      setRulesVisible(ctx.worktree, false);
       gate.beforeCheck?.(round, ctx);
       const checkerArgs = gate.buildCheckerArgs(round, ctx);
       const checkerLogName = `${slugify(gate.name)}-r${round}`;
@@ -100,9 +98,7 @@ export async function runGateLoop(
       await timedSandboxRun(`${gate.name} [${ctx.issueId}] r${round}`, gate.checker, ctx.sandbox, {
         name: checkerLogName,
         maxIterations: gate.checkerMaxIterations,
-        logging: verbose
-          ? { type: "file", verbose: true, path: logFilePath(checkerLogName, ctx.issueId) }
-          : undefined,
+        logging: { type: "file", verbose: true, path: logFilePath(checkerLogName, ctx.issueId) },
         promptFile: `./${checkerExpandedPath}`,
         promptArgs: {},
       });
@@ -136,7 +132,6 @@ export async function runGateLoop(
 
       // --- Fixer ---
       log(`  ${gate.name} findings detected. Fixer starting...`);
-      setRulesVisible(ctx.worktree, true);
       gate.beforeFix?.(round, ctx);
       const fixerArgs = gate.buildFixerArgs(round, ctx);
       const fixerLogName = `${slugify(gate.name)}-fixer-r${round}`;
@@ -145,9 +140,7 @@ export async function runGateLoop(
       await timedSandboxRun(`${gate.name}-Fixer [${ctx.issueId}] r${round}`, gate.fixer, ctx.sandbox, {
         name: fixerLogName,
         maxIterations: gate.fixerMaxIterations,
-        logging: verbose
-          ? { type: "file", verbose: true, path: logFilePath(fixerLogName, ctx.issueId) }
-          : undefined,
+        logging: { type: "file", verbose: true, path: logFilePath(fixerLogName, ctx.issueId) },
         promptFile: `./${fixerExpandedPath}`,
         promptArgs: {},
       });
@@ -156,8 +149,6 @@ export async function runGateLoop(
     return false;
   } finally {
     // Always restore rules regardless of exit path (clean, escalation, error).
-    // Idempotent — safe even if rules are already visible.
-    setRulesVisible(ctx.worktree, true);
   }
 }
 
@@ -212,9 +203,7 @@ async function runChecker(
   await timedSandboxRun(`${gate.name} [${ctx.issueId}] r${round}`, gate.checker, ctx.sandbox, {
     name: checkerLogName,
     maxIterations: gate.checkerMaxIterations,
-    logging: verbose
-      ? { type: "file", verbose: true, path: logFilePath(checkerLogName, ctx.issueId) }
-      : undefined,
+    logging: { type: "file", verbose: true, path: logFilePath(checkerLogName, ctx.issueId) },
     promptFile: `./${checkerExpandedPath}`,
     promptArgs: {},
   });
@@ -286,7 +275,6 @@ export async function runVerifiedFixer(
       const batchFile = `.qa/unified-r${round}-p${pass}-b${i + 1}.md`;
       writeFileSync(`${ctx.worktree}/${batchFile}`, batches[i]);
 
-      setRulesVisible(ctx.worktree, true);
       const args = fixer.buildArgs(round, ctx, batchFile);
       const logName = `fixer-r${round}-p${pass}-b${i + 1}`;
       const expandedPath = promptPath(logName, ctx.issueId);
@@ -298,9 +286,7 @@ export async function runVerifiedFixer(
         {
           name: logName,
           maxIterations: fixer.maxIterations,
-          logging: verbose
-            ? { type: "file", verbose: true, path: logFilePath(logName, ctx.issueId) }
-            : undefined,
+          logging: { type: "file", verbose: true, path: logFilePath(logName, ctx.issueId) },
           promptFile: `./${expandedPath}`,
           promptArgs: {},
         },
@@ -350,7 +336,6 @@ export async function runUnifiedGateLoop(
   try {
     for (let round = 1; round <= MAX_GATE_ROUNDS; round++) {
       // 1. Run all checkers in parallel
-      setRulesVisible(ctx.worktree, false);
       const results = await Promise.all(
         checkers.map(gate => runChecker(gate, round, ctx, verbose))
       );
@@ -407,7 +392,6 @@ export async function runUnifiedGateLoop(
     }
     return false;
   } finally {
-    setRulesVisible(ctx.worktree, true);
   }
 }
 
@@ -423,9 +407,6 @@ export function isClean(path: string, passWord: string): boolean {
 export function setPhase(worktree: string, phase: string): void {
   writeFileSync(join(worktree, ".sandcastle-phase"), phase);
 }
-
-// setRulesVisible lives in sandbox.mts — single source of truth for
-// worktree-level visibility toggling (used here by QA gates).
 
 export function archiveTestResults(worktree: string, label: string): void {
   const src = join(worktree, "test-results");

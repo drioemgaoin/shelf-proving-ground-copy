@@ -11,7 +11,7 @@ import { existsSync, rmSync } from "fs";
 import { z } from "zod";
 import { log } from "./logging.mjs";
 import { expandAndSave } from "./prompt.mjs";
-import { type SandboxHooks, getGuardBase, setRulesVisible } from "./sandbox.mjs";
+import { type SandboxHooks, getGuardBase } from "./sandbox.mjs";
 import { timedRun, timedSandboxRun, CostCeilingExceededError } from "./tagged-agent.mjs";
 import { runGateLoop, runUnifiedGateLoop, escalate, type GateContext, type Gate, type UnifiedFixerConfig } from "./qa-gates.mjs";
 import { createVisualGate, createReviewGate } from "./gates.mjs";
@@ -67,8 +67,11 @@ function promptPath(name: string, issueId?: string): string {
     : `.sandcastle/logs/${name}.prompt.md`;
 }
 
-function loggingConfig(name: string, verbose: boolean, issueId?: string) {
-  if (!verbose) return undefined;
+function loggingConfig(name: string, _verbose: boolean, issueId?: string) {
+  // Always enable verbose file logging so every raw stream-json line
+  // (including thinking blocks, tool results, etc.) reaches the log.
+  // Without verbose the display layer only writes parsed text/tool_call
+  // events, leaving minutes of silence whenever the LLM is thinking.
   return { type: "file" as const, verbose: true, path: logPath(name, issueId) };
 }
 

@@ -2,8 +2,8 @@
 // exhaustion, regression catching, and batching.
 //
 // Mocks: timedSandboxRun (counts calls), expandAndSave (no-op),
-//        setRulesVisible (no-op), execSync (captures escalation + controls
-//        verification output via callback).
+//        execSync (captures escalation + controls verification output
+//        via callback).
 // Real: file I/O in a temp directory, findings parsing/matching.
 //
 // Run: node --import tsx/esm --test --experimental-test-module-mocks \
@@ -66,12 +66,6 @@ await mock.module("../lib/tagged-agent.mjs", {
 await mock.module("../lib/prompt.mjs", {
   namedExports: {
     expandAndSave: () => {},
-  },
-});
-
-await mock.module("../lib/sandbox.mjs", {
-  namedExports: {
-    setRulesVisible: () => {},
   },
 });
 

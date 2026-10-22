@@ -1,7 +1,7 @@
 // Sandbox infrastructure — warm image, hooks, overlay, and worktree helpers.
 
 import { execSync } from "child_process";
-import { existsSync, readdirSync, readFileSync, renameSync, statSync } from "fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "fs";
 import { join } from "path";
 
 // ---------------------------------------------------------------------------
@@ -236,49 +236,6 @@ export function buildOverlayFileList(): string[] {
     ".claude/settings.json",
     "tests",
   ]);
-}
-
-// ---------------------------------------------------------------------------
-// Rules visibility
-// ---------------------------------------------------------------------------
-
-const RULES_DIR = ".claude/rules";
-const RULES_STASH = ".sandcastle/.rules-stash";
-
-/**
- * Show or hide `.claude/rules` inside a sandcastle worktree.
- *
- * Used by QA gates to toggle visibility mid-run: hide for checkers
- * (rules arrive via T3 payloads), restore for fixers (need full context).
- *
- * Guard: refuses to operate on the host project root — only worktree paths.
- * Idempotent: hiding when already hidden or restoring when already visible
- * is a no-op.
- */
-export function setRulesVisible(worktree: string, visible: boolean): void {
-  // Guard: never rename .claude/rules on the host root — only inside
-  // sandcastle worktrees.  A bare "." or empty string would resolve to
-  // the orchestrator's cwd (the project root), corrupting the host.
-  if (!worktree || !worktree.includes("worktrees")) {
-    throw new Error(
-      `setRulesVisible refused: target "${worktree}" does not look like a sandcastle worktree. ` +
-      `This would modify the host .claude/rules.`,
-    );
-  }
-  const active = join(worktree, RULES_DIR);
-  const stashed = join(worktree, RULES_STASH);
-  try {
-    if (visible && existsSync(stashed)) {
-      renameSync(stashed, active);
-    } else if (!visible && existsSync(active)) {
-      renameSync(active, stashed);
-    }
-  } catch (e) {
-    // Log but don't throw — a rename failure is degraded but not fatal.
-    // Visible-to-checker: redundant context (rules + T3 payloads), harmless.
-    // Hidden-from-fixer: fixer still gets rules via prompt, functional.
-    console.error(`⚠️  setRulesVisible(${visible}) failed for ${worktree}: ${e}`);
-  }
 }
 
 /** Compute the merge-base commit on the host for the backpressure hook. */

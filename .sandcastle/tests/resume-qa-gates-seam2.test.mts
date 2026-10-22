@@ -76,7 +76,6 @@ await mock.module("../lib/prompt.mjs", {
 await mock.module("../lib/sandbox.mjs", {
   namedExports: {
     getGuardBase: () => "",
-    setRulesVisible: () => {},
     buildWarmImage: () => "test-image",
     createBuilderHooks: () => ({ sandbox: { onSandboxReady: [] } }),
     buildOverlayFileList: () => [],
