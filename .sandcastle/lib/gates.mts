@@ -108,6 +108,18 @@ export function createReviewGate(
           { encoding: "utf8" },
         ).trimEnd();
       } catch { /* empty diff if branch not reachable */ }
+
+      // Empty narrowed diff (all findings settled/blocked/reverted) →
+      // re-run full branch diff so the reviewer has something to evaluate.
+      if (!branchDiff && base !== "main") {
+        try {
+          branchDiff = execSync(
+            `git diff -U1 --no-color main...${branch} -- 'src/' ':!*.snap' ':!*.lock'`,
+            { encoding: "utf8" },
+          ).trimEnd();
+        } catch { /* empty diff if branch not reachable */ }
+      }
+
       try {
         branchLog = execSync(`git log ${base}..${branch} --oneline`, { encoding: "utf8" }).trimEnd();
       } catch { /* empty log if branch not reachable */ }

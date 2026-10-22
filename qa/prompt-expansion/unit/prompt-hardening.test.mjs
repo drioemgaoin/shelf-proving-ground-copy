@@ -535,69 +535,11 @@ const SAMPLE_DIFF = [
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Issue 8: recent commits compression
-//
-// OLD behavior: implementer template uses
-//   !`git log -n 10 --format="%H%n%ad%n%B---" --date=short`
-//   → 10 commits × full hash + full body + separator = ~845 tokens
-// NEW behavior: implementer template uses
-//   !`git log -n 3 --format="%ad %s" --date=short`
-//   → 3 commits × date + subject line = ~50 tokens
+// Issue 8: removed — recent-commits section was removed from implementer
+// prompt because the implementer runs on a fresh branch in Docker and gains
+// nothing from git log context. The codemap, issue details, constraints,
+// and violations memory already provide all needed context.
 // ═══════════════════════════════════════════════════════════════════════════
-
-{
-  const template = readFileSync('.sandcastle/prompts/implementer.prompt.md', 'utf8');
-
-  // Extract the git log shell expression
-  const shellMatch = template.match(/!`([^`]*git log[^`]*)`/);
-
-  assert(
-    'Issue 8: implementer has a git log shell expression',
-    shellMatch !== null,
-    'implementer.prompt.md must have a !`git log ...` expression',
-  );
-
-  if (shellMatch) {
-    const cmd = shellMatch[1];
-
-    // Must limit to ≤5 commits (old was 10)
-    const countMatch = cmd.match(/-n\s*(\d+)/);
-    assert(
-      'Issue 8: git log limited to ≤5 commits',
-      countMatch && Number(countMatch[1]) <= 5,
-      `Expected -n ≤5, got: ${cmd}`,
-    );
-
-    // Must use subject-only format (%s), not full body (%B)
-    assert(
-      'Issue 8: git log uses subject format (%s), not body (%B)',
-      cmd.includes('%s') && !cmd.includes('%B'),
-      `Expected %s without %B, got: ${cmd}`,
-    );
-
-    // Must not include full hash (%H) — wastes 40 chars per commit
-    assert(
-      'Issue 8: git log does not include full hash (%H)',
-      !cmd.includes('%H'),
-      `Full hash (%H) wastes 40 chars per commit, got: ${cmd}`,
-    );
-
-    // Estimate output tokens: 3 commits × ~15 tokens (date + subject) = ~45
-    // vs old: 10 commits × ~85 tokens (hash + date + body + separator) = ~850
-    // Test that the format is compact enough
-    const formatMatch = cmd.match(/--format="([^"]*)"/);
-    if (formatMatch) {
-      const format = formatMatch[1];
-      // Count format directives — fewer = more compact
-      const directives = (format.match(/%[a-zA-Z]/g) || []).length;
-      assert(
-        'Issue 8: format has ≤3 directives (compact)',
-        directives <= 3,
-        `Expected ≤3 format directives, got ${directives}: ${format}`,
-      );
-    }
-  }
-}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Cross-cutting: replay scripts must use the same compression

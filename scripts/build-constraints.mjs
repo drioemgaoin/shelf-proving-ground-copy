@@ -123,10 +123,10 @@ function formatConstraint(index, block) {
   if (text.length > RULE_TEXT_MAX_CHARS) {
     text = text.slice(0, RULE_TEXT_MAX_CHARS).replace(/\s+\S*$/, '') + '…';
   }
-  // Compact format: one line per constraint.  The fix is the FIRST
-  // semicolon-delimited action (the rest are pattern variants of the same
-  // advice).  Keeping it terse saves ~800 tokens across 30 constraints.
-  const firstFix = block.fix ? block.fix.split(';')[0].trim() : '';
+  // Compact format: one line per constraint.  Keep the full fix text so
+  // multi-entry blocks (e.g. no-bem-separators with __ and --) show all
+  // distinct actions that deduplication merged.
+  const firstFix = block.fix ? block.fix.trim() : '';
   if (firstFix) {
     return `${index}. ${text} → ${firstFix}`;
   }
