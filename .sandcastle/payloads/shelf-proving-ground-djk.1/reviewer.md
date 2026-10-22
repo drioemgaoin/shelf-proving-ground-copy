@@ -1,7 +1,7 @@
 # T3 Rules
 
 ## values-from-tokens
-**Source:** .claude/rules/ui-base.md > Values
+**Source:** Values
 **Rule:** Every color, size, spacing, radius, shadow, duration and easing comes from a token. No raw values in components.
 
 Check that each design token is used for its intended semantic role. A violation is using a token outside its role — e.g., a spacing token for font-size, a danger color for non-error content, or a shadow token for a non-elevated element. Correct: each token maps to the role described in ui-project.md's token tables.
@@ -11,7 +11,7 @@ Check that each design token is used for its intended semantic role. A violation
 ---
 
 ## motion-tokens
-**Source:** .claude/rules/ui-base.md > Motion
+**Source:** Motion
 **Rule:** Durations and easing come from motion tokens.
 
 Check that motion tokens match the use case: --shelf-motion-duration-fast for hover/focus/small state changes, --shelf-motion-duration-base for dialogs/drawers/panels entering, --shelf-motion-duration-slow for large layout changes (rare). A violation is using the wrong duration tier for the interaction type. Correct: each animation uses the motion token that matches its semantic category.
@@ -21,7 +21,7 @@ Check that motion tokens match the use case: --shelf-motion-duration-fast for ho
 ---
 
 ## reduced-motion-no-movement
-**Source:** .claude/rules/ui-base.md > Motion
+**Source:** Motion
 **Rule:** Reduced motion means no movement: instant or fade only.
 
 Inside @media (prefers-reduced-motion: reduce) blocks, check that no transform-based animations remain (translate, scale, rotate). Only opacity transitions (fades) or instant state changes (duration: 0ms) are allowed. A violation is any transform animation inside a reduced-motion context. Correct: reduced-motion blocks either remove the animation entirely or replace it with an opacity-only fade.
@@ -31,7 +31,7 @@ Inside @media (prefers-reduced-motion: reduce) blocks, check that no transform-b
 ---
 
 ## exit-not-slower-than-enter
-**Source:** .claude/rules/ui-base.md > Motion
+**Source:** Motion
 **Rule:** Exit is never slower than enter.
 
 For each component with enter and exit animations (e.g., drawer slide-in/out, dialog appear/disappear, toast enter/leave), compare the duration tokens. A violation is an exit animation using a slower duration token than its corresponding enter animation (e.g., exit uses --shelf-motion-duration-base while enter uses --shelf-motion-duration-fast). Correct: exit duration is equal to or faster than enter duration for the same element.
