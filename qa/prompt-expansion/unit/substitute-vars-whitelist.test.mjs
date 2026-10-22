@@ -53,6 +53,10 @@ const STAGE1_WHITELIST = new Set([
   'BRANCHES',
   'ISSUES',
   'CLOSE_TASK_COMMAND',
+  // Violations memory (implementer learning)
+  'VIOLATIONS_MEMORY',
+  // Prompt-injected T1 constraints
+  'CONSTRAINTS',
   // QA gate vars (gates.mts)
   'FINDINGS_FILE',
   'VERIFY_COMMAND',
@@ -60,6 +64,12 @@ const STAGE1_WHITELIST = new Set([
   // Code review pre-computed vars (gates.mts)
   'BRANCH_DIFF',
   'BRANCH_LOG',
+  // Test author vars (gates-test-author.mts)
+  'TEST_FRAMEWORK',
+  'TEST_COMMAND',
+  'TEST_FILE_CONVENTION',
+  'TEST_FILE_PATTERNS',
+  'SOURCE_DIRS',
 ]);
 
 function substituteVars(template, vars) {

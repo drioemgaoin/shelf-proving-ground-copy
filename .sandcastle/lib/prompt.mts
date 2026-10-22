@@ -50,6 +50,12 @@ const STAGE1_WHITELIST = new Set([
   // Code review pre-computed vars (gates.mts)
   "BRANCH_DIFF",
   "BRANCH_LOG",
+  // Test author vars (gates-test-author.mts)
+  "TEST_FRAMEWORK",
+  "TEST_COMMAND",
+  "TEST_FILE_CONVENTION",
+  "TEST_FILE_PATTERNS",
+  "SOURCE_DIRS",
 ]);
 
 /** Substitute {{VAR}} placeholders in a template string. */

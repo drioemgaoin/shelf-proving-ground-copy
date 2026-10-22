@@ -53,7 +53,7 @@ export function createBuilderHooks(overlay: boolean): SandboxHooks {
   return {
     sandbox: {
       onSandboxReady: [
-        { command: `rm -rf ${WORKTREE_EXCLUDE.map((p) => `./${p}`).join(" ")}` },
+        { command: `rm -rf ${WORKTREE_EXCLUDE.map((p) => `./${p}`).join(" ")} ./AGENTS.md` },
         {
           command:
             "rm -rf ./node_modules && ln -s /warm/node_modules ./node_modules && " +
@@ -66,9 +66,9 @@ export function createBuilderHooks(overlay: boolean): SandboxHooks {
         },
         {
           command:
-            // Strip Beads block and Agent skills section — irrelevant inside sandbox
+            // Strip Beads block, workflow section, and UI rules — irrelevant inside sandbox
             "sed -i.bak '/<!-- BEGIN BEADS/,/<!-- END BEADS/d' CLAUDE.md && " +
-            "sed -i.bak '/^## UI rules$/,$d' CLAUDE.md && " +
+            "sed -i.bak '/^## How work happens$/,$d' CLAUDE.md && " +
             "rm -f CLAUDE.md.bak",
         },
         // Deny tools the implementer never uses.  permissions.deny removes

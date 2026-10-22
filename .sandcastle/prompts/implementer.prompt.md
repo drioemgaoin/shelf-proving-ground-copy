@@ -8,7 +8,7 @@ Do NOT run tests tagged `@visual`. They run in a separate orchestrator phase. If
 
 Co-located tests. When you modify a source file, check the codemap for a matching test file (e.g. `Foo.tsx` → `Foo.test.tsx`). If one exists, read it and update any assertions that your changes invalidate — before running tests.
 
-Before committing, run the pre-commit gate (see ENVIRONMENT). Commit prefix: `RALPH:`. Include: task + PRD ref, key decisions, files changed, blockers.
+Before committing, run the pre-commit gate (see ENVIRONMENT). Commit prefix: `RALPH:`. One-line summary + file list. No design rationale.
 
 # BOUNDARIES
 
@@ -40,7 +40,7 @@ Incomplete? Comment on the issue with progress.
 
 Do not close the issue — the merger handles that.
 
-Once done, output the completion signal below as the **very last tokens you generate**. After emitting this tag, do not make any more tool calls, do not write any more text, do not explain what happens next, do not discuss the stop hook, do not verify or clean up anything. The signal is a hard stop — your turn ends the instant it appears.
+Once done, emit the completion signal immediately. Do not summarize what you built — the commit message is the record. Do not make any more tool calls, do not write any more text, do not explain what happens next, do not discuss the stop hook, do not verify or clean up anything. The signal is a hard stop — your turn ends the instant it appears.
 
 <promise>COMPLETE</promise>
 

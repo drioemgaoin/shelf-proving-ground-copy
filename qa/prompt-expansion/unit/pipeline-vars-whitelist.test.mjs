@@ -53,6 +53,10 @@ const STAGE1_WHITELIST = new Set([
   'BRANCHES',
   'ISSUES',
   'CLOSE_TASK_COMMAND',
+  // Violations memory (implementer learning)
+  'VIOLATIONS_MEMORY',
+  // Prompt-injected T1 constraints
+  'CONSTRAINTS',
   // QA gate vars (gates.mts)
   'FINDINGS_FILE',
   'VERIFY_COMMAND',
@@ -60,6 +64,12 @@ const STAGE1_WHITELIST = new Set([
   // Code review pre-computed vars (gates.mts)
   'BRANCH_DIFF',
   'BRANCH_LOG',
+  // Test author vars (gates-test-author.mts)
+  'TEST_FRAMEWORK',
+  'TEST_COMMAND',
+  'TEST_FILE_CONVENTION',
+  'TEST_FILE_PATTERNS',
+  'SOURCE_DIRS',
 ]);
 
 function substituteVars(template, vars) {
@@ -97,6 +107,15 @@ const PIPELINE_VARS = [
   'BRANCH_LOG',
   // Fixer (gates.mts — both gates)
   'VERIFY_COMMAND',
+  // Test author (gates-test-author.mts)
+  'TEST_FRAMEWORK',
+  'TEST_COMMAND',
+  'TEST_FILE_CONVENTION',
+  'TEST_FILE_PATTERNS',
+  'SOURCE_DIRS',
+  // Implementer learning + constraints
+  'VIOLATIONS_MEMORY',
+  'CONSTRAINTS',
 ];
 
 // Already-whitelisted vars that the pipeline also uses
@@ -196,6 +215,57 @@ for (const varName of ALREADY_WHITELISTED) {
     'planner prompt — no unfilled placeholders',
     !result.includes('{{READY_ISSUES}}'),
     `got: ${JSON.stringify(result)}`,
+  );
+}
+
+// ─── Test: test-author prompt template — all placeholders filled ──────
+
+{
+  const template = [
+    'Run `{{TEST_COMMAND}}` to verify all tests pass',
+    'Test framework: {{TEST_FRAMEWORK}}',
+    'Test file convention: {{TEST_FILE_CONVENTION}}',
+    'Writable: `{{TEST_FILE_PATTERNS}}`',
+    'Readable: `{{SOURCE_DIRS}}`',
+    'Branch: {{BRANCH}}',
+    '{{ISSUE_DETAILS}}',
+    '{{BRANCH_DIFF}}',
+    '{{CODEMAP}}',
+    '{{FINDINGS_FILE}}',
+  ].join('\n');
+
+  const vars = {
+    TEST_COMMAND: 'npm test',
+    TEST_FRAMEWORK: 'Vitest + React Testing Library',
+    TEST_FILE_CONVENTION: 'Co-locate as ModuleName.test.tsx',
+    TEST_FILE_PATTERNS: '*.test.tsx and *.test.ts inside src/',
+    SOURCE_DIRS: 'src/',
+    BRANCH: 'sandcastle/issue-djk.1',
+    ISSUE_DETAILS: 'Full issue body',
+    BRANCH_DIFF: 'diff content',
+    CODEMAP: 'src/App.tsx',
+    FINDINGS_FILE: '.qa/test-author-r1.md',
+  };
+
+  const result = substituteVars(template, vars);
+
+  const remaining = result.match(/\{\{[A-Z_]+\}\}/g);
+  assert(
+    'test-author prompt — no unfilled placeholders',
+    remaining === null,
+    `unfilled: ${JSON.stringify(remaining)}`,
+  );
+
+  assert(
+    'test-author prompt — TEST_COMMAND filled',
+    result.includes('npm test'),
+    `got: ${result.substring(0, 80)}`,
+  );
+
+  assert(
+    'test-author prompt — TEST_FRAMEWORK filled',
+    result.includes('Vitest + React Testing Library'),
+    `got: ${result}`,
   );
 }
 

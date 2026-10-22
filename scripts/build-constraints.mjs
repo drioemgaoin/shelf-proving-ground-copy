@@ -119,17 +119,13 @@ const RULE_TEXT_MAX_CHARS = 180;
 
 function formatConstraint(index, block) {
   let text = block.ruleText || block.sectionHeading || block.id;
-  // Truncate long rule prose — the fix carries the actionable instruction.
+  // Truncate long rule prose — the rule text is enough for the agent.
   if (text.length > RULE_TEXT_MAX_CHARS) {
     text = text.slice(0, RULE_TEXT_MAX_CHARS).replace(/\s+\S*$/, '') + '…';
   }
-  // Compact format: one line per constraint.  Keep the full fix text so
-  // multi-entry blocks (e.g. no-bem-separators with __ and --) show all
-  // distinct actions that deduplication merged.
-  const firstFix = block.fix ? block.fix.trim() : '';
-  if (firstFix) {
-    return `${index}. ${text} → ${firstFix}`;
-  }
+  // Compact format: rule text only — fix suggestions are for T1 hook error
+  // messages, not for guiding the agent. Dropping them saves ~50% of the
+  // CONSTRAINTS block with zero quality loss.
   return `${index}. ${text}`;
 }
 

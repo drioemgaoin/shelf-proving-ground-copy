@@ -24,6 +24,14 @@ During loading states (use ?fixture=slow), check that every image container, asy
 
 ---
 
+## visible-container-spacing
+**Source:** .claude/rules/ui-base.md > Layout
+**Rule:** Grid and list gaps produce visible spacing between items. Child elements do not overflow their grid/flex cells.
+
+For each grid or list layout, verify that gaps between items are visually perceptible in both light and dark modes. Check that no child element overflows its container cell to cover the gap — look for cards, panels, or list items that appear to touch when the CSS specifies a gap. Compare row spacing to column spacing: if columns have visible gaps but rows do not, a child is likely overflowing vertically (common cause: height: 100% with padding and no box-sizing: border-box). A violation is any layout where declared gaps are visually absent or uneven between axes. Correct: gaps are uniformly visible between all adjacent items in both directions.
+
+---
+
 ## focus-management
 **Source:** .claude/rules/ui-base.md > Accessibility floor (WCAG 2.2 AA)
 **Rule:** Focus is always visible, never hidden under sticky elements. It moves into dialogs, is trapped while open, and returns to the trigger on close.

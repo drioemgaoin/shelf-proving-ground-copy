@@ -41,6 +41,14 @@ RUN curl -fsSL https://claude.ai/install.sh | bash
 
 # Add Claude to PATH
 ENV PATH="/home/agent/.local/bin:$PATH"
+
+# Force line-buffered stdout so stream-json events reach the host in real time.
+# Without this, Docker pipes use 64 KB full-buffering and the orchestrator log
+# stays empty until the process exits.
+RUN mv /home/agent/.local/bin/claude /home/agent/.local/bin/claude-real \
+ && printf '#!/bin/sh\nexec stdbuf -oL claude-real "$@"\n' \
+      > /home/agent/.local/bin/claude \
+ && chmod +x /home/agent/.local/bin/claude
 # >>> ui-kit playwright (agent)
 RUN npx -y playwright@1.52.0 install chromium webkit
 # <<< ui-kit playwright

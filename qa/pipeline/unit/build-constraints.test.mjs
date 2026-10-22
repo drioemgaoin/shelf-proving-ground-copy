@@ -101,8 +101,10 @@ test('no scope = all constraints (no filtering)', () => {
 
 test('includes semantic-tokens-only rule', () => {
   const out = run();
+  // Rule text mentions component tokens being scoped to one component's CSS.
+  // Fix text (semantic-tier, Primitive) is no longer emitted — match on rule text.
   assert(
-    out.includes('semantic-tier') || out.includes('Token tiers') || out.includes('Primitive'),
+    out.includes('semantic-tier') || out.includes('Token tiers') || out.includes('Primitive') || out.includes('Component') || out.includes('--shelf-{component}'),
     'Missing semantic-tokens-only constraint'
   );
 });
@@ -123,16 +125,23 @@ test('numbering restarts per section', () => {
   assert(firstItemAfterHeading >= 3, `Expected at least 3 sections starting with "1.", got ${firstItemAfterHeading}`);
 });
 
-test('multi-entry block merges distinct fix texts (no-bem-separators covers __ and --)', () => {
+test('no-bem-separators deduplicates into one constraint', () => {
   // no-bem-separators has two patterns: one for BEM __ and one for BEM --.
-  // Dedup must merge their fix texts so the agent sees both are forbidden.
+  // Dedup must merge them into a single numbered constraint.
+  // Fix text is no longer emitted — we only check that kebab-case rule appears once.
   const out = run('--scope=src/components/Foo/**');
   const cssSection = out.split('## When writing CSS files')[1]?.split('##')[0] ?? '';
-  // Find the line(s) for the no-bem-separators constraint (mentions kebab-case)
   const kebabLines = cssSection.split('\n').filter(l => l.includes('kebab-case'));
-  const joined = kebabLines.join(' ');
-  assert(joined.includes('.card__title') || joined.includes('__'), 'Constraint must mention BEM __ separator as wrong');
-  assert(joined.includes('.card--skeleton') || joined.includes('--skeleton'), 'Constraint must mention BEM -- separator as wrong');
+  assert(kebabLines.length === 1, `Expected 1 kebab-case constraint, got ${kebabLines.length}`);
+});
+
+test('constraint lines contain rule text only — no fix suggestions', () => {
+  // Cost reduction: fix messages (→ ...) are for T1 hook errors, not for guiding the agent.
+  const out = run();
+  const constraintLines = out.split('\n').filter(l => /^\d+\.\s/.test(l));
+  assert(constraintLines.length > 0, 'Should have at least one numbered constraint');
+  const linesWithArrow = constraintLines.filter(l => l.includes(' → '));
+  assert(linesWithArrow.length === 0, `Found ${linesWithArrow.length} constraint(s) with fix text: ${linesWithArrow[0]}`);
 });
 
 // ═══════════════════════════════════════════════════════════════════
