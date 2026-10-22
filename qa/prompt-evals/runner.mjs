@@ -150,7 +150,7 @@ function cleanupSandbox() {
 
 // ─── Build the expanded prompt ─────────────────────────────────────
 
-function buildExpandedPrompt(mode) {
+function buildExpandedPrompt(mode, caseVars) {
   let raw = readFileSync(PROMPT_FILE, "utf8");
 
   // Baseline: strip the adjustment text
@@ -158,7 +158,9 @@ function buildExpandedPrompt(mode) {
     raw = raw.replace(adjustmentText, "").replace(/\n\n\n+/g, "\n\n");
   }
 
-  return substituteVars(raw, defaultVars);
+  // Merge per-case var overrides over defaults
+  const vars = caseVars ? { ...defaultVars, ...caseVars } : defaultVars;
+  return substituteVars(raw, vars);
 }
 
 // ─── Load eval cases ───────────────────────────────────────────────
@@ -193,7 +195,7 @@ function callClaude(stdinMessage) {
     const result = spawnSync(
       "claude",
       ["-p", "--no-session-persistence", "--model", model],
-      { input: stdinMessage, encoding: "utf8", timeout: 120_000, cwd: sandboxDir },
+      { input: stdinMessage, encoding: "utf8", timeout: 300_000, cwd: sandboxDir },
     );
     if (result.error) return { output: "", error: result.error.message.slice(0, 200) };
     if (result.status !== 0 && !result.stdout?.trim()) return { output: "", error: (result.stderr ?? "").trim().slice(0, 200) };
@@ -226,6 +228,13 @@ function runCheck(check, code) {
     return { pass: !match, detail: match ? `Found at offset ${match.index}: ${match[0].slice(0, 80)}` : null };
   }
 
+  if (check.type === "regex_present") {
+    const flags = check.flags || "gm";
+    const re = new RegExp(check.pattern, flags);
+    const match = re.exec(code);
+    return { pass: !!match, detail: match ? null : `Pattern not found: ${check.pattern}` };
+  }
+
   if (check.type === "max_consecutive_comment_lines") {
     const lines = code.split("\n");
     let maxRun = 0, run = 0;
@@ -244,11 +253,17 @@ function runCheck(check, code) {
 
 function runCase(c, mode, expandedPrompt) {
   // Create parent dirs for the target file in the sandbox
-  const filePath = join(sandboxDir, c.file);
-  mkdirSync(join(filePath, ".."), { recursive: true });
+  if (c.file) {
+    const filePath = join(sandboxDir, c.file);
+    mkdirSync(join(filePath, ".."), { recursive: true });
+  }
 
-  // The user message is a coding task — the LLM writes code, we check it.
-  const stdinMessage = `${expandedPrompt}
+  // Two modes:
+  // 1. Code-producing agents (implementer, fixer, test-author): "Write file X"
+  // 2. Analysis agents (reviewer, plan, visual-qa, merger): raw task, check full output
+  const stdinMessage = c.raw_task
+    ? `${expandedPrompt}\n\n---\n\n${c.task}`
+    : `${expandedPrompt}
 
 ---
 
@@ -279,7 +294,8 @@ Output ONLY the file content — no explanations, no markdown fences, no other t
 
   if (error) return { id: c.id, mode, pass: false, detail: error, raw: output, duration_ms: duration, error };
 
-  const code = extractCode(output);
+  // For raw_task cases, check the full output (not code-extracted)
+  const code = c.raw_task ? output : extractCode(output);
   const { pass, detail } = runCheck(c.check, code);
 
   return { id: c.id, mode, pass, detail, raw: output, duration_ms: duration, error: null };
@@ -401,9 +417,11 @@ createSandbox();
 console.log(`  Sandbox: ${sandboxDir}`);
 console.log(`  Rules: ${readdirSync(join(sandboxDir, ".claude", "rules")).join(", ")}`);
 
-// Pre-build expanded prompts (one per mode)
-const expandedPrompts = {};
-for (const mode of modes) expandedPrompts[mode] = buildExpandedPrompt(mode);
+// Pre-build expanded prompts (one per mode).
+// Cases without per-case vars share the default expansion.
+// Cases WITH per-case vars get a fresh expansion at runtime.
+const defaultExpandedPrompts = {};
+for (const mode of modes) defaultExpandedPrompts[mode] = buildExpandedPrompt(mode);
 
 const results = [];
 
@@ -413,7 +431,10 @@ try {
     for (let i = 0; i < cases.length; i++) {
       const c = cases[i];
       process.stdout.write(`  [${i + 1}/${cases.length}] ${c.id} ...`);
-      const result = runCase(c, mode, expandedPrompts[mode]);
+      const expandedPrompt = c.vars
+        ? buildExpandedPrompt(mode, c.vars)
+        : defaultExpandedPrompts[mode];
+      const result = runCase(c, mode, expandedPrompt);
       results.push(result);
       if (!dryRun) {
         const label = result.pass ? "PASS" : result.error ? "ERROR" : "FAIL";

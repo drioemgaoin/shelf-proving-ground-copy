@@ -37,6 +37,7 @@ export function createVisualGate(
     checkerMaxIterations: 10,
     fixerMaxIterations: 50,
     passWord: "PASS",
+    requiresDevServer: true,
     checkerPromptFile: ".sandcastle/prompts/visual-qa.prompt.md",
     fixerPromptFile: ".sandcastle/prompts/fixer.prompt.md",
 

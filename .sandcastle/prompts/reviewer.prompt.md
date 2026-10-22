@@ -42,6 +42,17 @@ Also check:
 
 Preserve functionality. Never change what the code does, only how it does it.
 
+## Test file review (for new *.test.* files in the diff)
+
+For each new test file, verify:
+- Every assertion tests observable behavior — not a tautology
+- The test would fail if the module's behavior changed — not a trivially-passing stub
+- The test does not duplicate acceptance test coverage
+- The test is deterministic (no timers, random, network)
+- The test does not assert on implementation details (internal state, CSS classes, DOM depth)
+
+Flag violations the same way as code findings.
+
 ## Prior fix dispositions
 
 A finding the fixer intentionally skipped or traded off is settled. Do not re-raise it. Conflicting rules → DEFER. Do not attempt to resolve the tension.

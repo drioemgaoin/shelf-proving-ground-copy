@@ -1,0 +1,10 @@
+{
+  "BASE_BRANCH": "main",
+  "BRANCH": "sandcastle/issue-eval-rev",
+  "BRANCH_DIFF": "diff --git a/src/components/BookCard/BookCard.css b/src/components/BookCard/BookCard.css\nnew file mode 100644\n--- /dev/null\n+++ b/src/components/BookCard/BookCard.css\n@@ -0,0 +1,18 @@\n+.book-card {\n+  background: var(--color-surface);\n+  border-radius: var(--radius-m);\n+  padding: var(--space-m);\n+  color: #333;\n+  cursor: pointer;\n+}\n+\n+.book-card__title {\n+  font-size: var(--font-size-m);\n+  font-weight: 600;\n+}\n+\n+.book-card__author {\n+  font-size: var(--font-size-s);\n+  color: var(--color-text-secondary);\n+}\ndiff --git a/src/components/BookCard/BookCard.tsx b/src/components/BookCard/BookCard.tsx\nnew file mode 100644\n--- /dev/null\n+++ b/src/components/BookCard/BookCard.tsx\n@@ -0,0 +1,22 @@\n+import type { Book } from '../../types';\n+import './BookCard.css';\n+\n+interface BookCardProps {\n+  book: Book;\n+  onClick: (id: string) => void;\n+}\n+\n+export function BookCard({ book, onClick }: BookCardProps) {\n+  const displayBook = book as Book;\n+  return (\n+    <article\n+      className=\"book-card\"\n+      role=\"button\"\n+      tabIndex={0}\n+      aria-label={`${displayBook.title} by ${displayBook.author}`}\n+      onClick={() => onClick(displayBook.id)}\n+    >\n+      <h3>{displayBook.title}</h3>\n+      <p>{displayBook.author}</p>\n+    </article>\n+  );\n+}",
+  "BRANCH_LOG": "abc1234 implement BookCard component",
+  "ISSUE_DETAILS": "## Summary\nImplement BookCard component displaying title, author, and status badge.\n\n## Acceptance criteria\n- Card shows title, author, status badge\n- Uses design tokens for all visual values\n- Named export only",
+  "FIX_HISTORY": "",
+  "T3_REVIEW_CHECKS": "- No raw color values (hex, rgb, hsl) — use design tokens from tokens.css\n- All exported functions must have explicit return types\n- No unsafe casts (as Type) unless narrowing from unknown\n- No default exports — use named exports only",
+  "FINDINGS_FILE": ".qa/review-r1.md"
+}

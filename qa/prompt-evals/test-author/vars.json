@@ -1,0 +1,12 @@
+{
+  "BRANCH": "sandcastle/issue-eval-ta",
+  "ISSUE_DETAILS": "## Summary\nImplement BookCard component displaying title, author, and status badge.\n\n## Tests to turn green\n`npx playwright test -g \"BookCard renders title\"`",
+  "BRANCH_DIFF": "diff --git a/src/components/BookCard/BookCard.tsx b/src/components/BookCard/BookCard.tsx\nnew file mode 100644\n--- /dev/null\n+++ b/src/components/BookCard/BookCard.tsx\n@@ -0,0 +1,28 @@\n+import type { Book } from '../../types';\n+import './BookCard.css';\n+\n+interface BookCardProps {\n+  book: Book;\n+  onClick: (id: string) => void;\n+}\n+\n+export function BookCard({ book, onClick }: BookCardProps) {\n+  return (\n+    <article\n+      className=\"book-card\"\n+      role=\"button\"\n+      tabIndex={0}\n+      aria-label={`${book.title} by ${book.author}`}\n+      onClick={() => onClick(book.id)}\n+      onKeyDown={(e) => e.key === 'Enter' && onClick(book.id)}\n+    >\n+      <span className=\"book-card__badge\" data-status={book.status}>\n+        {book.status}\n+      </span>\n+      <h3 className=\"book-card__title\">{book.title}</h3>\n+      <p className=\"book-card__author\">{book.author}</p>\n+    </article>\n+  );\n+}",
+  "CODEMAP": "src/components/BookCard/BookCard.tsx\nsrc/components/BookCard/BookCard.css",
+  "FINDINGS_FILE": ".qa/test-author-r1.md",
+  "TEST_FRAMEWORK": "Vitest + React Testing Library",
+  "TEST_COMMAND": "npm test",
+  "TEST_FILE_CONVENTION": "Co-locate as ModuleName.test.tsx",
+  "TEST_FILE_PATTERNS": "*.test.tsx and *.test.ts inside src/",
+  "SOURCE_DIRS": "src/"
+}

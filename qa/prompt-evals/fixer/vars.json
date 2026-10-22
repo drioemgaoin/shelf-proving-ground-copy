@@ -1,0 +1,6 @@
+{
+  "BRANCH": "sandcastle/issue-eval-fix",
+  "FINDINGS_FILE": ".qa/unified-r1.md",
+  "VERIFY_COMMAND": "npm run typecheck && npm run lint && npm test",
+  "CONSTRAINTS": ""
+}

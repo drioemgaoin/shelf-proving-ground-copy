@@ -555,7 +555,71 @@ export function fingerprint() { return 'any_fp'; }
 });
 
 // ═════════════════════════════════════════════════════════════════════
-// 6. Backpressure limit (MAX_BLOCKS)
+// 6. Test file deletion guard
+// ═════════════════════════════════════════════════════════════════════
+
+describe('test file deletion guard', () => {
+  test('blocks when a test file is deleted', () => {
+    writeFileSync(
+      join(SCRIPTS, 'fingerprint.mjs'),
+      `
+export function repoRoot() { return ${JSON.stringify(WORK)}; }
+export function resolveBase() { return 'abc123'; }
+export function changedWithStatus() {
+  return [{ status: 'D', path: 'src/components/ChipBar/ChipBar.test.tsx' }];
+}
+export function fingerprint() { return 'abc'; }
+`,
+    );
+
+    fakeCheck('ok', 'fine');
+    writeFileSync(join(WORK, '.sandcastle-phase'), 'build');
+    const r = runHook({ UI_CHECK_CMDS: join(BIN, 'ok') });
+    assert.equal(r.code, 2, 'Should block on test file deletion');
+    assert.ok(r.stderr.includes('Test files were deleted'), 'stderr should mention test file deletion');
+  });
+
+  test('allows modifying a test file (not deletion)', () => {
+    writeFileSync(
+      join(SCRIPTS, 'fingerprint.mjs'),
+      `
+export function repoRoot() { return ${JSON.stringify(WORK)}; }
+export function resolveBase() { return 'abc123'; }
+export function changedWithStatus() {
+  return [{ status: 'M', path: 'src/components/ChipBar/ChipBar.test.tsx' }];
+}
+export function fingerprint() { return 'abc'; }
+`,
+    );
+
+    fakeCheck('ok', 'fine');
+    writeFileSync(join(WORK, '.sandcastle-phase'), 'build');
+    const r = runHook({ UI_CHECK_CMDS: join(BIN, 'ok') });
+    assert.equal(r.code, 0, 'Modifying a test file should NOT block');
+  });
+
+  test('allows creating a new test file', () => {
+    writeFileSync(
+      join(SCRIPTS, 'fingerprint.mjs'),
+      `
+export function repoRoot() { return ${JSON.stringify(WORK)}; }
+export function resolveBase() { return 'abc123'; }
+export function changedWithStatus() {
+  return [{ status: 'A', path: 'src/components/Shelf/Shelf.test.tsx' }];
+}
+export function fingerprint() { return 'abc'; }
+`,
+    );
+
+    fakeCheck('ok', 'fine');
+    writeFileSync(join(WORK, '.sandcastle-phase'), 'build');
+    const r = runHook({ UI_CHECK_CMDS: join(BIN, 'ok') });
+    assert.equal(r.code, 0, 'Adding a test file should NOT block');
+  });
+});
+
+// ═════════════════════════════════════════════════════════════════════
+// 7. Backpressure limit (MAX_BLOCKS)
 // ═════════════════════════════════════════════════════════════════════
 
 describe('backpressure limit', () => {

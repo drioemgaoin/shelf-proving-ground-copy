@@ -15,7 +15,16 @@ import {
   LABEL_TASK_COMMAND,
   COMMENT_TASK_COMMAND,
 } from "../config/tracker.mjs";
-import { MAX_GATE_ROUNDS } from "../config/constants.mjs";
+import { MAX_GATE_ROUNDS, MAX_FIXER_PASSES, BATCH_SIZE } from "../config/constants.mjs";
+import {
+  parseAllFindings,
+  countFindings,
+  chunkFindings,
+  matchFailuresToFindings,
+  formatFindings,
+  parseVerificationFailures,
+  mergeFindings as mergeFindingsFromCheckers,
+} from "./findings.mjs";
 
 // ---------------------------------------------------------------------------
 // Gate descriptor
@@ -52,6 +61,8 @@ export interface Gate {
   afterFix?: (round: number, context: GateContext) => void;
   /** Optional oscillation detector. Return true to break the loop. */
   detectOscillation?: (round: number, context: GateContext) => boolean;
+  /** Whether this gate needs a dev server running. */
+  requiresDevServer?: boolean;
 }
 
 export interface GateContext {
@@ -146,6 +157,256 @@ export async function runGateLoop(
   } finally {
     // Always restore rules regardless of exit path (clean, escalation, error).
     // Idempotent — safe even if rules are already visible.
+    setRulesVisible(ctx.worktree, true);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Checker result (returned by parallel checkers for merging)
+// ---------------------------------------------------------------------------
+
+interface CheckerResult {
+  gateName: string;
+  clean: boolean;
+  deferred: boolean;
+  findings: Array<{ file: string; line: number; fix: string; source: string }>;
+  findingsContent: string;
+}
+
+// ---------------------------------------------------------------------------
+// Unified fixer config
+// ---------------------------------------------------------------------------
+
+export interface UnifiedFixerConfig {
+  agent: TaggedAgent;
+  maxIterations: number;
+  verifyCommand: string;
+  promptFile: string;
+  buildArgs: (round: number, ctx: GateContext, findingsFile: string) => Record<string, string>;
+}
+
+// ---------------------------------------------------------------------------
+// Unified gate loop — parallel checkers + verified fixer
+// ---------------------------------------------------------------------------
+
+/**
+ * Run a single checker gate and return a CheckerResult.
+ * This is the check-only half of the old runGateLoop — no fixer.
+ */
+async function runChecker(
+  gate: Gate,
+  round: number,
+  ctx: GateContext,
+  verbose: boolean,
+): Promise<CheckerResult> {
+  const findingsFile = gate.findingsFile(round);
+  const findingsPath = `${ctx.worktree}/${findingsFile}`;
+
+  log(`  ${gate.name} checker round ${round} for ${ctx.issueId}...`);
+
+  gate.beforeCheck?.(round, ctx);
+  const checkerArgs = gate.buildCheckerArgs(round, ctx);
+  const checkerLogName = `${slugify(gate.name)}-r${round}`;
+  const checkerExpandedPath = promptPath(checkerLogName, ctx.issueId);
+  expandAndSave(gate.checkerPromptFile, checkerArgs, checkerExpandedPath, { ticketId: ctx.issueId });
+  await timedSandboxRun(`${gate.name} [${ctx.issueId}] r${round}`, gate.checker, ctx.sandbox, {
+    name: checkerLogName,
+    maxIterations: gate.checkerMaxIterations,
+    logging: verbose
+      ? { type: "file", verbose: true, path: logFilePath(checkerLogName, ctx.issueId) }
+      : undefined,
+    promptFile: `./${checkerExpandedPath}`,
+    promptArgs: {},
+  });
+
+  // Parse result
+  const clean = isClean(findingsPath, gate.passWord);
+  const deferred = isClean(findingsPath, "DEFER");
+  const findingsContent = existsSync(findingsPath)
+    ? readFileSync(findingsPath, "utf8")
+    : "";
+
+  // Parse structured findings for conflict detection
+  const findings = clean || deferred
+    ? []
+    : (parseAllFindings(findingsContent) as any[]).map((f: any) => ({ ...f, source: gate.name }));
+
+  return {
+    gateName: gate.name,
+    clean,
+    deferred,
+    findings,
+    findingsContent,
+  };
+}
+
+/**
+ * Verification: run typecheck + lint + tests and return structured failures.
+ */
+function runVerification(
+  verifyCommand: string,
+  ctx: GateContext,
+): Array<{ file: string; line: number; message: string }> {
+  try {
+    execSync(verifyCommand, {
+      cwd: ctx.worktree,
+      encoding: "utf8",
+      maxBuffer: 256 * 1024 * 1024,
+    });
+    return [];
+  } catch (e: any) {
+    return parseVerificationFailures((e.stdout ?? "") + (e.stderr ?? ""));
+  }
+}
+
+/**
+ * Verified fixer with shrinking backlog.
+ * Runs the fixer in batches, verifies after each pass, and feeds
+ * remaining findings back until clean or stuck.
+ */
+export async function runVerifiedFixer(
+  fixer: UnifiedFixerConfig,
+  findings: string,
+  round: number,
+  ctx: GateContext,
+  verbose: boolean,
+): Promise<void> {
+  let currentFindings = findings;
+  let remainingCount = countFindings(currentFindings);
+
+  for (let pass = 1; pass <= MAX_FIXER_PASSES; pass++) {
+    log(`  Fixer pass ${pass}/${MAX_FIXER_PASSES}: ${remainingCount} findings`);
+
+    // Batch if too many for one context window
+    const batches = remainingCount > BATCH_SIZE
+      ? chunkFindings(currentFindings, BATCH_SIZE)
+      : [currentFindings];
+
+    for (let i = 0; i < batches.length; i++) {
+      const batchFile = `.qa/unified-r${round}-p${pass}-b${i + 1}.md`;
+      writeFileSync(`${ctx.worktree}/${batchFile}`, batches[i]);
+
+      setRulesVisible(ctx.worktree, true);
+      const args = fixer.buildArgs(round, ctx, batchFile);
+      const logName = `fixer-r${round}-p${pass}-b${i + 1}`;
+      const expandedPath = promptPath(logName, ctx.issueId);
+      expandAndSave(fixer.promptFile, args, expandedPath);
+
+      await timedSandboxRun(
+        `Fixer [${ctx.issueId}] r${round} p${pass} b${i + 1}`,
+        fixer.agent, ctx.sandbox,
+        {
+          name: logName,
+          maxIterations: fixer.maxIterations,
+          logging: verbose
+            ? { type: "file", verbose: true, path: logFilePath(logName, ctx.issueId) }
+            : undefined,
+          promptFile: `./${expandedPath}`,
+          promptArgs: {},
+        },
+      );
+    }
+
+    // Verify: what's still broken?
+    const failures = runVerification(fixer.verifyCommand, ctx);
+    if (failures.length === 0) {
+      log(`  All findings fixed after pass ${pass}.`);
+      return;
+    }
+
+    // Match failures back to original findings
+    const remaining = matchFailuresToFindings(failures, currentFindings);
+    log(`  ${remaining.length} findings remain (was ${remainingCount}).`);
+
+    // Progress check: backlog MUST shrink
+    if (remaining.length >= remainingCount) {
+      escalate(ctx.issueId,
+        `Fixer stuck: ${remaining.length} findings remain after pass ${pass}. ` +
+        `No progress since last pass (was ${remainingCount}). Needs human review.`);
+      return;
+    }
+
+    remainingCount = remaining.length;
+    currentFindings = formatFindings(remaining);
+  }
+
+  // Exhausted all passes
+  if (remainingCount > 0) {
+    escalate(ctx.issueId,
+      `Fixer exhausted: ${remainingCount} findings remain after ${MAX_FIXER_PASSES} passes.`);
+  }
+}
+
+/**
+ * Unified gate loop: run all checkers in parallel, merge findings,
+ * then run verified fixer.
+ */
+export async function runUnifiedGateLoop(
+  checkers: Gate[],
+  fixer: UnifiedFixerConfig,
+  ctx: GateContext,
+  verbose: boolean,
+): Promise<boolean> {
+  try {
+    for (let round = 1; round <= MAX_GATE_ROUNDS; round++) {
+      // 1. Run all checkers in parallel
+      setRulesVisible(ctx.worktree, false);
+      const results = await Promise.all(
+        checkers.map(gate => runChecker(gate, round, ctx, verbose))
+      );
+
+      // 2. All clean → done
+      if (results.every(r => r.clean)) {
+        log(`  All checkers clean for ${ctx.issueId} after ${round} round(s).`);
+        return false;
+      }
+
+      // 3. Any deferred → escalate
+      if (results.some(r => r.deferred)) {
+        escalate(ctx.issueId,
+          `Deferred findings from: ${results.filter(r => r.deferred).map(r => r.gateName).join(", ")}`);
+        return true;
+      }
+
+      // 4. Last round → escalate
+      if (round === MAX_GATE_ROUNDS) {
+        escalate(ctx.issueId,
+          `Unified gate loop exhausted after ${MAX_GATE_ROUNDS} rounds.`);
+        return true;
+      }
+
+      // 5. Cross-checker oscillation
+      if (round >= 2) {
+        const prevPath = `${ctx.worktree}/.qa/unified-r${round - 1}.md`;
+        const currContent = results.map(r => r.findingsContent).join("\n");
+        if (existsSync(prevPath) &&
+            findingsOverlap(readFileSync(prevPath, "utf8"), currContent)) {
+          escalate(ctx.issueId,
+            `Cross-checker oscillation at round ${round}.`);
+          return true;
+        }
+      }
+
+      // 6. Merge findings with conflict detection
+      const { mergedContent, conflicts } = mergeFindingsFromCheckers(results);
+      const mergedPath = `${ctx.worktree}/.qa/unified-r${round}.md`;
+      writeFileSync(mergedPath, mergedContent);
+
+      if (conflicts.length > 0) {
+        escalate(ctx.issueId,
+          `Checker conflict on ${conflicts.length} location(s): ` +
+          `${conflicts.map(c => c.location).join(", ")}. Needs human tiebreak.`);
+        return true;
+      }
+
+      // 7. Verified fixer with shrinking backlog
+      await runVerifiedFixer(fixer, mergedContent, round, ctx, verbose);
+
+      // After-fix hooks
+      for (const gate of checkers) gate.afterFix?.(round, ctx);
+    }
+    return false;
+  } finally {
     setRulesVisible(ctx.worktree, true);
   }
 }

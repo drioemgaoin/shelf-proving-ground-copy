@@ -1,0 +1,5 @@
+{
+  "BRANCHES": "sandcastle/issue-abc.1",
+  "CLOSE_TASK_COMMAND": "bd update <ID> --status=closed",
+  "ISSUES": "abc.1 — Implement BookCard (branch: sandcastle/issue-abc.1)"
+}

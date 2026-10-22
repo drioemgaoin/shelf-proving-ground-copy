@@ -13,14 +13,16 @@ import { log } from "./logging.mjs";
 import { expandAndSave } from "./prompt.mjs";
 import { type SandboxHooks, getGuardBase, setRulesVisible } from "./sandbox.mjs";
 import { timedRun, timedSandboxRun, CostCeilingExceededError } from "./tagged-agent.mjs";
-import { runGateLoop, escalate, type GateContext } from "./qa-gates.mjs";
+import { runGateLoop, runUnifiedGateLoop, escalate, type GateContext, type Gate, type UnifiedFixerConfig } from "./qa-gates.mjs";
 import { createVisualGate, createReviewGate } from "./gates.mjs";
+import { createTestAuthorGate } from "./gates-test-author.mjs";
 import { collectMonitorData } from "./monitor-collect.mjs";
 import { loadViolationsMemory, recordViolation } from "./violations-memory.mjs";
 import { buildConstraints } from "../../scripts/build-constraints.mjs";
 import {
   PLANNER,
   IMPLEMENTER,
+  UNIFIED_FIXER,
 } from "../config/agents.mjs";
 import {
   VIEW_TASK_COMMAND,
@@ -304,20 +306,49 @@ async function runQAGates(
     log(`  ⚠️  apply-t3 failed for ${issue.id} (exit ${exitCode}), continuing without T3 rules.`);
   }
 
-  // Gates are a list — open for extension.
-  // To add a new gate (a11y, perf), append to this array.
-  const gates = [
-    ...(issue.touchesUI
-      ? [createVisualGate(issue.id, issue.branch, issueDetails)]
-      : []),
-    createReviewGate(issue.id, issue.branch, issueDetails),
-  ];
+  // Phase A: Test author (always — agent decides if tests needed)
+  const testAuthorEscalated = await runGateLoop(
+    createTestAuthorGate(issue.id, issue.branch, issueDetails),
+    ctx,
+    opts.verbose,
+  );
+  if (testAuthorEscalated) return true;
 
-  for (const gate of gates) {
-    const escalated = await runGateLoop(gate, ctx, opts.verbose);
-    if (escalated) return true;
+  // Phase B: Quality checkers (parallel) + verified fixer
+  const checkers: Gate[] = [];
+  if (issue.touchesUI) checkers.push(createVisualGate(issue.id, issue.branch, issueDetails));
+  checkers.push(createReviewGate(issue.id, issue.branch, issueDetails));
+
+  const shortId = issue.id.replace(/^.*?-(?=[a-z0-9]+(?:\.[0-9]+)?$)/, "");
+  const escapedId = shortId.replace(/\./g, "\\.");
+
+  const fixer: UnifiedFixerConfig = {
+    agent: UNIFIED_FIXER,
+    maxIterations: 50,
+    verifyCommand: buildVerifyCommand(issue, escapedId),
+    promptFile: ".sandcastle/prompts/fixer.prompt.md",
+    buildArgs: (round, _ctx, findingsFile) => {
+      const { constraints } = buildConstraints(process.cwd());
+      return {
+        BRANCH: issue.branch,
+        TASK_ID: issue.id,
+        FINDINGS_FILE: findingsFile,
+        VERIFY_COMMAND: buildVerifyCommand(issue, escapedId),
+        CONSTRAINTS: constraints,
+      };
+    },
+  };
+
+  return runUnifiedGateLoop(checkers, fixer, ctx, opts.verbose);
+}
+
+/** Build the verification command string for an issue. */
+function buildVerifyCommand(issue: PlannedIssue, escapedId: string): string {
+  const base = "npm run typecheck && npm run lint && npm run test";
+  if (issue.touchesUI) {
+    return `${base} && npx playwright test --grep "@${escapedId}" --grep-invert "@visual" && npm run ui:qa -- --grep "@visual.*@${escapedId}"`;
   }
-  return false;
+  return `${base} && npx playwright test --grep "@${escapedId}" --grep-invert "@visual"`;
 }
 
 // ---------------------------------------------------------------------------

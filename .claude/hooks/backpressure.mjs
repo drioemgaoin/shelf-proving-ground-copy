@@ -117,6 +117,20 @@ const report = existsSync('.ui-qa/report.json') ? JSON.parse(readFileSync('.ui-q
 const base = report?.base ?? resolveBase();
 const changes = changedWithStatus(base);
 
+// 0. Test file deletion guard.
+// Tests can be edited but not removed. If a test is genuinely wrong, the fixer
+// should update it instead of deleting it.
+const deletedTests = changes.filter(({ status, path }) =>
+  status === 'D' && /\.test\.[tj]sx?$/.test(path)
+);
+if (deletedTests.length > 0) {
+  block(
+    'Test files were deleted. Tests can be edited but not removed:\n' +
+    deletedTests.map(v => `  ${v.status} ${v.path}`).join('\n') +
+    '\nIf a test is genuinely wrong, update it instead of deleting it.\n',
+  );
+}
+
 // 1. Locked files.
 // .claude/settings.json is excluded — sandbox hooks intentionally modify it
 // (permissions.deny injection) and the guard hook already prevents agent writes.

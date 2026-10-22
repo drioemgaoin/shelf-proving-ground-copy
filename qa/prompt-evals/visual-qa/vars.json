@@ -1,0 +1,5 @@
+{
+  "BRANCH": "sandcastle/issue-eval-vqa",
+  "ISSUE_DETAILS": "## Summary\nImplement BookCard component with status badge.\n\n## Acceptance criteria\n- Card renders title, author, and colored status badge\n- Badge color reflects reading status\n- Responsive layout across breakpoints\n\n## Visual tests (orchestrator only)\n`npm run ui:qa -- --grep \"BookCard.*@visual\"`",
+  "FINDINGS_FILE": ".qa/visual-r1.md"
+}
