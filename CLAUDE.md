@@ -22,7 +22,7 @@ Vite, React, TypeScript. Vitest for unit tests, Playwright for UI tests.
 | `npm run typecheck`  | Type-check app and tests                                           |
 | `npm run lint`       | Lint                                                               |
 | `npm test`           | Unit tests                                                         |
-| `npm run e2e`        | All Playwright tests                                               |
+| `npm run e2e`        | All Playwright tests (in `tests/`)                                 |
 | `npm run ui:qa`      | UI gate: all projects, compact summary, report for the finish hook |
 | `npm run sandcastle` | Build the next ready ticket in a sandbox                           |
 
@@ -31,6 +31,23 @@ Vite, React, TypeScript. Vitest for unit tests, Playwright for UI tests.
 - **Fixtures.** The query parameter `?fixture=` controls app state. Valid values: `empty`, `error`, `slow`, `long`, `many`. No parameter = default seed data (5–8 books). Playwright sets this directly on navigation.
 - **Dynamic content.** Seed/fixture data is fully deterministic — no randomness or timestamps that would destabilize screenshots. UUIDs in fixture data are hardcoded, not generated.
 - **Accessible names.** Every interactive control has an accessible name. Tests locate elements by role and accessible name only — never by CSS class, `data-testid`, or DOM structure. The Drawer is `role="dialog"` with `aria-modal="true"`. Status changes and add/delete mutations announce via `aria-live="polite"`.
+
+## Module vocabulary
+
+Topology: Layered. Scope: `{root}` = `src`
+
+| Module type | Layer | Pattern | May import from |
+|---|---|---|---|
+| type | contract | `{root}/types/**/*.ts` | — |
+| api | adapter | `{root}/api.*` | type |
+| fixture | adapter | `{root}/fixtures.*` | api, type |
+| style | adapter | `{root}/styles/**/*.css` | style |
+| hook | application | `{root}/hooks/**/*.ts` | api, type |
+| component | UI | `{root}/components/**/*.{ts,tsx}` | component, hook, api, type, style |
+| entry | entry | `{root}/main.*`, `{root}/App.*` | * |
+| test | test | `{root}/**/*.test.{ts,tsx}` | * |
+
+Dependencies point inward: contract imports nothing, adapters wrap externals, application orchestrates, entry wires. Peer isolation: if a module type does not list itself in "May import from", two instances cannot import each other.
 
 ## How work happens
 
@@ -52,87 +69,10 @@ All app code is written in Sandcastle, never in an interactive session. A hook b
 
 **Night shift (`npm run sandcastle`):** one ticket per run in Docker. The builder uses the tdd skill and makes the ticket's acceptance tests pass. Then the orchestrator runs visual-qa and code-review as separate phases — the builder does not spawn these itself.
 
-**Morning (you):** review the branch, look at every new screenshot under `e2e/__screenshots__/`, merge. Merging approves the baselines. Triage anything visual-qa filed.
+**Morning (you):** review the branch, look at every new screenshot under `tests/__screenshots__/`, merge. Merging approves the baselines. Triage anything visual-qa filed.
 
 Tickets ready for an agent carry the `Sandcastle` label.
 
 ## UI rules
 
 `.claude/rules/ui-base.md` (universal) and `.claude/rules/ui-project.md` (this project) load automatically when working in `src/`. Token values live only in `src/styles/tokens.css`.
-
-<!-- BEGIN BEADS INTEGRATION v:1 profile:minimal hash:1105d646 -->
-
-## Beads Issue Tracker
-
-This project uses **bd (beads)** for issue tracking. Run `bd prime` to see full workflow context and commands.
-
-### Quick Reference
-
-```bash
-bd ready              # Find available work
-bd show <id>          # View issue details
-bd update <id> --claim  # Claim work
-bd close <id>         # Complete work
-```
-
-### Rules
-
-- Use `bd` for ALL task tracking — do NOT use TodoWrite, TaskCreate, or markdown TODO lists
-- Run `bd prime` for detailed command reference and session close protocol
-- Use `bd remember` for persistent knowledge — do NOT use MEMORY.md files
-
-**Architecture in one line:** issues live in a local Dolt DB; sync uses `refs/dolt/data` on your git remote; `.beads/issues.jsonl` is a passive export. See https://github.com/gastownhall/beads/blob/main/docs/core-concepts/sync-concepts.md for details and anti-patterns.
-
-## Agent Context Profiles
-
-The managed Beads block is task-tracking guidance, not permission to override repository, user, or orchestrator instructions.
-
-- **Conservative (default)**: Use `bd` for task tracking. Do not run git commits, git pushes, or Dolt remote sync unless explicitly asked. At handoff, report changed files, validation, and suggested next commands.
-- **Minimal**: Keep tool instruction files as pointers to `bd prime`; use the same conservative git policy unless active instructions say otherwise.
-- **Team-maintainer**: Only when the repository explicitly opts in, agents may close beads, run quality gates, commit, and push as part of session close. A current "do not commit" or "do not push" instruction still wins.
-
-## Session Completion
-
-This protocol applies when ending a Beads implementation workflow. It is subordinate to explicit user, repository, and orchestrator instructions.
-
-1. **File issues for remaining work** - Create beads for anything that needs follow-up
-2. **Run quality gates** (if code changed) - Tests, linters, builds
-3. **Update issue status** - Close finished work, update in-progress items
-4. **Handle git/sync by active profile**:
-
-   ```bash
-   # Conservative/minimal/default: report status and proposed commands; wait for approval.
-   git status
-
-   # Team-maintainer opt-in only, unless current instructions forbid it:
-   git pull --rebase
-   git push
-   git status
-   ```
-
-5. **Hand off** - Summarize changes, validation, issue status, and any blocked sync/commit/push step
-
-**Critical rules:**
-
-- Explicit user or orchestrator instructions override this Beads block.
-- Do not commit or push without clear authority from the active profile or the current user request.
-- If a required sync or push is blocked, stop and report the exact command and error.
-<!-- END BEADS INTEGRATION -->
-
-## Agent skills
-
-### Issue tracker
-
-Issues are tracked with Beads (`bd`). See `docs/agents/issue-tracker.md`.
-
-### Triage labels
-
-Default label vocabulary. See `docs/agents/triage-labels.md`.
-
-### Issue kinds
-
-Specs vs tickets. See `docs/agents/issue-kinds.md`.
-
-### Domain docs
-
-Single-context layout. See `docs/agents/domain.md`.
