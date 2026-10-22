@@ -4,38 +4,7 @@ paths: "**/*"
 
 # Directory placement
 
-Every source file lives in exactly one declared module type, and every import follows a declared dependency direction. The directory vocabulary below is the single source of truth for where code lives and what it may depend on. If a file doesn't match the vocabulary, it's misplaced. If an import crosses a boundary the vocabulary doesn't allow, it's a violation.
-
-## Module vocabulary
-
-<!-- EDIT: Configure this table for your project. The rules below are universal. -->
-
-Scope: `{root}` = `src`
-
-| Module type | Pattern                           | May import from                   |
-| ----------- | --------------------------------- | --------------------------------- |
-| api         | `{root}/api.*`                    | type                              |
-| fixture     | `{root}/fixtures.*`               | api, type                         |
-| component   | `{root}/components/**/*.{ts,tsx}` | component, hook, api, type, style |
-| hook        | `{root}/hooks/**/*.ts`            | api, type                         |
-| style       | `{root}/styles/**/*.css`          | style                             |
-| type        | `{root}/types/**/*.ts`            | —                                 |
-| entry       | `{root}/main.*`, `{root}/App.*`   | \*                                |
-| test        | `{root}/**/*.test.{ts,tsx}`       | \*                                |
-
-**Peer isolation.** If a module type does not list itself in "May import from", two instances of that type cannot import each other. Example: `api` does not list `api`, so two API modules cannot cross-import. `component` lists `component`, so components can import each other.
-
-**Qualified references.** For cross-scope dependencies in monorepos, use `scope/type` in the "May import from" column. Example: `auth/contract` means "only the `contract` module type from the `auth` scope." The scope template `{root}` expands per scope instance (e.g., `services/billing`, `services/auth`).
-
-**Adapting to other project shapes.** Change the scope template and table rows — the rules below stay the same:
-
-- Microservices: `{root}` = `services/*`, add `domain`, `application`, `infrastructure`, `contract`
-- Monorepo packages: `{root}` = `packages/*`, each package gets its own scope instance
-- Agentic workflows: add `agent`, `tool`, `prompt`, `evaluation` module types
-- CQRS: add `command`, `query`, `event`, `projection`, `saga` module types
-- Full-stack (Next.js): use file-naming patterns to disambiguate server/client in the same directory (e.g., `**/*.server.ts`)
-
-<!-- END EDIT -->
+Every source file lives in exactly one declared module type, and every import follows a declared dependency direction. The module vocabulary in CLAUDE.md is the single source of truth for where code lives and what it may depend on. If a file doesn't match the vocabulary, it's misplaced. If an import crosses a boundary the vocabulary doesn't allow, it's a violation.
 
 ## Rules
 

@@ -6,7 +6,8 @@
 {"id":"single-responsibility","scope":"src/**/*.{ts,tsx}","reason":"no matching files in diff"}
 {"id":"swap-readiness","scope":"src/**/*.{ts,tsx}","reason":"no matching files in diff"}
 {"id":"independent-testability","scope":"src/**/*.{ts,tsx}","reason":"no matching files in diff"}
-{"id":"no-outer-margin","scope":"src/components/**/*.css","reason":"no matching files in diff"}
+{"id":"placement-file-in-declared-module","scope":"**/*.{ts,tsx,js,jsx,css}","reason":"no matching files in diff"}
+{"id":"placement-import-direction","scope":"**/*.{ts,tsx,js,jsx}","reason":"no matching files in diff"}
 {"id":"state-needs-acceptance-test","scope":"src/components/**/*.{ts,tsx}","reason":"no matching files in diff"}
 {"id":"data-dynamic-on-changing-content","scope":"src/components/**/*.{ts,tsx}","reason":"no matching files in diff"}
 {"id":"comment-style","scope":"src/**/*.{ts,tsx,css}","reason":"no matching files in diff"}

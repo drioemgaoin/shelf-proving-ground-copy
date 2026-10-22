@@ -10,6 +10,16 @@ Check that each design token is used for its intended semantic role. A violation
 
 ---
 
+## no-outer-margin
+**Source:** Values
+**Rule:** Children own no space outside themselves. Spacing and positioning between siblings is the parent's job — via gap, padding, or a shared container constraint. A child setting margin positions itself independently from its siblings, causing alignment drift when siblings don't match.
+
+Scan all selectors in the diff for margin properties. A violation is any element setting margin to own space outside itself — the parent layout owns spacing and positioning. Two exceptions are NOT violations: (1) flex/grid auto-margin for internal space distribution (e.g., margin-block-start: auto to push a badge to the bottom of a flex column — this is a layout mechanism within the parent's context, not external spacing), (2) margin declarations inside @layer base (element resets). Everything else is a violation: margin for spacing between siblings, margin-inline: auto for self-centering, margin-block: 0 for list resets outside the base layer. Correct: parents use gap and padding for spacing; containers use max-width + centering for width constraints; children set zero margin.
+
+**Triage hint:** Flag when: margin property appears in any CSS, new selector with margin, max-width + margin-inline: auto on a child
+
+---
+
 ## motion-tokens
 **Source:** Motion
 **Rule:** Durations and easing come from motion tokens.

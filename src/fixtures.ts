@@ -4,17 +4,9 @@
 // All UUIDs here are hardcoded (not generated) so screenshots and tests stay
 // deterministic across runs. Runtime-created books get a real UUID from
 // crypto.randomUUID() in api.ts — only seed data is frozen.
-import type { Book, Status } from './api';
+import type { Book, Fixture, Status } from './types';
 
-export type FixtureName = 'empty' | 'error' | 'slow' | 'long' | 'many';
-
-/** How the API behaves for a profile: normal, permanent error, or 2s delay. */
-export type Behavior = 'ok' | 'error' | 'slow';
-
-export interface Fixture {
-  behavior: Behavior;
-  books: Book[];
-}
+export type { Fixture, Behavior, FixtureName } from './types';
 
 const STATUS_CYCLE: Status[] = ['to-read', 'reading', 'finished'];
 

@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { addBook, deleteBook, getBooks, initApi, updateStatus, type Status } from './api';
+import { getFixture } from './fixtures';
 
 const STATUSES: Status[] = ['to-read', 'reading', 'finished'];
 
@@ -7,7 +8,7 @@ const STATUSES: Status[] = ['to-read', 'reading', 'finished'];
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 describe('api — default seed', () => {
-  beforeEach(() => initApi());
+  beforeEach(() => initApi(getFixture()));
 
   it('returns 5–8 seed books with all three statuses and hardcoded UUIDs', async () => {
     const books = await getBooks();
@@ -20,14 +21,14 @@ describe('api — default seed', () => {
 
   it('is deterministic across re-inits', async () => {
     const first = await getBooks();
-    initApi();
+    initApi(getFixture());
     const second = await getBooks();
     expect(second).toEqual(first);
   });
 });
 
 describe('api — mutations', () => {
-  beforeEach(() => initApi('empty'));
+  beforeEach(() => initApi(getFixture('empty')));
 
   it('getBooks returns [] for the empty fixture', async () => {
     expect(await getBooks()).toEqual([]);
@@ -92,16 +93,16 @@ describe('api — mutations', () => {
 
 describe('api — initApi reset', () => {
   it('resets mutated state back to a clean fixture', async () => {
-    initApi('empty');
+    initApi(getFixture('empty'));
     await addBook('Scratch');
     expect(await getBooks()).toHaveLength(1);
-    initApi('empty');
+    initApi(getFixture('empty'));
     expect(await getBooks()).toEqual([]);
   });
 });
 
 describe('api — error fixture', () => {
-  beforeEach(() => initApi('error'));
+  beforeEach(() => initApi(getFixture('error')));
 
   it('throws for every API call', async () => {
     await expect(getBooks()).rejects.toThrow();
@@ -112,7 +113,7 @@ describe('api — error fixture', () => {
 });
 
 describe('api — slow fixture', () => {
-  beforeEach(() => initApi('slow'));
+  beforeEach(() => initApi(getFixture('slow')));
 
   it('resolves getBooks after roughly a 2s delay', async () => {
     const start = Date.now();
@@ -122,7 +123,7 @@ describe('api — slow fixture', () => {
 });
 
 describe('api — long fixture', () => {
-  beforeEach(() => initApi('long'));
+  beforeEach(() => initApi(getFixture('long')));
 
   it('returns 5–8 truncation-stress books', async () => {
     const books = await getBooks();
@@ -138,7 +139,7 @@ describe('api — long fixture', () => {
 });
 
 describe('api — many fixture', () => {
-  beforeEach(() => initApi('many'));
+  beforeEach(() => initApi(getFixture('many')));
 
   it('returns 200 books with deterministic IDs and cycling statuses', async () => {
     const books = await getBooks();
