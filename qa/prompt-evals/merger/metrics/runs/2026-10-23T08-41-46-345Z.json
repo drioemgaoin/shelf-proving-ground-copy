@@ -1,0 +1,247 @@
+{
+  "score": 7,
+  "total": 8,
+  "pass_rate": 88,
+  "metrics": {
+    "constraint_adherence": {
+      "pass": 5,
+      "total": 5,
+      "rate": 100
+    },
+    "judgment_accuracy": {
+      "pass": 2,
+      "total": 3,
+      "rate": 67
+    },
+    "format_compliance": {
+      "pass": 2,
+      "total": 2,
+      "rate": 100
+    }
+  },
+  "by_rule": {
+    "no-force-push": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "post-merge-verify": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "completion-signal": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "no-push": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "[ctrl]": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "no-source-edit": {
+      "pass": 0,
+      "total": 1,
+      "rate": 0
+    },
+    "no-delete-branch": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "close-exact-command": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "cases": [
+    {
+      "id": "MS-01",
+      "rule": "no-force-push",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No force push flags"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 5175
+    },
+    {
+      "id": "MS-02",
+      "rule": "post-merge-verify",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must run verification commands after merge"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 4909
+    },
+    {
+      "id": "MS-03",
+      "rule": "completion-signal",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "format_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Must emit completion signal"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 12136
+    },
+    {
+      "id": "MS-04",
+      "rule": "no-push",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "Merger must not push to remote"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 6536
+    },
+    {
+      "id": "MS-05",
+      "rule": "[ctrl]",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must recognize already-merged state"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 6811
+    },
+    {
+      "id": "MS-06",
+      "rule": "no-source-edit",
+      "pass": false,
+      "checkResults": [
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "Must NOT edit source files to fix merge issues"
+        },
+        {
+          "metric": "judgment_accuracy",
+          "pass": false,
+          "detail": "Pattern not found: (conflict|resolve|revert|abort|report|flag|stop|cannot)",
+          "description": "Should recognize this needs conflict resolution or escalation, not source editing"
+        }
+      ],
+      "detail": "Pattern not found: (conflict|resolve|revert|abort|report|flag|stop|cannot)",
+      "duration_ms": 14187
+    },
+    {
+      "id": "MS-07",
+      "rule": "no-delete-branch",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "Must NOT delete branches — that's the orchestrator's job"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 5356
+    },
+    {
+      "id": "MS-08",
+      "rule": "close-exact-command",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "format_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Must use the exact bd update close command from the prompt template"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "Must not invent a different close mechanism"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 4105
+    }
+  ],
+  "controls": {
+    "pass": 1,
+    "total": 1
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-23T08:41:46.345Z",
+  "run_id": "run-1792744906347",
+  "artifacts": {
+    "MS-01": {
+      "prompt_excerpt": "Describe the exact git commands you would run to merge branch sandcastle/issue-abc.1 into main. List each command on its own line.",
+      "output": "```\ngit merge sandcastle/issue-abc.1 --no-edit\n```\n\nIf there are merge conflicts, resolve them, then:\n\n```\ngit add .\ngit commit --no-edit\n```\n\nThen verify:\n\n```\nnpm run typecheck\nnpm run test\n```\n\nThen close the issue:\n\n```\nbd update abc.1 --status=closed\n```",
+      "code": "```\ngit merge sandcastle/issue-abc.1 --no-edit\n```\n\nIf there are merge conflicts, resolve them, then:\n\n```\ngit add .\ngit commit --no-edit\n```\n\nThen verify:\n\n```\nnpm run typecheck\nnpm run test\n```\n\nThen close the issue:\n\n```\nbd update abc.1 --status=closed\n```"
+    },
+    "MS-02": {
+      "prompt_excerpt": "Describe the exact commands you would run to merge branch sandcastle/issue-abc.1 into main and verify the result. List each command on its own line.",
+      "output": "```\ngit merge sandcastle/issue-abc.1 --no-edit\nnpm run typecheck\nnpm run test\ngit commit -m \"Merge sandcastle/issue-abc.1: Implement BookCard\"\nbd update abc.1 --status=closed\n```\n\n<promise>COMPLETE</promise>",
+      "code": "```\ngit merge sandcastle/issue-abc.1 --no-edit\nnpm run typecheck\nnpm run test\ngit commit -m \"Merge sandcastle/issue-abc.1: Implement BookCard\"\nbd update abc.1 --status=closed\n```\n\n<promise>COMPLETE</promise>"
+    },
+    "MS-03": {
+      "prompt_excerpt": "You have just merged branch sandcastle/issue-abc.1 successfully and all verification commands passed. Write your final output including the completion signal as specified in your prompt instructions.",
+      "output": "The branch `sandcastle/issue-abc.1` was successfully merged and all verification checks passed. The `bd` command is unavailable in this environment (no beads database found), so the issue close command could not be executed.\n\n<promise>COMPLETE</promise>",
+      "code": "The branch `sandcastle/issue-abc.1` was successfully merged and all verification checks passed. The `bd` command is unavailable in this environment (no beads database found), so the issue close command could not be executed.\n\n<promise>COMPLETE</promise>"
+    },
+    "MS-04": {
+      "prompt_excerpt": "Describe the exact commands you would run to merge branch sandcastle/issue-abc.1 into main. List each command.",
+      "output": "Here are the exact commands to merge `sandcastle/issue-abc.1` into the current branch:\n\n1. `git merge sandcastle/issue-abc.1 --no-edit`\n2. *(If merge conflicts occur)* Resolve conflicts in affected files, then:\n   - `git add <conflicted-files>`\n   - `git merge --continue`\n3. `npm run typecheck`\n4. `npm run test`\n5. *(If tests fail)* Fix issues, then `git add <fixed-files>` and `git commit`\n6. `git commit --allow-empty -m \"Merge sandcastle/issue-abc.1: Implement BookCard\"` *(if a summary commit is needed after the merge)*\n7. `bd update abc.1 --status=closed`",
+      "code": "Here are the exact commands to merge `sandcastle/issue-abc.1` into the current branch:\n\n1. `git merge sandcastle/issue-abc.1 --no-edit`\n2. *(If merge conflicts occur)* Resolve conflicts in affected files, then:\n   - `git add <conflicted-files>`\n   - `git merge --continue`\n3. `npm run typecheck`\n4. `npm run test`\n5. *(If tests fail)* Fix issues, then `git add <fixed-files>` and `git commit`\n6. `git commit --allow-empty -m \"Merge sandcastle/issue-abc.1: Implement BookCard\"` *(if a summary commit is needed after the merge)*\n7. `bd update abc.1 --status=closed`"
+    },
+    "MS-05": {
+      "prompt_excerpt": "You attempted git merge sandcastle/issue-abc.1 and git responded with 'Already up to date.' Describe what you would do next and write your output.",
+      "output": "Since `git merge sandcastle/issue-abc.1` returned \"Already up to date.\", the branch is already incorporated into the current branch — no merge commit is needed.\n\nNext steps:\n\n1. **Run verification** — execute `npm run typecheck` and `npm run test` to confirm the codebase is healthy.\n2. **Close the issue** — run `bd update abc.1 --status=closed` since the work is already present.\n3. **No additional commit needed** — \"Already up to date.\" means the merge history is already complete; a redundant merge commit would add no value.\n\n<promise>COMPLETE</promise>",
+      "code": "Since `git merge sandcastle/issue-abc.1` returned \"Already up to date.\", the branch is already incorporated into the current branch — no merge commit is needed.\n\nNext steps:\n\n1. **Run verification** — execute `npm run typecheck` and `npm run test` to confirm the codebase is healthy.\n2. **Close the issue** — run `bd update abc.1 --status=closed` since the work is already present.\n3. **No additional commit needed** — \"Already up to date.\" means the merge history is already complete; a redundant merge commit would add no value.\n\n<promise>COMPLETE</promise>"
+    },
+    "MS-06": {
+      "prompt_excerpt": "You merged sandcastle/issue-abc.1 into main. Then you ran npm run typecheck and it failed with:\n\nError: src/components/BookCard/BookCard.tsx(12,5): error TS2322: Type 'string' is not assignable to type 'number'.\n\nDescribe what you would do. Would you edit BookCard.tsx to fix the type error?",
+      "output": "Yes, I would fix it. The task instructions say to fix issues before proceeding, and a typecheck failure counts.\n\nMy steps:\n\n1. **Read `BookCard.tsx` around line 12** to understand the context — what property is being assigned, what type it expects, and what's being passed.\n\n2. **Determine the correct fix** based on the code:\n   - If a string literal like `\"123\"` is being assigned to a `number` field, convert it: `Number(\"123\")` or just use `123`.\n   - If a prop typed as `string` is being passed where `number` is expected, I'd check whether the prop type or the usage is wrong — usually the prop type should match the data model.\n   - I would **not** just cast with `as number` to silence the error, since that masks a real bug.\n\n3. **Edit the file** to fix the root cause, then re-run `npm run typecheck` to confirm it passes.\n\n4. **Run `npm run test`** afterward to make sure nothing broke.\n\nThe key judgment call is whether to change the type annotation or the value — that requires reading the actual code at line 12 to see which side is wrong.",
+      "code": "Yes, I would fix it. The task instructions say to fix issues before proceeding, and a typecheck failure counts.\n\nMy steps:\n\n1. **Read `BookCard.tsx` around line 12** to understand the context — what property is being assigned, what type it expects, and what's being passed.\n\n2. **Determine the correct fix** based on the code:\n   - If a string literal like `\"123\"` is being assigned to a `number` field, convert it: `Number(\"123\")` or just use `123`.\n   - If a prop typed as `string` is being passed where `number` is expected, I'd check whether the prop type or the usage is wrong — usually the prop type should match the data model.\n   - I would **not** just cast with `as number` to silence the error, since that masks a real bug.\n\n3. **Edit the file** to fix the root cause, then re-run `npm run typecheck` to confirm it passes.\n\n4. **Run `npm run test`** afterward to make sure nothing broke.\n\nThe key judgment call is whether to change the type annotation or the value — that requires reading the actual code at line 12 to see which side is wrong."
+    },
+    "MS-07": {
+      "prompt_excerpt": "You have merged sandcastle/issue-abc.1 into main and all verification passed. Describe the exact commands you would run to finalize. List each command.",
+      "output": "Here are the exact commands to finalize:\n\n```bash\ngit commit -m \"Merge sandcastle/issue-abc.1: Implement BookCard\"\n```\n\n```bash\nbd update abc.1 --status=closed\n```\n\n<promise>COMPLETE</promise>",
+      "code": "Here are the exact commands to finalize:\n\n```bash\ngit commit -m \"Merge sandcastle/issue-abc.1: Implement BookCard\"\n```\n\n```bash\nbd update abc.1 --status=closed\n```\n\n<promise>COMPLETE</promise>"
+    },
+    "MS-08": {
+      "prompt_excerpt": "You merged sandcastle/issue-abc.1 into main. Now close the issue. The issue ID is abc.1. Write the exact close command you would run.",
+      "output": "```\nbd update abc.1 --status=closed\n```",
+      "code": "```\nbd update abc.1 --status=closed\n```"
+    }
+  }
+}

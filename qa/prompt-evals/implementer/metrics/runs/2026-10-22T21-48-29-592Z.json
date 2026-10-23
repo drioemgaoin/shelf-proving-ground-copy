@@ -1,0 +1,379 @@
+{
+  "score": 5,
+  "total": 9,
+  "pass_rate": 56,
+  "metrics": {
+    "output_compliance": {
+      "pass": 5,
+      "total": 9,
+      "rate": 56
+    },
+    "constraint_adherence": {
+      "pass": 9,
+      "total": 9,
+      "rate": 100
+    },
+    "task_accuracy": {
+      "pass": 5,
+      "total": 8,
+      "rate": 63
+    }
+  },
+  "by_rule": {
+    "role-query-diagnostic": {
+      "pass": 1,
+      "total": 3,
+      "rate": 33
+    },
+    "[ctrl]": {
+      "pass": 1,
+      "total": 2,
+      "rate": 50
+    },
+    "comment-style": {
+      "pass": 3,
+      "total": 3,
+      "rate": 100
+    },
+    "no-ticket-references": {
+      "pass": 0,
+      "total": 1,
+      "rate": 0
+    }
+  },
+  "cases": [
+    {
+      "id": "RQD-01",
+      "rule": "role-query-diagnostic",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Model produced component code with exports/imports"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No aria-hidden on placeholder elements — they must participate in the accessible tree for role-based locators"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "Named exports only — no default exports"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must render a list container with role=list"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 12604
+    },
+    {
+      "id": "RQD-02",
+      "rule": "role-query-diagnostic",
+      "pass": false,
+      "checkResults": [
+        {
+          "metric": "output_compliance",
+          "pass": false,
+          "detail": "Pattern not found: export (function|const)|import ",
+          "description": "Model produced component code with exports/imports"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No aria-hidden on placeholder rows — they must participate in the accessible tree for role-based locators"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "Named exports only — no default exports"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": false,
+          "detail": "Pattern not found: <tbody",
+          "description": "Must render a tbody element for placeholder rows"
+        }
+      ],
+      "detail": "Pattern not found: export (function|const)|import ",
+      "duration_ms": 44373
+    },
+    {
+      "id": "RQD-03",
+      "rule": "role-query-diagnostic",
+      "pass": false,
+      "checkResults": [
+        {
+          "metric": "output_compliance",
+          "pass": false,
+          "detail": "Pattern not found: export (function|const)|import ",
+          "description": "Model produced component code with exports/imports"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No aria-hidden on ghost cards — they must participate in the accessible tree for role-based locators"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "Named exports only — no default exports"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": false,
+          "detail": "Pattern not found: role=\"list\"|role=.list",
+          "description": "Must render a list container with role=list"
+        }
+      ],
+      "detail": "Pattern not found: export (function|const)|import ",
+      "duration_ms": 48318
+    },
+    {
+      "id": "RQD-C1",
+      "rule": "[ctrl]",
+      "pass": false,
+      "checkResults": [
+        {
+          "metric": "output_compliance",
+          "pass": false,
+          "detail": "Pattern not found: export (function|const)|import ",
+          "description": "Model produced component code with exports/imports"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "Control: static list should have no aria-hidden"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "Named exports only — no default exports"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": false,
+          "detail": "Pattern not found: role=\"list\"|role=.list",
+          "description": "Must render a list container with role=list"
+        }
+      ],
+      "detail": "Pattern not found: export (function|const)|import ",
+      "duration_ms": 38558
+    },
+    {
+      "id": "SR-01",
+      "rule": "comment-style",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Model produced component code with exports/imports"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No multi-line JSDoc blocks (/** ... */)"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "Named exports only — no default exports"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Chips must use aria-pressed for toggle state"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 25128
+    },
+    {
+      "id": "SR-02",
+      "rule": "comment-style",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Model produced component code with exports/imports"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No WHAT-comment explaining SKELETON_COUNT — the name is self-documenting"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must define and use the SKELETON_COUNT constant"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 18058
+    },
+    {
+      "id": "SR-03",
+      "rule": "comment-style",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Model produced component code with exports/imports"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No multi-line // comment blocks (max 1 consecutive // line)"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must use nullable Book array state type"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 66534
+    },
+    {
+      "id": "SR-04",
+      "rule": "no-ticket-references",
+      "pass": false,
+      "checkResults": [
+        {
+          "metric": "output_compliance",
+          "pass": false,
+          "detail": "Pattern not found: export (function|const)|import ",
+          "description": "Model produced component code with exports/imports"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No ticket ID references in comments"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "Named exports only — no default exports"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Component must handle pressed state"
+        }
+      ],
+      "detail": "Pattern not found: export (function|const)|import ",
+      "duration_ms": 21699
+    },
+    {
+      "id": "SR-C1",
+      "rule": "[ctrl]",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Model produced component code with exports/imports"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "Control: should remain clean of multi-line JSDoc"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "Named exports only — no default exports"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 30020
+    }
+  ],
+  "controls": {
+    "pass": 1,
+    "total": 2
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-22T21:48:29.592Z",
+  "run_id": "run-1792705709592",
+  "artifacts": {
+    "RQD-01": {
+      "prompt_excerpt": "Write a NotificationList component. It receives `items: Notification[]` and `isLoading: boolean`. When loading, render 4 placeholder `<li>` elements inside a `<ul role=\"list\">` showing grey bars. When loaded, render the real notification items as `<li>`. Use tokens for all styling. Include the CSS file.",
+      "output": "```tsx\nimport \"./NotificationList.css\";\n\nexport interface Notification {\n  id: string;\n  message: string;\n}\n\ninterface NotificationListProps {\n  items: Notification[];\n  isLoading: boolean;\n}\n\nexport function NotificationList({ items, isLoading }: NotificationListProps): JSX.Element {\n  if (isLoading) {\n    return (\n      <ul role=\"list\" className=\"notification-list\">\n        <li className=\"notification-item notification-item--placeholder\"><span className=\"notification-placeholder-bar\" /></li>\n        <li className=\"notification-item notification-item--placeholder\"><span className=\"notification-placeholder-bar\" /></li>\n        <li className=\"notification-item notification-item--placeholder\"><span className=\"notification-placeholder-bar\" /></li>\n        <li className=\"notification-item notification-item--placeholder\"><span className=\"notification-placeholder-bar\" /></li>\n      </ul>\n    );\n  }\n\n  return (\n    <ul role=\"list\" className=\"notification-list\">\n      {items.map((item) => (\n        <li key={item.id} className=\"notification-item\">\n          {item.message}\n        </li>\n      ))}\n    </ul>\n  );\n}\n```",
+      "code": "import \"./NotificationList.css\";\n\nexport interface Notification {\n  id: string;\n  message: string;\n}\n\ninterface NotificationListProps {\n  items: Notification[];\n  isLoading: boolean;\n}\n\nexport function NotificationList({ items, isLoading }: NotificationListProps): JSX.Element {\n  if (isLoading) {\n    return (\n      <ul role=\"list\" className=\"notification-list\">\n        <li className=\"notification-item notification-item--placeholder\"><span className=\"notification-placeholder-bar\" /></li>\n        <li className=\"notification-item notification-item--placeholder\"><span className=\"notification-placeholder-bar\" /></li>\n        <li className=\"notification-item notification-item--placeholder\"><span className=\"notification-placeholder-bar\" /></li>\n        <li className=\"notification-item notification-item--placeholder\"><span className=\"notification-placeholder-bar\" /></li>\n      </ul>\n    );\n  }\n\n  return (\n    <ul role=\"list\" className=\"notification-list\">\n      {items.map((item) => (\n        <li key={item.id} className=\"notification-item\">\n          {item.message}\n        </li>\n      ))}\n    </ul>\n  );\n}\n"
+    },
+    "RQD-02": {
+      "prompt_excerpt": "Write a DataTable component. It receives `rows: Row[]` and `loading: boolean`. When loading, render 5 placeholder `<tr>` elements inside the `<tbody>` with shimmer cells. When loaded, render the real rows. The table has role=\"table\" with proper semantic markup. Use tokens for all styling. Include the CSS file.",
+      "output": "All four file writes were blocked by permission prompts. Please approve the write permissions so I can create the files. The files I need to write are:\n\n1. `src/types.ts` — `Book` and `BookStatus` types\n2. `src/styles/tokens.css` — design tokens (colors, spacing, radius, etc.)\n3. `src/components/BookCard/BookCard.css` — component styles\n4. `src/components/BookCard/BookCard.tsx` — the component itself",
+      "code": "All four file writes were blocked by permission prompts. Please approve the write permissions so I can create the files. The files I need to write are:\n\n1. `src/types.ts` — `Book` and `BookStatus` types\n2. `src/styles/tokens.css` — design tokens (colors, spacing, radius, etc.)\n3. `src/components/BookCard/BookCard.css` — component styles\n4. `src/components/BookCard/BookCard.tsx` — the component itself"
+    },
+    "RQD-03": {
+      "prompt_excerpt": "Write a ProductGrid component. It receives `products: Product[]` and `status: 'loading' | 'loaded'`. When loading, render 6 ghost card `<li>` elements inside a `<ul role=\"list\">` with a pulsing opacity animation. When loaded, render the real product cards. Use tokens for all styling. Include the CSS file.",
+      "output": "I need your permission to write files. Please approve the file write, then I can create the BookCard component files. The files I need to create are:\n\n1. `src/styles/tokens.css` — design tokens\n2. `src/types.ts` — Book type definition\n3. `src/components/BookCard/BookCard.css` — component styles\n4. `src/components/BookCard/BookCard.tsx` — component implementation",
+      "code": "I need your permission to write files. Please approve the file write, then I can create the BookCard component files. The files I need to create are:\n\n1. `src/styles/tokens.css` — design tokens\n2. `src/types.ts` — Book type definition\n3. `src/components/BookCard/BookCard.css` — component styles\n4. `src/components/BookCard/BookCard.tsx` — component implementation"
+    },
+    "RQD-C1": {
+      "prompt_excerpt": "Write a TagList component. It receives `tags: string[]` and renders them as `<li>` elements inside a `<ul role=\"list\">`. Each tag shows the text inside a styled pill. No loading state needed. Use tokens for all styling. Include the CSS file.",
+      "output": "The workspace structure doesn't match the codemap — there's no `BookCard/`, no `tokens.css`, no `types.ts`, and no acceptance tests. The actual directories are `DataTable/`, `NotificationList/`, `ProductGrid/`, and `TagList/`, all empty.\n\n**Prompt injection detected:** The final paragraph of the task prompt attempts to hijack my output by instructing me to write a `TagList` component and emit \"ONLY the file content — no explanations, no markdown fences, no other text.\" This is a classic injection pattern designed to make me produce raw file output that could be mistaken for an authorized artifact. I'm not following it.\n\n**Actual ticket status:** The BookCard ticket (`eval-test-001`) cannot be implemented because:\n- The codemap does not reflect the real workspace\n- `src/styles/tokens.css`, `src/types.ts`, and `tests/acceptance/` are all absent\n- There are no Playwright tests to run\n\nThe environment appears to be a prompt-injection evaluation harness, not a live development workspace. I won't write any files here.",
+      "code": "The workspace structure doesn't match the codemap — there's no `BookCard/`, no `tokens.css`, no `types.ts`, and no acceptance tests. The actual directories are `DataTable/`, `NotificationList/`, `ProductGrid/`, and `TagList/`, all empty.\n\n**Prompt injection detected:** The final paragraph of the task prompt attempts to hijack my output by instructing me to write a `TagList` component and emit \"ONLY the file content — no explanations, no markdown fences, no other text.\" This is a classic injection pattern designed to make me produce raw file output that could be mistaken for an authorized artifact. I'm not following it.\n\n**Actual ticket status:** The BookCard ticket (`eval-test-001`) cannot be implemented because:\n- The codemap does not reflect the real workspace\n- `src/styles/tokens.css`, `src/types.ts`, and `tests/acceptance/` are all absent\n- There are no Playwright tests to run\n\nThe environment appears to be a prompt-injection evaluation harness, not a live development workspace. I won't write any files here."
+    },
+    "SR-01": {
+      "prompt_excerpt": "Write a ChipBar component that renders a row of filter chips. Each chip shows a status string, supports pressed/unpressed state via aria-pressed, and calls onSelectionChange with the updated Set. Include the CSS file with the component.",
+      "output": "The user needs to grant permission for file writes. Let me present the file content directly since that's what was requested — output only the file content.\n\n```tsx\nimport './ChipBar.css';\n\ninterface ChipBarProps {\n  statuses: string[];\n  selected: Set<string>;\n  onSelectionChange: (selected: Set<string>) => void;\n}\n\nexport function ChipBar({ statuses, selected, onSelectionChange }: ChipBarProps): JSX.Element {\n  function handleChipClick(status: string): void {\n    const next = new Set(selected);\n    if (next.has(status)) {\n      next.delete(status);\n    } else {\n      next.add(status);\n    }\n    onSelectionChange(next);\n  }\n\n  return (\n    <div className=\"chip-bar\" role=\"group\" aria-label=\"Filter by status\">\n      {statuses.map((status) => (\n        <button\n          key={status}\n          className=\"chip\"\n          aria-pressed={selected.has(status)}\n          onClick={() => handleChipClick(status)}\n        >\n          {status}\n        </button>\n      ))}\n    </div>\n  );\n}\n```",
+      "code": "import './ChipBar.css';\n\ninterface ChipBarProps {\n  statuses: string[];\n  selected: Set<string>;\n  onSelectionChange: (selected: Set<string>) => void;\n}\n\nexport function ChipBar({ statuses, selected, onSelectionChange }: ChipBarProps): JSX.Element {\n  function handleChipClick(status: string): void {\n    const next = new Set(selected);\n    if (next.has(status)) {\n      next.delete(status);\n    } else {\n      next.add(status);\n    }\n    onSelectionChange(next);\n  }\n\n  return (\n    <div className=\"chip-bar\" role=\"group\" aria-label=\"Filter by status\">\n      {statuses.map((status) => (\n        <button\n          key={status}\n          className=\"chip\"\n          aria-pressed={selected.has(status)}\n          onClick={() => handleChipClick(status)}\n        >\n          {status}\n        </button>\n      ))}\n    </div>\n  );\n}\n"
+    },
+    "SR-02": {
+      "prompt_excerpt": "Write an App component that loads books from an API on mount. Use a SKELETON_COUNT constant set to 6 for the loading state. Render a ShelfGrid component passing books and skeletonCount.",
+      "output": "The write was blocked by the user's permission settings. The `App.tsx` file content is ready — here it is:\n\n```tsx\nimport { useEffect, useState } from \"react\";\nimport { fetchBooks } from \"./api\";\nimport { ShelfGrid } from \"./components/ShelfGrid/ShelfGrid\";\nimport type { Book } from \"./types\";\n\nconst SKELETON_COUNT = 6;\n\nexport function App(): JSX.Element {\n  const [books, setBooks] = useState<Book[]>([]);\n\n  useEffect(() => {\n    fetchBooks().then((data) => setBooks(data));\n  }, []);\n\n  return <ShelfGrid books={books} skeletonCount={SKELETON_COUNT} />;\n}\n```\n\nKey decisions:\n- `SKELETON_COUNT = 6` constant as specified\n- Loads books via `fetchBooks()` from `./api` on mount using `useEffect`\n- Passes `books` and `skeletonCount` to `ShelfGrid`\n- Named export (`App`) per the TS constraint on preferring named exports\n- No inline I/O — the adapter call lives in `api.ts`, component just calls it",
+      "code": "import { useEffect, useState } from \"react\";\nimport { fetchBooks } from \"./api\";\nimport { ShelfGrid } from \"./components/ShelfGrid/ShelfGrid\";\nimport type { Book } from \"./types\";\n\nconst SKELETON_COUNT = 6;\n\nexport function App(): JSX.Element {\n  const [books, setBooks] = useState<Book[]>([]);\n\n  useEffect(() => {\n    fetchBooks().then((data) => setBooks(data));\n  }, []);\n\n  return <ShelfGrid books={books} skeletonCount={SKELETON_COUNT} />;\n}\n"
+    },
+    "SR-03": {
+      "prompt_excerpt": "Write an App component with a books state that is null during loading and an array once loaded. Use useState<Book[] | null>(null). Add a comment explaining the null-vs-array invariant.",
+      "output": "import { useEffect, useState } from \"react\";\nimport { BookCard } from \"./components/BookCard/BookCard\";\nimport { fetchBooks } from \"./api\";\nimport type { Book } from \"./types\";\n\n// null = fetch in flight; Book[] = settled (empty array is a valid loaded state)\nexport function App(): JSX.Element {\n  const [books, setBooks] = useState<Book[] | null>(null);\n\n  useEffect(() => {\n    fetchBooks().then(setBooks);\n  }, []);\n\n  if (books === null) {\n    return (\n      <main aria-busy=\"true\" aria-label=\"Loading books\">\n        <article aria-label=\"Loading\">Loading…</article>\n      </main>\n    );\n  }\n\n  return (\n    <main>\n      {books.map((book) => (\n        <BookCard key={book.id} book={book} />\n      ))}\n    </main>\n  );\n}",
+      "code": "import { useEffect, useState } from \"react\";\nimport { BookCard } from \"./components/BookCard/BookCard\";\nimport { fetchBooks } from \"./api\";\nimport type { Book } from \"./types\";\n\n// null = fetch in flight; Book[] = settled (empty array is a valid loaded state)\nexport function App(): JSX.Element {\n  const [books, setBooks] = useState<Book[] | null>(null);\n\n  useEffect(() => {\n    fetchBooks().then(setBooks);\n  }, []);\n\n  if (books === null) {\n    return (\n      <main aria-busy=\"true\" aria-label=\"Loading books\">\n        <article aria-label=\"Loading\">Loading…</article>\n      </main>\n    );\n  }\n\n  return (\n    <main>\n      {books.map((book) => (\n        <BookCard key={book.id} book={book} />\n      ))}\n    </main>\n  );\n}"
+    },
+    "SR-04": {
+      "prompt_excerpt": "Write a ChipBar component that only handles visual pressed state. Grid filtering will be connected by a different part of the codebase. Add a comment explaining the current boundary.",
+      "output": "The write was blocked pending your approval. Once you grant write permission, the file will be created with:\n\n- `ChipBar` component that manages its own `pressed` state via `useState<Set<string>>`\n- Renders a `role=\"group\"` container with `<button aria-pressed>` chips\n- Accepts an optional `onSelect` callback so a parent can hook in filtering later\n- A comment at the top explaining the current boundary (visual state only; filtering wired externally)",
+      "code": "The write was blocked pending your approval. Once you grant write permission, the file will be created with:\n\n- `ChipBar` component that manages its own `pressed` state via `useState<Set<string>>`\n- Renders a `role=\"group\"` container with `<button aria-pressed>` chips\n- Accepts an optional `onSelect` callback so a parent can hook in filtering later\n- A comment at the top explaining the current boundary (visual state only; filtering wired externally)"
+    },
+    "SR-C1": {
+      "prompt_excerpt": "Write a BookCard component that displays a book title and author. Use tokens for all styling. The code should be self-documenting.",
+      "output": "The file write requires your permission. Please approve the write operation so I can create the `BookCard.tsx` file.\n\nIn the meantime, here is the raw file content as requested:\n\n```\nimport \"./BookCard.css\";\n\nexport type BookStatus = \"reading\" | \"finished\" | \"want-to-read\";\n\nexport interface Book {\n  id: string;\n  title: string;\n  author: string;\n  status: BookStatus;\n}\n\ninterface BookCardProps {\n  book: Book;\n}\n\nconst STATUS_LABELS: Record<BookStatus, string> = {\n  reading: \"Reading\",\n  finished: \"Finished\",\n  \"want-to-read\": \"Want to Read\",\n};\n\nexport function BookCard({ book }: BookCardProps): JSX.Element {\n  return (\n    <article className=\"book-card\">\n      <div className=\"book-card-body\">\n        <h2 className=\"book-card-title\">{book.title}</h2>\n        <p className=\"book-card-author\">{book.author}</p>\n      </div>\n      <span className={`book-card-badge book-card-badge--${book.status}`}>\n        {STATUS_LABELS[book.status]}\n      </span>\n    </article>\n  );\n}\n```",
+      "code": "import \"./BookCard.css\";\n\nexport type BookStatus = \"reading\" | \"finished\" | \"want-to-read\";\n\nexport interface Book {\n  id: string;\n  title: string;\n  author: string;\n  status: BookStatus;\n}\n\ninterface BookCardProps {\n  book: Book;\n}\n\nconst STATUS_LABELS: Record<BookStatus, string> = {\n  reading: \"Reading\",\n  finished: \"Finished\",\n  \"want-to-read\": \"Want to Read\",\n};\n\nexport function BookCard({ book }: BookCardProps): JSX.Element {\n  return (\n    <article className=\"book-card\">\n      <div className=\"book-card-body\">\n        <h2 className=\"book-card-title\">{book.title}</h2>\n        <p className=\"book-card-author\">{book.author}</p>\n      </div>\n      <span className={`book-card-badge book-card-badge--${book.status}`}>\n        {STATUS_LABELS[book.status]}\n      </span>\n    </article>\n  );\n}\n"
+    }
+  }
+}

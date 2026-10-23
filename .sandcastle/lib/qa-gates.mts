@@ -232,21 +232,18 @@ async function runChecker(
 
 /**
  * Verification: run typecheck + lint + tests and return structured failures.
+ *
+ * Runs inside the sandbox (Docker) via sandbox.exec() — NOT on the host.
+ * The worktree's node_modules is a symlink to /warm/node_modules which only
+ * exists inside Docker; host-side execSync would crash with ENOTDIR.
  */
-function runVerification(
+async function runVerification(
   verifyCommand: string,
   ctx: GateContext,
-): Array<{ file: string; line: number; message: string }> {
-  try {
-    execSync(verifyCommand, {
-      cwd: ctx.worktree,
-      encoding: "utf8",
-      maxBuffer: 256 * 1024 * 1024,
-    });
-    return [];
-  } catch (e: any) {
-    return parseVerificationFailures((e.stdout ?? "") + (e.stderr ?? ""));
-  }
+): Promise<Array<{ file: string; line: number; message: string }>> {
+  const result = await ctx.sandbox.exec(verifyCommand);
+  if (result.exitCode === 0) return [];
+  return parseVerificationFailures((result.stdout ?? "") + (result.stderr ?? ""));
 }
 
 /**
@@ -295,7 +292,7 @@ export async function runVerifiedFixer(
     }
 
     // Verify: what's still broken?
-    const failures = runVerification(fixer.verifyCommand, ctx);
+    const failures = await runVerification(fixer.verifyCommand, ctx);
     if (failures.length === 0) {
       log(`  All findings fixed after pass ${pass}.`);
       return;

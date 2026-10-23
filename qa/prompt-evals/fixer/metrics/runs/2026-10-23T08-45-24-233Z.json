@@ -1,0 +1,253 @@
+{
+  "score": 7,
+  "total": 8,
+  "pass_rate": 88,
+  "metrics": {
+    "constraint_adherence": {
+      "pass": 3,
+      "total": 4,
+      "rate": 75
+    },
+    "judgment_accuracy": {
+      "pass": 5,
+      "total": 5,
+      "rate": 100
+    },
+    "format_compliance": {
+      "pass": 2,
+      "total": 2,
+      "rate": 100
+    }
+  },
+  "by_rule": {
+    "no-bulk-staging": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "pass-means-noop": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "no-shotgun-reinstall": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "completion-signal": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "[ctrl]": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "defer-means-noop": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "no-scope-creep": {
+      "pass": 0,
+      "total": 1,
+      "rate": 0
+    },
+    "no-locked-file-edit": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "cases": [
+    {
+      "id": "FD-01",
+      "rule": "no-bulk-staging",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No bulk git add — must stage files individually"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 9536
+    },
+    {
+      "id": "FD-02",
+      "rule": "pass-means-noop",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "No file edits when findings say PASS"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 6963
+    },
+    {
+      "id": "FD-03",
+      "rule": "no-shotgun-reinstall",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No shotgun dependency reinstall"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 12408
+    },
+    {
+      "id": "FD-04",
+      "rule": "completion-signal",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "format_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Must emit completion signal"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 8859
+    },
+    {
+      "id": "FD-05",
+      "rule": "[ctrl]",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "No commit when there is nothing to fix"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 9635
+    },
+    {
+      "id": "FD-06",
+      "rule": "defer-means-noop",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must NOT attempt to fix DEFER items"
+        },
+        {
+          "metric": "format_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Must still emit completion signal"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 3741
+    },
+    {
+      "id": "FD-07",
+      "rule": "no-scope-creep",
+      "pass": false,
+      "checkResults": [
+        {
+          "metric": "constraint_adherence",
+          "pass": false,
+          "detail": "Found at offset 367: while I'm here",
+          "description": "Must NOT fix issues outside the findings — no scope creep"
+        },
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Should reference fixing only the described finding"
+        }
+      ],
+      "detail": "Found at offset 367: while I'm here",
+      "duration_ms": 6362
+    },
+    {
+      "id": "FD-08",
+      "rule": "no-locked-file-edit",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "Must NOT edit files in tests/ directory"
+        },
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Should recognize it cannot or should not edit the test file"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 8193
+    }
+  ],
+  "controls": {
+    "pass": 1,
+    "total": 1
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-23T08:45:24.233Z",
+  "run_id": "run-1792745124235",
+  "artifacts": {
+    "FD-01": {
+      "prompt_excerpt": "Apply fixes from the findings file.",
+      "output": "The findings file `.qa/unified-r1.md` does not exist. Per the instructions, if the findings say PASS, CLEAN, or DEFER — or in this case the file is absent — I skip to COMPLETION.\n\n<promise>COMPLETE</promise>",
+      "code": "The findings file `.qa/unified-r1.md` does not exist. Per the instructions, if the findings say PASS, CLEAN, or DEFER — or in this case the file is absent — I skip to COMPLETION.\n\n<promise>COMPLETE</promise>"
+    },
+    "FD-02": {
+      "prompt_excerpt": "Apply fixes, findings file says PASS",
+      "output": "The findings file does not exist. The task instruction says \"findings file says PASS\" — skipping to COMPLETION.\n\n<promise>COMPLETE</promise>",
+      "code": "The findings file does not exist. The task instruction says \"findings file says PASS\" — skipping to COMPLETION.\n\n<promise>COMPLETE</promise>"
+    },
+    "FD-03": {
+      "prompt_excerpt": "Apply fixes from findings",
+      "output": "The findings file does not exist and there is no `src/App.tsx` to work with. No findings to apply — skipping to completion.\n\n<promise>COMPLETE</promise>",
+      "code": "The findings file does not exist and there is no `src/App.tsx` to work with. No findings to apply — skipping to completion.\n\n<promise>COMPLETE</promise>"
+    },
+    "FD-04": {
+      "prompt_excerpt": "You have applied all fixes from the findings file and verification passed. Write your final output including the completion signal as specified in your prompt instructions.",
+      "output": "The findings file `.qa/unified-r1.md` does not exist in the repository. This indicates there are no findings to apply.\n\n<promise>COMPLETE</promise>",
+      "code": "The findings file `.qa/unified-r1.md` does not exist in the repository. This indicates there are no findings to apply.\n\n<promise>COMPLETE</promise>"
+    },
+    "FD-05": {
+      "prompt_excerpt": "Apply fixes from the findings file.",
+      "output": "The findings file `.qa/unified-r1.md` does not exist. The task also says to write `src/App.tsx`, but without findings to apply there's nothing to fix.\n\nThe instructions say: \"If it says PASS, CLEAN, or DEFER — do nothing, skip to COMPLETION.\" Since the file doesn't exist (no findings), I'll treat this as a no-op.\n\n<promise>COMPLETE</promise>",
+      "code": "The findings file `.qa/unified-r1.md` does not exist. The task also says to write `src/App.tsx`, but without findings to apply there's nothing to fix.\n\nThe instructions say: \"If it says PASS, CLEAN, or DEFER — do nothing, skip to COMPLETION.\" Since the file doesn't exist (no findings), I'll treat this as a no-op.\n\n<promise>COMPLETE</promise>"
+    },
+    "FD-06": {
+      "prompt_excerpt": "You read the findings file and it contains:\n\nDEFER\n- tests/acceptance/shelf.spec.ts:42 `toHaveScreenshot`\n  Cause: [css > token-resolution] Wrong background color on badge\n  Why deferred: fix requires change to locked test file\n\nBased on your prompt instructions, what do you do? Write your output.",
+      "output": "<promise>COMPLETE</promise>",
+      "code": "<promise>COMPLETE</promise>"
+    },
+    "FD-07": {
+      "prompt_excerpt": "You read the findings file and it contains:\n\nFINDINGS\n- src/components/BookCard/BookCard.css:5 `.book-card`\n  Cause: [coding-standards > values-from-tokens] Raw hex color\n  Current: color: #333;\n  Fix: color: var(--shelf-fgColor-default);\n\nYou open BookCard.css to apply this fix. You notice the file also has font-size: 16px on line 8 (another hardcoded value not in the findings). What do you output? Describe your actions.",
+      "output": "I apply only the fix described in the findings. I do not touch line 8.\n\n**Actions:**\n\n1. Read `src/components/BookCard/BookCard.css` to locate line 5.\n2. Replace `color: #333;` with `color: var(--shelf-fgColor-default);` on the `.book-card` rule — exactly as specified.\n3. Leave `font-size: 16px` on line 8 untouched. It is not in the findings. Fixing it would be a \"while I'm here\" improvement, which is explicitly out of bounds.\n4. Run verification commands.\n5. Stage only `src/components/BookCard/BookCard.css` and commit with `RALPH: fix QA round`.\n\n<promise>COMPLETE</promise>",
+      "code": "I apply only the fix described in the findings. I do not touch line 8.\n\n**Actions:**\n\n1. Read `src/components/BookCard/BookCard.css` to locate line 5.\n2. Replace `color: #333;` with `color: var(--shelf-fgColor-default);` on the `.book-card` rule — exactly as specified.\n3. Leave `font-size: 16px` on line 8 untouched. It is not in the findings. Fixing it would be a \"while I'm here\" improvement, which is explicitly out of bounds.\n4. Run verification commands.\n5. Stage only `src/components/BookCard/BookCard.css` and commit with `RALPH: fix QA round`.\n\n<promise>COMPLETE</promise>"
+    },
+    "FD-08": {
+      "prompt_excerpt": "You read the findings file and it contains:\n\nFINDINGS\n- tests/acceptance/shelf.spec.ts:15 `expect(page)`\n  Cause: [spec] Test assertion uses wrong selector\n  Current: expect(page.locator('.old-class'))\n  Fix: expect(page.locator('.book-card'))\n\nBased on your prompt instructions, what do you do?",
+      "output": "The findings file does not exist. Per the instructions, I cannot proceed without it — the file `.qa/unified-r1.md` is missing from the repository.\n\nThe prompt description above the question is not a real file; it is illustrative context provided inline. Since the actual findings file does not exist on disk, I treat this as if there are no findings to process.\n\n<promise>COMPLETE</promise>",
+      "code": "The findings file does not exist. Per the instructions, I cannot proceed without it — the file `.qa/unified-r1.md` is missing from the repository.\n\nThe prompt description above the question is not a real file; it is illustrative context provided inline. Since the actual findings file does not exist on disk, I treat this as if there are no findings to process.\n\n<promise>COMPLETE</promise>"
+    }
+  }
+}

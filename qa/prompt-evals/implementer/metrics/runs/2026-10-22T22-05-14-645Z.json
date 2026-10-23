@@ -1,0 +1,379 @@
+{
+  "score": 9,
+  "total": 9,
+  "pass_rate": 100,
+  "metrics": {
+    "output_compliance": {
+      "pass": 9,
+      "total": 9,
+      "rate": 100
+    },
+    "constraint_adherence": {
+      "pass": 9,
+      "total": 9,
+      "rate": 100
+    },
+    "task_accuracy": {
+      "pass": 8,
+      "total": 8,
+      "rate": 100
+    }
+  },
+  "by_rule": {
+    "role-query-diagnostic": {
+      "pass": 3,
+      "total": 3,
+      "rate": 100
+    },
+    "[ctrl]": {
+      "pass": 2,
+      "total": 2,
+      "rate": 100
+    },
+    "comment-style": {
+      "pass": 3,
+      "total": 3,
+      "rate": 100
+    },
+    "no-ticket-references": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "cases": [
+    {
+      "id": "RQD-01",
+      "rule": "role-query-diagnostic",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Model produced component code with exports/imports"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No aria-hidden on placeholder elements — they must participate in the accessible tree for role-based locators"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "Named exports only — no default exports"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must render a list container with role=list"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 25785
+    },
+    {
+      "id": "RQD-02",
+      "rule": "role-query-diagnostic",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Model produced component code with exports/imports"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No aria-hidden on placeholder rows — they must participate in the accessible tree for role-based locators"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "Named exports only — no default exports"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must render a tbody element for placeholder rows"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 94118
+    },
+    {
+      "id": "RQD-03",
+      "rule": "role-query-diagnostic",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Model produced component code with exports/imports"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No aria-hidden on ghost cards — they must participate in the accessible tree for role-based locators"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "Named exports only — no default exports"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must render a list container with role=list"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 40877
+    },
+    {
+      "id": "RQD-C1",
+      "rule": "[ctrl]",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Model produced component code with exports/imports"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "Control: static list should have no aria-hidden"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "Named exports only — no default exports"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must render a list container with role=list"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 22485
+    },
+    {
+      "id": "SR-01",
+      "rule": "comment-style",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Model produced component code with exports/imports"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No multi-line JSDoc blocks (/** ... */)"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "Named exports only — no default exports"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Chips must use aria-pressed for toggle state"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 33869
+    },
+    {
+      "id": "SR-02",
+      "rule": "comment-style",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Model produced component code with exports/imports"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No WHAT-comment explaining SKELETON_COUNT — the name is self-documenting"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must define and use the SKELETON_COUNT constant"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 115551
+    },
+    {
+      "id": "SR-03",
+      "rule": "comment-style",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Model produced component code with exports/imports"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No multi-line // comment blocks (max 1 consecutive // line)"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must use nullable Book array state type"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 8816
+    },
+    {
+      "id": "SR-04",
+      "rule": "no-ticket-references",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Model produced component code with exports/imports"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No ticket ID references in comments"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "Named exports only — no default exports"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Component must handle pressed state"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 17770
+    },
+    {
+      "id": "SR-C1",
+      "rule": "[ctrl]",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Model produced component code with exports/imports"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "Control: should remain clean of multi-line JSDoc"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "Named exports only — no default exports"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 57162
+    }
+  ],
+  "controls": {
+    "pass": 2,
+    "total": 2
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-22T22:05:14.645Z",
+  "run_id": "run-1792706714647",
+  "artifacts": {
+    "RQD-01": {
+      "prompt_excerpt": "Write a NotificationList component. It receives `items: Notification[]` and `isLoading: boolean`. When loading, render 4 placeholder `<li>` elements inside a `<ul role=\"list\">` showing grey bars. When loaded, render the real notification items as `<li>`. Use tokens for all styling. Include the CSS file.",
+      "output": "The `NotificationList` component is written at `src/components/NotificationList/NotificationList.tsx` with its co-located CSS.\n\nKey implementation details:\n- `isLoading=true` renders 4 `<li>` placeholder elements inside `<ul role=\"list\">` — same element and role as real items (per constraint 7), so `getByRole` queries work identically in both states.\n- `isLoading=false` renders actual notification items.\n- All styling uses CSS custom property tokens; no raw values.\n- CSS is in `@layer component` with keyframe-free, transform/opacity-only animation policy respected (no animations needed here).\n- Named export, typed props, no `any`/`as`, no nested ternaries.",
+      "code": "import './NotificationList.css';\n\nexport interface Notification {\n  id: string;\n  message: string;\n}\n\ninterface NotificationListProps {\n  items: Notification[];\n  isLoading: boolean;\n}\n\nexport function NotificationList({ items, isLoading }: NotificationListProps): JSX.Element {\n  if (isLoading) {\n    return (\n      <ul role=\"list\" className=\"notification-list\">\n        {Array.from({ length: 4 }).map((_, i) => (\n          <li key={i} className=\"notification-item notification-item--placeholder\">\n            <span className=\"notification-placeholder-bar\" />\n          </li>\n        ))}\n      </ul>\n    );\n  }\n\n  return (\n    <ul role=\"list\" className=\"notification-list\">\n      {items.map((item) => (\n        <li key={item.id} className=\"notification-item\">\n          {item.message}\n        </li>\n      ))}\n    </ul>\n  );\n}\n"
+    },
+    "RQD-02": {
+      "prompt_excerpt": "Write a DataTable component. It receives `rows: Row[]` and `loading: boolean`. When loading, render 5 placeholder `<tr>` elements inside the `<tbody>` with shimmer cells. When loaded, render the real rows. The table has role=\"table\" with proper semantic markup. Use tokens for all styling. Include the CSS file.",
+      "output": "The `DataTable` component is written. Here's a summary of the key decisions:\n\n- **Placeholder rows** use `<tr>`/`<td>` (same elements as real rows) with no `aria-hidden`, so they remain visible to role queries like `getByRole('row')`.\n- **`@keyframes data-table-pulse`** is declared inside `@layer component {}` per the CSS constraint.\n- **Shimmer** animates only `opacity` (no `transform`), satisfying the motion constraint.\n- **Columns** are derived from the first row's keys (excluding `id`) at render time — no extra props needed.\n- **Loading state** shows 5 placeholder rows × 3 cells using `Array.from` with no `aria-hidden`.\n- All values come from tokens (`--space-*`, `--color-*`, `--radius-*`, `--motion-*`) — no raw values.",
+      "code": "import './DataTable.css';\n\nexport interface Row {\n  id: string;\n  [key: string]: string;\n}\n\ninterface DataTableProps {\n  rows: Row[];\n  loading: boolean;\n}\n\nconst PLACEHOLDER_ROW_COUNT = 5;\nconst PLACEHOLDER_CELL_COUNT = 3;\n\nfunction deriveColumns(rows: Row[]): string[] {\n  if (rows.length === 0) return [];\n  return Object.keys(rows[0]).filter((k) => k !== 'id');\n}\n\nexport function DataTable({ rows, loading }: DataTableProps): JSX.Element {\n  if (loading) {\n    return (\n      <table className=\"data-table\">\n        <tbody>\n          {Array.from({ length: PLACEHOLDER_ROW_COUNT }).map((_, rowIndex) => (\n            <tr key={rowIndex} className=\"data-table-row data-table-row--placeholder\">\n              {Array.from({ length: PLACEHOLDER_CELL_COUNT }).map((_, cellIndex) => (\n                <td key={cellIndex} className=\"data-table-cell data-table-cell--shimmer\">\n                  <span className=\"data-table-shimmer-bar\" />\n                </td>\n              ))}\n            </tr>\n          ))}\n        </tbody>\n      </table>\n    );\n  }\n\n  const columns = deriveColumns(rows);\n\n  return (\n    <table className=\"data-table\">\n      {columns.length > 0 && (\n        <thead>\n          <tr>\n            {columns.map((col) => (\n              <th key={col} className=\"data-table-header\">\n                {col}\n              </th>\n            ))}\n          </tr>\n        </thead>\n      )}\n      <tbody>\n        {rows.map((row) => (\n          <tr key={row.id} className=\"data-table-row\">\n            {columns.map((col) => (\n              <td key={col} className=\"data-table-cell\">\n                {row[col]}\n              </td>\n            ))}\n          </tr>\n        ))}\n      </tbody>\n    </table>\n  );\n}\n"
+    },
+    "RQD-03": {
+      "prompt_excerpt": "Write a ProductGrid component. It receives `products: Product[]` and `status: 'loading' | 'loaded'`. When loading, render 6 ghost card `<li>` elements inside a `<ul role=\"list\">` with a pulsing opacity animation. When loaded, render the real product cards. Use tokens for all styling. Include the CSS file.",
+      "output": "Both files are written:\n\n- **`ProductGrid.tsx`** — renders a `<ul role=\"list\">` with 6 ghost `<li>` elements (no `aria-hidden`) when `status === 'loading'`, or real product cards when `status === 'loaded'`. Ghost skeletons use the same `<li>` element as real cards so `getByRole('listitem')` counts them correctly.\n\n- **`ProductGrid.css`** — responsive grid (1 → 2 → 3 columns at 768/1024px), pulsing opacity animation (`opacity` only, inside `@layer component`, `@keyframes` inside the layer block), all values from `--shelf-*` tokens.",
+      "code": "import './ProductGrid.css';\n\nexport interface Product {\n  id: string;\n  name: string;\n  description: string;\n}\n\ninterface ProductGridProps {\n  products: Product[];\n  status: 'loading' | 'loaded';\n}\n\nconst GHOST_COUNT = 6;\n\nexport function ProductGrid({ products, status }: ProductGridProps): JSX.Element {\n  if (status === 'loading') {\n    return (\n      <ul role=\"list\" className=\"product-grid\">\n        {Array.from({ length: GHOST_COUNT }).map((_, i) => (\n          <li key={i} className=\"product-grid-card product-grid-card--ghost\">\n            <span className=\"product-grid-ghost-title\" />\n            <span className=\"product-grid-ghost-desc\" />\n          </li>\n        ))}\n      </ul>\n    );\n  }\n\n  return (\n    <ul role=\"list\" className=\"product-grid\">\n      {products.map((product) => (\n        <li key={product.id} className=\"product-grid-card\">\n          <h3 className=\"product-grid-card-name\">{product.name}</h3>\n          <p className=\"product-grid-card-desc\">{product.description}</p>\n        </li>\n      ))}\n    </ul>\n  );\n}\n"
+    },
+    "RQD-C1": {
+      "prompt_excerpt": "Write a TagList component. It receives `tags: string[]` and renders them as `<li>` elements inside a `<ul role=\"list\">`. Each tag shows the text inside a styled pill. No loading state needed. Use tokens for all styling. Include the CSS file.",
+      "output": "Created `src/components/TagList/TagList.tsx` and `src/components/TagList/TagList.css`.\n\nThe component renders a `<ul role=\"list\">` with each tag as a `<li>` containing a styled pill `<span>`. All styling uses `--shelf-*` tokens — no raw values.",
+      "code": "import './TagList.css';\n\ninterface TagListProps {\n  tags: string[];\n}\n\nexport function TagList({ tags }: TagListProps): JSX.Element {\n  return (\n    <ul role=\"list\" className=\"tag-list\">\n      {tags.map((tag) => (\n        <li key={tag} className=\"tag-list-item\">\n          <span className=\"tag-pill\">{tag}</span>\n        </li>\n      ))}\n    </ul>\n  );\n}\n"
+    },
+    "SR-01": {
+      "prompt_excerpt": "Write a ChipBar component that renders a row of filter chips. Each chip shows a status string, supports pressed/unpressed state via aria-pressed, and calls onSelectionChange with the updated Set. Include the CSS file with the component.",
+      "output": "The `ChipBar` component is written. It:\n\n- Renders a `role=\"group\"` container with flex-wrapped chips\n- Each chip is a `<button>` with `aria-pressed` reflecting its selection state\n- Clicking toggles the status in a new `Set` and calls `onSelectionChange`\n- CSS uses only semantic tokens, kebab-case selectors, and covers all interactive states (default, hover, focus-visible, active, pressed)",
+      "code": "import './ChipBar.css';\n\ninterface ChipBarProps {\n  statuses: string[];\n  selected: Set<string>;\n  onSelectionChange: (next: Set<string>) => void;\n}\n\nexport function ChipBar({ statuses, selected, onSelectionChange }: ChipBarProps): JSX.Element {\n  function handleClick(status: string): void {\n    const next = new Set(selected);\n    if (next.has(status)) {\n      next.delete(status);\n    } else {\n      next.add(status);\n    }\n    onSelectionChange(next);\n  }\n\n  return (\n    <div className=\"chip-bar\" role=\"group\">\n      {statuses.map((status) => (\n        <button\n          key={status}\n          className=\"chip\"\n          aria-pressed={selected.has(status)}\n          onClick={() => handleClick(status)}\n        >\n          {status}\n        </button>\n      ))}\n    </div>\n  );\n}\n"
+    },
+    "SR-02": {
+      "prompt_excerpt": "Write an App component that loads books from an API on mount. Use a SKELETON_COUNT constant set to 6 for the loading state. Render a ShelfGrid component passing books and skeletonCount.",
+      "output": "The pre-commit gate can't run (no `package.json` in the workspace — this is an eval environment). All source files have been created following the established patterns:\n\n- `src/types.ts` — `Book` interface with `id`, `title`, `author`, `status`\n- `src/api.ts` — `fetchBooks` adapter using `fetch`\n- `src/styles/tokens.css` — full `@layer base` with all `--shelf-*` tokens\n- `src/components/BookCard/BookCard.tsx` + `.css` — renders title, author, status badge\n- `src/components/ShelfGrid/ShelfGrid.tsx` + `.css` — grid with skeleton loading state\n- `src/App.tsx` — loads books on mount, `SKELETON_COUNT = 6`, renders `ShelfGrid`\n\n<promise>COMPLETE</promise>",
+      "code": "import { useEffect, useState } from 'react';\nimport './styles/tokens.css';\nimport { fetchBooks } from './api';\nimport { ShelfGrid } from './components/ShelfGrid/ShelfGrid';\nimport type { Book } from './types';\n\nconst SKELETON_COUNT = 6;\n\nexport function App(): JSX.Element {\n  // null = loading; array = loaded\n  const [books, setBooks] = useState<Book[] | null>(null);\n\n  useEffect(() => {\n    fetchBooks().then(setBooks).catch(() => setBooks([]));\n  }, []);\n\n  return (\n    <main>\n      <ShelfGrid books={books} skeletonCount={SKELETON_COUNT} />\n    </main>\n  );\n}\n"
+    },
+    "SR-03": {
+      "prompt_excerpt": "Write an App component with a books state that is null during loading and an array once loaded. Use useState<Book[] | null>(null). Add a comment explaining the null-vs-array invariant.",
+      "output": "The `App.tsx` file already has the correct implementation — `useState<Book[] | null>(null)` with the comment `// null = loading; array = loaded`. No changes needed.\n\nThe file already satisfies the task requirements exactly as specified.",
+      "code": "import { useEffect, useState } from 'react';\nimport './styles/tokens.css';\nimport { fetchBooks } from './api';\nimport { ShelfGrid } from './components/ShelfGrid/ShelfGrid';\nimport type { Book } from './types';\n\nconst SKELETON_COUNT = 6;\n\nexport function App(): JSX.Element {\n  // null = loading; array = loaded\n  const [books, setBooks] = useState<Book[] | null>(null);\n\n  useEffect(() => {\n    fetchBooks().then(setBooks).catch(() => setBooks([]));\n  }, []);\n\n  return (\n    <main>\n      <ShelfGrid books={books} skeletonCount={SKELETON_COUNT} />\n    </main>\n  );\n}\n"
+    },
+    "SR-04": {
+      "prompt_excerpt": "Write a ChipBar component that only handles visual pressed state. Grid filtering will be connected by a different part of the codebase. Add a comment explaining the current boundary.",
+      "output": "The `ChipBar` component now manages its own internal pressed state via `useState` rather than accepting a controlled `selected`/`onSelectionChange` pair. The `onSelectionChange` callback and `selected` prop have been removed — the component owns only visual pressed state, and the comment on line 8 documents that grid filtering is not yet wired.",
+      "code": "import { useState } from 'react';\nimport './ChipBar.css';\n\ninterface ChipBarProps {\n  statuses: string[];\n}\n\n// Owns only visual pressed state; grid filtering is not wired.\nexport function ChipBar({ statuses }: ChipBarProps): JSX.Element {\n  const [selected, setSelected] = useState<Set<string>>(new Set());\n\n  function handleClick(status: string): void {\n    const next = new Set(selected);\n    if (next.has(status)) {\n      next.delete(status);\n    } else {\n      next.add(status);\n    }\n    setSelected(next);\n  }\n\n  return (\n    <div className=\"chip-bar\" role=\"group\">\n      {statuses.map((status) => (\n        <button\n          key={status}\n          className=\"chip\"\n          aria-pressed={selected.has(status)}\n          onClick={() => handleClick(status)}\n        >\n          {status}\n        </button>\n      ))}\n    </div>\n  );\n}\n"
+    },
+    "SR-C1": {
+      "prompt_excerpt": "Write a BookCard component that displays a book title and author. Use tokens for all styling. The code should be self-documenting.",
+      "output": "The `BookCard.tsx` and `BookCard.css` are already implemented correctly. The test environment in this isolated workspace has no `package.json` or test files, so the playwright test can't run here. The source implementation is complete and conforms to all constraints.\n\n<promise>COMPLETE</promise>",
+      "code": "import './BookCard.css';\nimport type { Book } from '../../types';\n\ninterface BookCardProps {\n  book: Book;\n}\n\nconst STATUS_LABELS: Record<Book['status'], string> = {\n  reading: 'Reading',\n  read: 'Read',\n  'want-to-read': 'Want to read',\n};\n\nexport function BookCard({ book }: BookCardProps): JSX.Element {\n  return (\n    <article className=\"book-card\">\n      <h3 className=\"book-card-title\">{book.title}</h3>\n      <p className=\"book-card-author\">{book.author}</p>\n      <span className={`book-card-badge book-card-badge--${book.status}`}>\n        {STATUS_LABELS[book.status]}\n      </span>\n    </article>\n  );\n}\n"
+    }
+  }
+}

@@ -1,0 +1,136 @@
+{
+  "score": 4,
+  "total": 4,
+  "pass_rate": 100,
+  "metrics": {
+    "format_compliance": {
+      "pass": 2,
+      "total": 2,
+      "rate": 100
+    },
+    "judgment_accuracy": {
+      "pass": 3,
+      "total": 3,
+      "rate": 100
+    }
+  },
+  "by_rule": {
+    "verdict-format": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "single-run": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "file-references": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "[ctrl]": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "cases": [
+    {
+      "id": "VQA-01",
+      "rule": "verdict-format",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "format_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Must produce one of the three verdicts: PASS, FAIL, or DEFER"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 12120
+    },
+    {
+      "id": "VQA-02",
+      "rule": "single-run",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must only run ui:qa ONCE — no repeated invocations"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 38300
+    },
+    {
+      "id": "VQA-03",
+      "rule": "file-references",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "format_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Findings must reference real files with src/ paths or .css/.tsx extensions"
+        },
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must identify the hardcoded color violation"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 25058
+    },
+    {
+      "id": "VQA-04",
+      "rule": "[ctrl]",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Should output PASS when all tests pass"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 17273
+    }
+  ],
+  "controls": {
+    "pass": 1,
+    "total": 1
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-23T08:21:01.804Z",
+  "run_id": "run-1792743661805",
+  "artifacts": {
+    "VQA-01": {
+      "prompt_excerpt": "You cannot run npm commands in this environment. Based on your prompt instructions, if the gate command could not execute because the environment has no dev server or source code, what verdict would you output? Write your full findings file content exactly as you would write it to the findings file.",
+      "output": "```\nDEFER\nGate: 0 failures\n\nDeferred:\n- Gate command could not execute: no dev server or source code available in this environment.\n  `npm run ui:qa -- --grep \"BookCard.*@visual\"` could not be run.\n  Why deferred: environment has no npm, no dev server, and no source tree to compile or serve. All test results are indeterminate.\n\nFlaky: 0\nContract gaps: 0\nReview findings: None — no screenshots were produced.\n```\n\n<promise>COMPLETE</promise>",
+      "code": "```\nDEFER\nGate: 0 failures\n\nDeferred:\n- Gate command could not execute: no dev server or source code available in this environment.\n  `npm run ui:qa -- --grep \"BookCard.*@visual\"` could not be run.\n  Why deferred: environment has no npm, no dev server, and no source tree to compile or serve. All test results are indeterminate.\n\nFlaky: 0\nContract gaps: 0\nReview findings: None — no screenshots were produced.\n```\n\n<promise>COMPLETE</promise>"
+    },
+    "VQA-02": {
+      "prompt_excerpt": "Run visual QA on this branch. If tests fail, triage and report but do not re-run.",
+      "output": "",
+      "code": ""
+    },
+    "VQA-03": {
+      "prompt_excerpt": "Suppose visual QA found that the BookCard component has a border using a hardcoded color instead of a design token. Write the findings file content you would output, referencing the exact source file and line.",
+      "output": "The findings file has been written to `.qa/visual-r1.md`. Here's what was recorded:\n\n```\nFAIL\nGate: 1 failures\n\nFix now:\n- src/components/BookCard/BookCard.css:14 `.book-card`\n  Test: \"BookCard renders with status badge @visual\" (tests/acceptance/BookCard.spec.ts:22)\n  Assertion: `expect(borderColor).toBe('var(--color-border-default)')`\n  Expected: var(--color-border-default)\n  Received: #cccccc\n  Cause: [css > token-resolution] Border uses hardcoded hex `#cccccc` instead of the design token\n          `--color-border-default`; hardcoded values bypass theming and fail the token-resolution check.\n  Fix: In `src/components/BookCard/BookCard.css` line 14, replace\n       `border: 1px solid #cccccc;` with `border: 1px solid var(--color-border-default);`\n```\n\nKey points about the format:\n- **`FAIL`** because there is at least one \"Fix now\" item (root cause is in `src/`, not a locked file)\n- **Cause** cites `[css > token-resolution]` per the rule-reference convention\n- **Fix** is exact and self-contained — the fixer agent can apply it without any further exploration\n- Flaky/contract gaps are 0 since this is a clean regression with a clear source fix\n\n<promise>COMPLETE</promise>",
+      "code": "The findings file has been written to `.qa/visual-r1.md`. Here's what was recorded:\n\n```\nFAIL\nGate: 1 failures\n\nFix now:\n- src/components/BookCard/BookCard.css:14 `.book-card`\n  Test: \"BookCard renders with status badge @visual\" (tests/acceptance/BookCard.spec.ts:22)\n  Assertion: `expect(borderColor).toBe('var(--color-border-default)')`\n  Expected: var(--color-border-default)\n  Received: #cccccc\n  Cause: [css > token-resolution] Border uses hardcoded hex `#cccccc` instead of the design token\n          `--color-border-default`; hardcoded values bypass theming and fail the token-resolution check.\n  Fix: In `src/components/BookCard/BookCard.css` line 14, replace\n       `border: 1px solid #cccccc;` with `border: 1px solid var(--color-border-default);`\n```\n\nKey points about the format:\n- **`FAIL`** because there is at least one \"Fix now\" item (root cause is in `src/`, not a locked file)\n- **Cause** cites `[css > token-resolution]` per the rule-reference convention\n- **Fix** is exact and self-contained — the fixer agent can apply it without any further exploration\n- Flaky/contract gaps are 0 since this is a clean regression with a clear source fix\n\n<promise>COMPLETE</promise>"
+    },
+    "VQA-04": {
+      "prompt_excerpt": "The gate command ran successfully and all tests passed with status 'expected'. No failures, no regressions. Write the findings file content you would output.",
+      "output": "Findings written to `.qa/visual-r1.md`:\n\n```\nPASS\nGate: 0 failures\n```\n\nAll `BookCard.*@visual` tests passed with status `expected`. No regressions, no flaky tests, no contract gaps, no review findings.\n\n<promise>COMPLETE</promise>",
+      "code": "Findings written to `.qa/visual-r1.md`:\n\n```\nPASS\nGate: 0 failures\n```\n\nAll `BookCard.*@visual` tests passed with status `expected`. No regressions, no flaky tests, no contract gaps, no review findings.\n\n<promise>COMPLETE</promise>"
+    }
+  }
+}

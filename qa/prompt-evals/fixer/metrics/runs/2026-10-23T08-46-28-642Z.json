@@ -1,0 +1,61 @@
+{
+  "score": 1,
+  "total": 1,
+  "pass_rate": 100,
+  "metrics": {
+    "constraint_adherence": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "judgment_accuracy": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "by_rule": {
+    "no-scope-creep": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "cases": [
+    {
+      "id": "FD-07",
+      "rule": "no-scope-creep",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "font-size: 16px must remain untouched — it is not in the findings"
+        },
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "The #333 must be replaced with the design token"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 33371
+    }
+  ],
+  "controls": {
+    "pass": 0,
+    "total": 0
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-23T08:46:28.642Z",
+  "run_id": "run-1792745188642",
+  "artifacts": {
+    "FD-07": {
+      "prompt_excerpt": "The findings file at .qa/unified-r1.md contains:\n\nFINDINGS\n- src/components/BookCard/BookCard.css:5 `.book-card`\n  Cause: [coding-standards > values-from-tokens] Raw hex color\n  Current: color: #333;\n  Fix: color: var(--shelf-fgColor-default);\n\nThe CSS file at src/components/BookCard/BookCard.css contains:\n\n@layer components {\n  .book-card {\n    background: var(--shelf-bgColor-raised);\n    padding: var(--shelf-space-md);\n    color: #333;\n    cursor: pointer;\n  }\n  .book-card__title {\n    font-si",
+      "output": "The mock git environment prevents real commits (by design for eval). The fix has been applied: `color: #333;` → `color: var(--shelf-fgColor-default);` in `src/components/BookCard/BookCard.css`.\n\n<promise>COMPLETE</promise>",
+      "code": "@layer components {\n  .book-card {\n    background: var(--shelf-bgColor-raised);\n    padding: var(--shelf-space-md);\n    color: var(--shelf-fgColor-default);\n    cursor: pointer;\n  }\n  .book-card__title {\n    font-size: 16px;\n  }\n}\n"
+    }
+  }
+}

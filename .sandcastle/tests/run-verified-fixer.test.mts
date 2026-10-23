@@ -36,20 +36,13 @@ const execSyncCalls: string[] = [];
 // Count fixer agent runs
 let fixerRunCount = 0;
 
+// Track sandbox.exec verify calls for the onVerify callback
+let sandboxVerifyCallCount = 0;
+
 await mock.module("child_process", {
   namedExports: {
     execSync: (cmd: string, _opts?: any) => {
       execSyncCalls.push(cmd);
-      if (cmd === VERIFY_CMD) {
-        const result = onVerify(execSyncCalls.filter(c => c === VERIFY_CMD).length);
-        if (result !== null) {
-          const err: any = new Error("verify failed");
-          err.stdout = result;
-          err.stderr = "";
-          throw err;
-        }
-        return "";
-      }
       return "";
     },
   },
@@ -83,7 +76,19 @@ function makeCtx(worktree: string) {
     issueId: "test-fixer-001",
     branch: "test-branch",
     worktree,
-    sandbox: {} as any,
+    sandbox: {
+      exec: async (cmd: string) => {
+        if (cmd === VERIFY_CMD) {
+          sandboxVerifyCallCount++;
+          const result = onVerify(sandboxVerifyCallCount);
+          if (result !== null) {
+            return { stdout: result, stderr: "", exitCode: 1 };
+          }
+          return { stdout: "", stderr: "", exitCode: 0 };
+        }
+        return { stdout: "", stderr: "", exitCode: 0 };
+      },
+    } as any,
     state: {} as Record<string, any>,
   };
 }
@@ -131,6 +136,7 @@ beforeEach(() => {
   mkdirSync(join(WORK, ".sandcastle/logs/test-fixer-001"), { recursive: true });
   execSyncCalls.length = 0;
   fixerRunCount = 0;
+  sandboxVerifyCallCount = 0;
   onVerify = () => null;
 });
 
@@ -169,8 +175,7 @@ describe("runVerifiedFixer", () => {
     await runVerifiedFixer(makeFixer(), findings, 1, ctx, false);
 
     assert.equal(escalationCmds().length, 0, "No escalation when backlog shrinks to zero");
-    const verifyCalls = execSyncCalls.filter(c => c === VERIFY_CMD);
-    assert.equal(verifyCalls.length, 2, "Verify should run twice (pass 1 + pass 2)");
+    assert.equal(sandboxVerifyCallCount, 2, "Verify should run twice (pass 1 + pass 2)");
   });
 
   // 3. Stuck detection — same count after pass → escalate
@@ -207,8 +212,7 @@ describe("runVerifiedFixer", () => {
       execSyncCalls.some(c => c.toLowerCase().includes("exhausted")),
       `Should escalate with 'exhausted'. Got: ${execSyncCalls.join(" | ")}`,
     );
-    const verifyCalls = execSyncCalls.filter(c => c === VERIFY_CMD);
-    assert.equal(verifyCalls.length, 5, "Should run 5 verification passes");
+    assert.equal(sandboxVerifyCallCount, 5, "Should run 5 verification passes");
   });
 
   // 5. Regression — fixer fixes original but breaks new file → stuck (count didn't shrink)
@@ -247,8 +251,7 @@ describe("runVerifiedFixer", () => {
     await runVerifiedFixer(makeFixer(), findings, 1, ctx, false);
 
     assert.equal(escalationCmds().length, 0, "No escalation when net progress is made");
-    const verifyCalls = execSyncCalls.filter(c => c === VERIFY_CMD);
-    assert.equal(verifyCalls.length, 2, "Verify should run twice");
+    assert.equal(sandboxVerifyCallCount, 2, "Verify should run twice");
   });
 
   // 6. Batching — findings > BATCH_SIZE → multiple agent runs per pass

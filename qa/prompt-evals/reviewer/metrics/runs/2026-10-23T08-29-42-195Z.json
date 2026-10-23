@@ -1,0 +1,50 @@
+{
+  "score": 0,
+  "total": 1,
+  "pass_rate": 0,
+  "metrics": {
+    "judgment_accuracy": {
+      "pass": 0,
+      "total": 1,
+      "rate": 0
+    }
+  },
+  "by_rule": {
+    "[ctrl]": {
+      "pass": 0,
+      "total": 1,
+      "rate": 0
+    }
+  },
+  "cases": [
+    {
+      "id": "RQ-04",
+      "rule": "[ctrl]",
+      "pass": false,
+      "checkResults": [
+        {
+          "metric": "judgment_accuracy",
+          "pass": false,
+          "detail": "Pattern not found: (CLEAN|[Cc]lean|[Nn]o issues)",
+          "description": "Should output CLEAN verdict for a diff that follows all standards"
+        }
+      ],
+      "detail": "Pattern not found: (CLEAN|[Cc]lean|[Nn]o issues)",
+      "duration_ms": 27880
+    }
+  ],
+  "controls": {
+    "pass": 0,
+    "total": 1
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-23T08:29:42.195Z",
+  "run_id": "run-1792744182195",
+  "artifacts": {
+    "RQ-04": {
+      "prompt_excerpt": "Review this branch and write the findings file.",
+      "output": "<promise>COMPLETE</promise>",
+      "code": "FINDINGS\n- src/components/BookCard/BookCard.tsx:16 `onKeyDown`\n  Cause: [clarity] Logical `&&` used as control flow is less readable than an explicit conditional\n  Current: onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onClick(book.id)}\n  Fix: onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onClick(book.id); }}\n\n- src/components/BookCard/BookCard.tsx:11 `<article role=\"button\">`\n  Cause: [clarity] `role=\"button\"` overrides the implicit ARIA role of `<article>`, conflicting with its sectioning semantics; prefer a neutral element like `<div>` or an actual `<button>` for interactive cards\n  Current: <article className=\"book-card\" role=\"button\" ...>\n  Fix: <div className=\"book-card\" role=\"button\" ...>\n"
+    }
+  }
+}

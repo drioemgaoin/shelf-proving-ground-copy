@@ -72,7 +72,9 @@ function makeCtx(worktree: string) {
     issueId: "test-001",
     branch: "test-branch",
     worktree,
-    sandbox: {} as any,
+    sandbox: {
+      exec: async () => ({ stdout: "", stderr: "", exitCode: 0 }),
+    } as any,
     state: {} as Record<string, any>,
   };
 }

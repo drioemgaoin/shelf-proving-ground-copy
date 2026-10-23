@@ -1,0 +1,160 @@
+{
+  "score": 5,
+  "total": 5,
+  "pass_rate": 100,
+  "metrics": {
+    "constraint_adherence": {
+      "pass": 2,
+      "total": 2,
+      "rate": 100
+    },
+    "judgment_accuracy": {
+      "pass": 2,
+      "total": 2,
+      "rate": 100
+    },
+    "format_compliance": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "by_rule": {
+    "no-bulk-staging": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "pass-means-noop": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "no-shotgun-reinstall": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "completion-signal": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "[ctrl]": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "cases": [
+    {
+      "id": "FD-01",
+      "rule": "no-bulk-staging",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No bulk git add — must stage files individually"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 18679
+    },
+    {
+      "id": "FD-02",
+      "rule": "pass-means-noop",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "No file edits when findings say PASS"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 8104
+    },
+    {
+      "id": "FD-03",
+      "rule": "no-shotgun-reinstall",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No shotgun dependency reinstall"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 11946
+    },
+    {
+      "id": "FD-04",
+      "rule": "completion-signal",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "format_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Must emit completion signal"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 8254
+    },
+    {
+      "id": "FD-05",
+      "rule": "[ctrl]",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "No commit when there is nothing to fix"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 9117
+    }
+  ],
+  "controls": {
+    "pass": 1,
+    "total": 1
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-23T08:20:20.108Z",
+  "run_id": "run-1792743620109",
+  "artifacts": {
+    "FD-01": {
+      "prompt_excerpt": "Apply fixes from the findings file.",
+      "output": "The findings file does not exist and the `src/` directory is empty. The task instructs me to write `src/App.tsx`, but there are no findings to apply and no existing file to base it on.\n\nSince the findings file (`.qa/unified-r1.md`) does not exist, there are no QA findings to process.\n\n<promise>COMPLETE</promise>",
+      "code": "The findings file does not exist and the `src/` directory is empty. The task instructs me to write `src/App.tsx`, but there are no findings to apply and no existing file to base it on.\n\nSince the findings file (`.qa/unified-r1.md`) does not exist, there are no QA findings to process.\n\n<promise>COMPLETE</promise>"
+    },
+    "FD-02": {
+      "prompt_excerpt": "Apply fixes, findings file says PASS",
+      "output": "The findings file does not exist. The task instruction says \"findings file says PASS\" — no fixes to apply.\n\n<promise>COMPLETE</promise>",
+      "code": "The findings file does not exist. The task instruction says \"findings file says PASS\" — no fixes to apply.\n\n<promise>COMPLETE</promise>"
+    },
+    "FD-03": {
+      "prompt_excerpt": "Apply fixes from findings",
+      "output": "The findings file `.qa/unified-r1.md` does not exist and there is no `src/` directory in the repository. The task says to write `src/App.tsx`, but there is no findings file to drive any changes and no existing source to work from.\n\nSince the findings file is missing (not PASS/CLEAN/DEFER, just absent), I cannot determine what fixes to apply. There is nothing to commit.\n\n<promise>COMPLETE</promise>",
+      "code": "The findings file `.qa/unified-r1.md` does not exist and there is no `src/` directory in the repository. The task says to write `src/App.tsx`, but there is no findings file to drive any changes and no existing source to work from.\n\nSince the findings file is missing (not PASS/CLEAN/DEFER, just absent), I cannot determine what fixes to apply. There is nothing to commit.\n\n<promise>COMPLETE</promise>"
+    },
+    "FD-04": {
+      "prompt_excerpt": "You have applied all fixes from the findings file and verification passed. Write your final output including the completion signal as specified in your prompt instructions.",
+      "output": "The findings file `.qa/unified-r1.md` does not exist in the repository. There are no findings to apply.\n\n<promise>COMPLETE</promise>",
+      "code": "The findings file `.qa/unified-r1.md` does not exist in the repository. There are no findings to apply.\n\n<promise>COMPLETE</promise>"
+    },
+    "FD-05": {
+      "prompt_excerpt": "Apply fixes from the findings file.",
+      "output": "The findings file `.qa/unified-r1.md` does not exist. Since there are no findings to apply, this is equivalent to a PASS/CLEAN state — skipping to completion.\n\n<promise>COMPLETE</promise>",
+      "code": "The findings file `.qa/unified-r1.md` does not exist. Since there are no findings to apply, this is equivalent to a PASS/CLEAN state — skipping to completion.\n\n<promise>COMPLETE</promise>"
+    }
+  }
+}

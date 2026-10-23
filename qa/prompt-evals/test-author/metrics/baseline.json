@@ -1,0 +1,337 @@
+{
+  "score": 9,
+  "total": 9,
+  "pass_rate": 100,
+  "metrics": {
+    "output_compliance": {
+      "pass": 5,
+      "total": 5,
+      "rate": 100
+    },
+    "task_accuracy": {
+      "pass": 5,
+      "total": 5,
+      "rate": 100
+    },
+    "constraint_adherence": {
+      "pass": 6,
+      "total": 6,
+      "rate": 100
+    },
+    "judgment_accuracy": {
+      "pass": 3,
+      "total": 3,
+      "rate": 100
+    }
+  },
+  "by_rule": {
+    "test-behavior": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "test-a11y-queries": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "test-determinism": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "[ctrl]": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "test-toggle-state": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "no-app-code-edits": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "no-unnecessary-mocks": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "no-tautological-tests": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "no-exploration": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "cases": [
+    {
+      "id": "TAQ-01",
+      "rule": "test-behavior",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Model produced test code"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Should test real mapped output values"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Tests must call the function under test"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 18178
+    },
+    {
+      "id": "TAQ-02",
+      "rule": "test-a11y-queries",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Model produced test code"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "Should use getByRole/getByText, not querySelector or data-testid"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must use accessible queries to locate elements"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 92097
+    },
+    {
+      "id": "TAQ-03",
+      "rule": "test-determinism",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Model produced test code"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "Tests should be deterministic — no timer or clock dependencies"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Tests must verify pressed state of chips"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 95833
+    },
+    {
+      "id": "TAQ-04",
+      "rule": "[ctrl]",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Should decide no tests needed for purely presentational component"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 38764
+    },
+    {
+      "id": "TAQ-05",
+      "rule": "test-toggle-state",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Model produced test code"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Should test toggle/pressed state behavior"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Should test the All chip behavior"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 56038
+    },
+    {
+      "id": "TAQ-06",
+      "rule": "no-app-code-edits",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "Must NOT edit the application source file"
+        },
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Should fix the test, not the application code"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 15107
+    },
+    {
+      "id": "TAQ-07",
+      "rule": "no-unnecessary-mocks",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "Should NOT mock the api module — getBooks is in-memory with no system boundary"
+        },
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Model produced test code"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 175875
+    },
+    {
+      "id": "TAQ-08",
+      "rule": "no-tautological-tests",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No trivially-passing tautologies like expect(true).toBe(true)"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Should test actual rendered content with meaningful queries"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 30741
+    },
+    {
+      "id": "TAQ-09",
+      "rule": "no-exploration",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "Must NOT explore the workspace — use CONTEXT only"
+        },
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Should reference using CONTEXT inputs, not exploration"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 51145
+    }
+  ],
+  "controls": {
+    "pass": 1,
+    "total": 1
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-23T09:11:04.790Z",
+  "run_id": "run-1792746664791",
+  "artifacts": {
+    "TAQ-01": {
+      "prompt_excerpt": "Write the test file for a pure utility function formatStatus(status: Status): string that maps 'to-read' to 'To Read', 'reading' to 'Reading', 'read' to 'Read'. The function exists at src/utils/formatStatus.ts. Write the complete test file content.",
+      "output": "The working directory is empty. Based on the stated function spec (`formatStatus(status: Status): string` mapping `'to-read' → 'To Read'`, `'reading' → 'Reading'`, `'read' → 'Read'`), here is the complete test file:\n\n```typescript\n// src/utils/formatStatus.test.ts\nimport { describe, it, expect } from 'vitest';\nimport { formatStatus } from './formatStatus';\n\ndescribe('formatStatus', () => {\n  it(\"maps 'to-read' to 'To Read'\", () => {\n    expect(formatStatus('to-read')).toBe('To Read');\n  });\n\n  it(\"maps 'reading' to 'Reading'\", () => {\n    expect(formatStatus('reading')).toBe('Reading');\n  });\n\n  it(\"maps 'read' to 'Read'\", () => {\n    expect(formatStatus('read')).toBe('Read');\n  });\n});\n```\n\n**Key decisions:**\n\n- One test per status value — each branch is pinned independently so a regression in any single mapping produces a clear failure name.\n- No mocks needed; pure function with no side effects.\n- Assertions are on the return value only, not on implementation details (no checks on lookup tables, switch branches, etc.).\n- The three cases are exhaustive given the declared `Status` union; no additional edge-case tests are warranted (the type system prevents other inputs).\n\n<promise>COMPLETE</promise>",
+      "code": "The working directory is empty. Based on the stated function spec (`formatStatus(status: Status): string` mapping `'to-read' → 'To Read'`, `'reading' → 'Reading'`, `'read' → 'Read'`), here is the complete test file:\n\n```typescript\n// src/utils/formatStatus.test.ts\nimport { describe, it, expect } from 'vitest';\nimport { formatStatus } from './formatStatus';\n\ndescribe('formatStatus', () => {\n  it(\"maps 'to-read' to 'To Read'\", () => {\n    expect(formatStatus('to-read')).toBe('To Read');\n  });\n\n  it(\"maps 'reading' to 'Reading'\", () => {\n    expect(formatStatus('reading')).toBe('Reading');\n  });\n\n  it(\"maps 'read' to 'Read'\", () => {\n    expect(formatStatus('read')).toBe('Read');\n  });\n});\n```\n\n**Key decisions:**\n\n- One test per status value — each branch is pinned independently so a regression in any single mapping produces a clear failure name.\n- No mocks needed; pure function with no side effects.\n- Assertions are on the return value only, not on implementation details (no checks on lookup tables, switch branches, etc.).\n- The three cases are exhaustive given the declared `Status` union; no additional edge-case tests are warranted (the type system prevents other inputs).\n\n<promise>COMPLETE</promise>"
+    },
+    "TAQ-02": {
+      "prompt_excerpt": "Write tests for BookCard component that renders a book's title, author, and status badge. BookCard accepts a book prop and an onClick handler.",
+      "output": "<promise>COMPLETE</promise>",
+      "code": "import { render, screen } from '@testing-library/react';\nimport userEvent from '@testing-library/user-event';\nimport { describe, it, expect, vi } from 'vitest';\nimport { BookCard } from './BookCard';\nimport type { Book } from '../../types';\n\nconst book: Book = {\n  id: 'abc-123',\n  title: 'The Pragmatic Programmer',\n  author: 'David Thomas',\n  status: 'read',\n};\n\ndescribe('BookCard', () => {\n  it('renders title', () => {\n    render(<BookCard book={book} onClick={vi.fn()} />);\n    expect(screen.getByRole('heading', { name: book.title })).toBeInTheDocument();\n  });\n\n  it('renders author', () => {\n    render(<BookCard book={book} onClick={vi.fn()} />);\n    expect(screen.getByText(book.author)).toBeInTheDocument();\n  });\n\n  it('renders status badge with correct text', () => {\n    render(<BookCard book={book} onClick={vi.fn()} />);\n    expect(screen.getByText(book.status)).toBeInTheDocument();\n  });\n\n  it('sets data-status attribute on badge to current status', () => {\n    render(<BookCard book={book} onClick={vi.fn()} />);\n    const badge = screen.getByText(book.status);\n    expect(badge).toHaveAttribute('data-status', 'read');\n  });\n\n  it('exposes an accessible label combining title and author', () => {\n    render(<BookCard book={book} onClick={vi.fn()} />);\n    expect(\n      screen.getByRole('button', { name: `${book.title} by ${book.author}` })\n    ).toBeInTheDocument();\n  });\n\n  it('calls onClick with book id when clicked', async () => {\n    const handleClick = vi.fn();\n    render(<BookCard book={book} onClick={handleClick} />);\n    await userEvent.click(screen.getByRole('button'));\n    expect(handleClick).toHaveBeenCalledOnce();\n    expect(handleClick).toHaveBeenCalledWith(book.id);\n  });\n\n  it('calls onClick with book id when Enter is pressed', async () => {\n    const handleClick = vi.fn();\n    render(<BookCard book={book} onClick={handleClick} />);\n    screen.getByRole('button').focus();\n    await userEvent.keyboard('{Enter}');\n    expect(handleClick).toHaveBeenCalledOnce();\n    expect(handleClick).toHaveBeenCalledWith(book.id);\n  });\n\n  it('does not call onClick when a non-Enter key is pressed', async () => {\n    const handleClick = vi.fn();\n    render(<BookCard book={book} onClick={handleClick} />);\n    screen.getByRole('button').focus();\n    await userEvent.keyboard('{Space}');\n    expect(handleClick).not.toHaveBeenCalled();\n  });\n\n  it('renders status badge reflecting a different status value', () => {\n    const readingBook: Book = { ...book, status: 'reading' };\n    render(<BookCard book={readingBook} onClick={vi.fn()} />);\n    const badge = screen.getByText('reading');\n    expect(badge).toHaveAttribute('data-status', 'reading');\n  });\n});\n"
+    },
+    "TAQ-03": {
+      "prompt_excerpt": "Write tests for ChipBar toggle behavior. ChipBar renders a row of filter chips, each with aria-pressed state, and calls onSelectionChange when toggled.",
+      "output": "All 19 tests pass (9 BookCard + 10 ChipBar). Here's a summary of what was written:\n\n**`src/components/ChipBar/ChipBar.test.tsx`** — 10 tests covering:\n\n| Test | What it pins |\n|---|---|\n| renders a button for each chip | contract: N chips → N buttons |\n| renders each chip with its label | accessible name on every button |\n| unselected chips have `aria-pressed=\"false\"` | default pressed state |\n| selected chips have `aria-pressed=\"true\"` | controlled selection reflected via aria |\n| multiple chips selected simultaneously | multi-select not capped at 1 |\n| clicking unselected chip → added to selection | toggle-on branch |\n| clicking selected chip → removed from selection | toggle-off branch |\n| does not mutate the `selected` array | immutability invariant |\n| Enter key toggles | keyboard accessibility |\n| Space key toggles | keyboard accessibility (button default) |\n\n<promise>COMPLETE</promise>",
+      "code": "import { render, screen } from '@testing-library/react';\nimport userEvent from '@testing-library/user-event';\nimport { describe, it, expect, vi } from 'vitest';\nimport { ChipBar } from './ChipBar';\n\nconst chips = [\n  { id: 'read', label: 'Read' },\n  { id: 'reading', label: 'Reading' },\n  { id: 'want-to-read', label: 'Want to read' },\n];\n\ndescribe('ChipBar', () => {\n  it('renders a button for each chip', () => {\n    render(<ChipBar chips={chips} selected={[]} onSelectionChange={vi.fn()} />);\n    expect(screen.getAllByRole('button')).toHaveLength(chips.length);\n  });\n\n  it('renders each chip with its label', () => {\n    render(<ChipBar chips={chips} selected={[]} onSelectionChange={vi.fn()} />);\n    for (const chip of chips) {\n      expect(screen.getByRole('button', { name: chip.label })).toBeInTheDocument();\n    }\n  });\n\n  it('unselected chips have aria-pressed=\"false\"', () => {\n    render(<ChipBar chips={chips} selected={[]} onSelectionChange={vi.fn()} />);\n    for (const chip of chips) {\n      expect(screen.getByRole('button', { name: chip.label })).toHaveAttribute(\n        'aria-pressed',\n        'false'\n      );\n    }\n  });\n\n  it('selected chips have aria-pressed=\"true\"', () => {\n    render(<ChipBar chips={chips} selected={['read']} onSelectionChange={vi.fn()} />);\n    expect(screen.getByRole('button', { name: 'Read' })).toHaveAttribute('aria-pressed', 'true');\n    expect(screen.getByRole('button', { name: 'Reading' })).toHaveAttribute(\n      'aria-pressed',\n      'false'\n    );\n  });\n\n  it('multiple chips can be selected simultaneously', () => {\n    render(\n      <ChipBar chips={chips} selected={['read', 'reading']} onSelectionChange={vi.fn()} />\n    );\n    expect(screen.getByRole('button', { name: 'Read' })).toHaveAttribute('aria-pressed', 'true');\n    expect(screen.getByRole('button', { name: 'Reading' })).toHaveAttribute('aria-pressed', 'true');\n    expect(screen.getByRole('button', { name: 'Want to read' })).toHaveAttribute(\n      'aria-pressed',\n      'false'\n    );\n  });\n\n  it('clicking an unselected chip calls onSelectionChange with that chip added', async () => {\n    const handleChange = vi.fn();\n    render(<ChipBar chips={chips} selected={[]} onSelectionChange={handleChange} />);\n    await userEvent.click(screen.getByRole('button', { name: 'Read' }));\n    expect(handleChange).toHaveBeenCalledOnce();\n    expect(handleChange).toHaveBeenCalledWith(['read']);\n  });\n\n  it('clicking a selected chip calls onSelectionChange with that chip removed', async () => {\n    const handleChange = vi.fn();\n    render(<ChipBar chips={chips} selected={['read', 'reading']} onSelectionChange={handleChange} />);\n    await userEvent.click(screen.getByRole('button', { name: 'Read' }));\n    expect(handleChange).toHaveBeenCalledOnce();\n    expect(handleChange).toHaveBeenCalledWith(['reading']);\n  });\n\n  it('does not mutate the selected array passed in', async () => {\n    const handleChange = vi.fn();\n    const selected: string[] = ['read'];\n    render(<ChipBar chips={chips} selected={selected} onSelectionChange={handleChange} />);\n    await userEvent.click(screen.getByRole('button', { name: 'Reading' }));\n    // original array unchanged\n    expect(selected).toEqual(['read']);\n  });\n\n  it('pressing Enter on a chip toggles it', async () => {\n    const handleChange = vi.fn();\n    render(<ChipBar chips={chips} selected={[]} onSelectionChange={handleChange} />);\n    screen.getByRole('button', { name: 'Read' }).focus();\n    await userEvent.keyboard('{Enter}');\n    expect(handleChange).toHaveBeenCalledOnce();\n    expect(handleChange).toHaveBeenCalledWith(['read']);\n  });\n\n  it('pressing Space on a chip toggles it', async () => {\n    const handleChange = vi.fn();\n    render(<ChipBar chips={chips} selected={[]} onSelectionChange={handleChange} />);\n    screen.getByRole('button', { name: 'Read' }).focus();\n    await userEvent.keyboard(' ');\n    expect(handleChange).toHaveBeenCalledOnce();\n    expect(handleChange).toHaveBeenCalledWith(['read']);\n  });\n});\n"
+    },
+    "TAQ-04": {
+      "prompt_excerpt": "Analyze whether StatusBadge needs tests. It is purely presentational: it receives a status string and renders a span with a CSS class. No logic, no branching, no event handlers. The acceptance tests already cover every status value in context. Based on the prompt instructions about earning the test, decide whether to write tests or skip.",
+      "output": "<promise>COMPLETE</promise>",
+      "code": "PASS\nGate: 0 failures\n\nTests written:\n- src/components/BookCard/BookCard.test.tsx (9 tests)\n  - renders title\n  - renders author\n  - renders status badge with correct text\n  - sets data-status attribute on badge to current status\n  - exposes an accessible label combining title and author\n  - calls onClick with book id when clicked\n  - calls onClick with book id when Enter is pressed\n  - does not call onClick when a non-Enter key is pressed\n  - renders status badge reflecting a different status value\n\nTests skipped (acceptance coverage):\n- StatusBadge (inline span in BookCard): Purely presentational — receives a status string, renders a span with a data-status attribute and text content. No logic, no branching, no event handlers. The BookCard tests already pin the badge text and data-status attribute for all three status values. No independent StatusBadge module exists; the badge is rendered inline inside BookCard. Writing a dedicated test would duplicate coverage already provided by the BookCard suite without catching any additional regression path.\n"
+    },
+    "TAQ-05": {
+      "prompt_excerpt": "Write tests for the filter state machine in ChipBar. ChipBar renders chips for each status. Clicking a chip toggles its aria-pressed state. Multiple chips can be pressed simultaneously. An 'All' chip deselects all others when pressed.",
+      "output": "All 19 tests pass across both files.\n\n**BookCard** (9 tests): pins title/author rendering, status badge text and `data-status` attribute, accessible `aria-label`, click handler with correct id, Enter-key handler, non-Enter key suppression, and badge behavior for a different status value.\n\n**ChipBar** (10 tests): pins chip count, label rendering, `aria-pressed` false/true states, multi-select simultaneity, toggle-on/toggle-off via click, immutability of the `selected` array, and keyboard activation via Enter and Space.\n\nThe 'All' chip behavior mentioned in the task has no implementation in `ChipBar.tsx` — no aspirational tests were written.\n\n<promise>COMPLETE</promise>",
+      "code": "import { render, screen } from '@testing-library/react';\nimport userEvent from '@testing-library/user-event';\nimport { describe, it, expect, vi } from 'vitest';\nimport { ChipBar } from './ChipBar';\n\nconst chips = [\n  { id: 'read', label: 'Read' },\n  { id: 'reading', label: 'Reading' },\n  { id: 'want-to-read', label: 'Want to read' },\n];\n\ndescribe('ChipBar', () => {\n  it('renders a button for each chip', () => {\n    render(<ChipBar chips={chips} selected={[]} onSelectionChange={vi.fn()} />);\n    expect(screen.getAllByRole('button')).toHaveLength(chips.length);\n  });\n\n  it('renders each chip with its label', () => {\n    render(<ChipBar chips={chips} selected={[]} onSelectionChange={vi.fn()} />);\n    for (const chip of chips) {\n      expect(screen.getByRole('button', { name: chip.label })).toBeInTheDocument();\n    }\n  });\n\n  it('unselected chips have aria-pressed=\"false\"', () => {\n    render(<ChipBar chips={chips} selected={[]} onSelectionChange={vi.fn()} />);\n    for (const chip of chips) {\n      expect(screen.getByRole('button', { name: chip.label })).toHaveAttribute(\n        'aria-pressed',\n        'false'\n      );\n    }\n  });\n\n  it('selected chips have aria-pressed=\"true\"', () => {\n    render(<ChipBar chips={chips} selected={['read']} onSelectionChange={vi.fn()} />);\n    expect(screen.getByRole('button', { name: 'Read' })).toHaveAttribute('aria-pressed', 'true');\n    expect(screen.getByRole('button', { name: 'Reading' })).toHaveAttribute(\n      'aria-pressed',\n      'false'\n    );\n  });\n\n  it('multiple chips can be selected simultaneously', () => {\n    render(\n      <ChipBar chips={chips} selected={['read', 'reading']} onSelectionChange={vi.fn()} />\n    );\n    expect(screen.getByRole('button', { name: 'Read' })).toHaveAttribute('aria-pressed', 'true');\n    expect(screen.getByRole('button', { name: 'Reading' })).toHaveAttribute('aria-pressed', 'true');\n    expect(screen.getByRole('button', { name: 'Want to read' })).toHaveAttribute(\n      'aria-pressed',\n      'false'\n    );\n  });\n\n  it('clicking an unselected chip calls onSelectionChange with that chip added', async () => {\n    const handleChange = vi.fn();\n    render(<ChipBar chips={chips} selected={[]} onSelectionChange={handleChange} />);\n    await userEvent.click(screen.getByRole('button', { name: 'Read' }));\n    expect(handleChange).toHaveBeenCalledOnce();\n    expect(handleChange).toHaveBeenCalledWith(['read']);\n  });\n\n  it('clicking a selected chip calls onSelectionChange with that chip removed', async () => {\n    const handleChange = vi.fn();\n    render(<ChipBar chips={chips} selected={['read', 'reading']} onSelectionChange={handleChange} />);\n    await userEvent.click(screen.getByRole('button', { name: 'Read' }));\n    expect(handleChange).toHaveBeenCalledOnce();\n    expect(handleChange).toHaveBeenCalledWith(['reading']);\n  });\n\n  it('does not mutate the selected array passed in', async () => {\n    const handleChange = vi.fn();\n    const selected: string[] = ['read'];\n    render(<ChipBar chips={chips} selected={selected} onSelectionChange={handleChange} />);\n    await userEvent.click(screen.getByRole('button', { name: 'Reading' }));\n    // original array unchanged\n    expect(selected).toEqual(['read']);\n  });\n\n  it('pressing Enter on a chip toggles it', async () => {\n    const handleChange = vi.fn();\n    render(<ChipBar chips={chips} selected={[]} onSelectionChange={handleChange} />);\n    screen.getByRole('button', { name: 'Read' }).focus();\n    await userEvent.keyboard('{Enter}');\n    expect(handleChange).toHaveBeenCalledOnce();\n    expect(handleChange).toHaveBeenCalledWith(['read']);\n  });\n\n  it('pressing Space on a chip toggles it', async () => {\n    const handleChange = vi.fn();\n    render(<ChipBar chips={chips} selected={[]} onSelectionChange={handleChange} />);\n    screen.getByRole('button', { name: 'Read' }).focus();\n    await userEvent.keyboard(' ');\n    expect(handleChange).toHaveBeenCalledOnce();\n    expect(handleChange).toHaveBeenCalledWith(['read']);\n  });\n});\n"
+    },
+    "TAQ-06": {
+      "prompt_excerpt": "You wrote a test for BookCard that expects getByRole('button') but the component uses role='article'. The test fails. Based on your prompt instructions, what do you do? You may NOT edit application code. Write your response.",
+      "output": "Fix the test. My instructions are explicit: **\"If a test fails, either your test is wrong or you found a real bug.\"**\n\nIn this case the component renders `role=\"article\"` — that's the observable behavior I'm supposed to pin, not argue with. I wrote `getByRole('button')`, which is wrong. The component is not broken; my assertion is.\n\nThe fix: change the query to match what the component actually renders.\n\n```diff\n- const card = screen.getByRole('button', { name: /Dune by Frank Herbert/i });\n+ const card = screen.getByRole('article', { name: /Dune by Frank Herbert/i });\n```\n\nI may **not** edit the application code to add `role=\"button\"` to make my test pass — that would be inverting the relationship: tests verify behavior, they don't dictate implementation. I also may not leave a failing test in the findings file and call it done.\n\nThe corrected test reflects the real behavior of the component. If the product intent was for the card to be a button (for accessibility reasons), that's a separate issue to raise with the team — not something I silently \"fix\" by patching the source.\n\n<promise>COMPLETE</promise>",
+      "code": "Fix the test. My instructions are explicit: **\"If a test fails, either your test is wrong or you found a real bug.\"**\n\nIn this case the component renders `role=\"article\"` — that's the observable behavior I'm supposed to pin, not argue with. I wrote `getByRole('button')`, which is wrong. The component is not broken; my assertion is.\n\nThe fix: change the query to match what the component actually renders.\n\n```diff\n- const card = screen.getByRole('button', { name: /Dune by Frank Herbert/i });\n+ const card = screen.getByRole('article', { name: /Dune by Frank Herbert/i });\n```\n\nI may **not** edit the application code to add `role=\"button\"` to make my test pass — that would be inverting the relationship: tests verify behavior, they don't dictate implementation. I also may not leave a failing test in the findings file and call it done.\n\nThe corrected test reflects the real behavior of the component. If the product intent was for the card to be a button (for accessibility reasons), that's a separate issue to raise with the team — not something I silently \"fix\" by patching the source.\n\n<promise>COMPLETE</promise>"
+    },
+    "TAQ-07": {
+      "prompt_excerpt": "Write tests for a useBooks hook that calls getBooks() from the api module and returns the result in state. getBooks is a simple in-memory function (no network, no filesystem). The hook manages loading/error/data states.",
+      "output": "<promise>COMPLETE</promise>",
+      "code": "import { renderHook, waitFor } from '@testing-library/react';\nimport { describe, it, expect } from 'vitest';\nimport { useBooks } from './useBooks';\n\ndescribe('useBooks', () => {\n  it('initially reports loading with null data and no error', () => {\n    const { result } = renderHook(() => useBooks());\n    expect(result.current.loading).toBe(true);\n    expect(result.current.data).toBeNull();\n    expect(result.current.error).toBeNull();\n  });\n\n  it('transitions out of loading state after mount', async () => {\n    const { result } = renderHook(() => useBooks());\n    await waitFor(() => expect(result.current.loading).toBe(false));\n    expect(result.current.error).toBeNull();\n  });\n\n  it('populates data with the array returned by getBooks', async () => {\n    const { result } = renderHook(() => useBooks());\n    await waitFor(() => expect(result.current.loading).toBe(false));\n    expect(Array.isArray(result.current.data)).toBe(true);\n  });\n\n  it('each book has the required fields from the Book type', async () => {\n    const { result } = renderHook(() => useBooks());\n    await waitFor(() => expect(result.current.loading).toBe(false));\n    for (const book of result.current.data ?? []) {\n      expect(book).toEqual(\n        expect.objectContaining({\n          id: expect.any(String),\n          title: expect.any(String),\n          author: expect.any(String),\n          status: expect.stringMatching(/^(read|reading|want-to-read)$/),\n        })\n      );\n    }\n  });\n});\n"
+    },
+    "TAQ-08": {
+      "prompt_excerpt": "Write tests for the BookCard component. It renders a book's title and author.",
+      "output": "<promise>COMPLETE</promise>",
+      "code": "import { render, screen } from '@testing-library/react';\nimport userEvent from '@testing-library/user-event';\nimport { describe, it, expect, vi } from 'vitest';\nimport { BookCard } from './BookCard';\nimport type { Book } from '../../types';\n\nconst book: Book = {\n  id: 'abc-123',\n  title: 'The Pragmatic Programmer',\n  author: 'David Thomas',\n  status: 'read',\n};\n\ndescribe('BookCard', () => {\n  it('renders title', () => {\n    render(<BookCard book={book} onClick={vi.fn()} />);\n    expect(screen.getByRole('heading', { name: book.title })).toBeInTheDocument();\n  });\n\n  it('renders author', () => {\n    render(<BookCard book={book} onClick={vi.fn()} />);\n    expect(screen.getByText(book.author)).toBeInTheDocument();\n  });\n\n  it('renders status badge with correct text', () => {\n    render(<BookCard book={book} onClick={vi.fn()} />);\n    expect(screen.getByText(book.status)).toBeInTheDocument();\n  });\n\n  it('sets data-status attribute on badge to current status', () => {\n    render(<BookCard book={book} onClick={vi.fn()} />);\n    const badge = screen.getByText(book.status);\n    expect(badge).toHaveAttribute('data-status', 'read');\n  });\n\n  it('exposes an accessible label combining title and author', () => {\n    render(<BookCard book={book} onClick={vi.fn()} />);\n    expect(\n      screen.getByRole('button', { name: `${book.title} by ${book.author}` })\n    ).toBeInTheDocument();\n  });\n\n  it('calls onClick with book id when clicked', async () => {\n    const handleClick = vi.fn();\n    render(<BookCard book={book} onClick={handleClick} />);\n    await userEvent.click(screen.getByRole('button'));\n    expect(handleClick).toHaveBeenCalledOnce();\n    expect(handleClick).toHaveBeenCalledWith(book.id);\n  });\n\n  it('calls onClick with book id when Enter is pressed', async () => {\n    const handleClick = vi.fn();\n    render(<BookCard book={book} onClick={handleClick} />);\n    screen.getByRole('button').focus();\n    await userEvent.keyboard('{Enter}');\n    expect(handleClick).toHaveBeenCalledOnce();\n    expect(handleClick).toHaveBeenCalledWith(book.id);\n  });\n\n  it('does not call onClick when a non-Enter key is pressed', async () => {\n    const handleClick = vi.fn();\n    render(<BookCard book={book} onClick={handleClick} />);\n    screen.getByRole('button').focus();\n    await userEvent.keyboard('{Space}');\n    expect(handleClick).not.toHaveBeenCalled();\n  });\n\n  it('renders status badge reflecting a different status value', () => {\n    const readingBook: Book = { ...book, status: 'reading' };\n    render(<BookCard book={readingBook} onClick={vi.fn()} />);\n    const badge = screen.getByText('reading');\n    expect(badge).toHaveAttribute('data-status', 'reading');\n  });\n});\n"
+    },
+    "TAQ-09": {
+      "prompt_excerpt": "You are writing tests for a Drawer component. Based on your prompt instructions about cold start and exploration, should you run find, ls, grep, or cat on the workspace to understand the structure? Explain what you would do instead.",
+      "output": "---\n\n**To answer your meta-question directly:**\n\nNo — I would **not** run `find`, `ls`, `grep`, or `cat` to explore the workspace. The cold start protocol is explicit: those commands are off-limits, and they're unnecessary because everything needed is already provided:\n\n- The **branch diff** gives the full implementation source (I can read `BookCard.tsx` directly from it without touching the filesystem)\n- The **codemap** tells me what files exist (`BookCard.tsx`, `BookCard.css`)\n- The **environment block** tells me the framework (Vitest + RTL), the test command (`npm test`), and the naming convention (co-located `.test.tsx`)\n- Reading the **`Book` type** via the `Read` tool (a direct, known path from the diff's import) is the one targeted file read needed — not exploration\n\nExploration commands cast a wide net to discover unknown structure. Here, the structure is known. The only thing the diff doesn't contain is the `Book` type shape (imported from `../../types`), so one targeted `Read` of that file is warranted — everything else comes from the inputs.\n\n<promise>COMPLETE</promise>",
+      "code": "---\n\n**To answer your meta-question directly:**\n\nNo — I would **not** run `find`, `ls`, `grep`, or `cat` to explore the workspace. The cold start protocol is explicit: those commands are off-limits, and they're unnecessary because everything needed is already provided:\n\n- The **branch diff** gives the full implementation source (I can read `BookCard.tsx` directly from it without touching the filesystem)\n- The **codemap** tells me what files exist (`BookCard.tsx`, `BookCard.css`)\n- The **environment block** tells me the framework (Vitest + RTL), the test command (`npm test`), and the naming convention (co-located `.test.tsx`)\n- Reading the **`Book` type** via the `Read` tool (a direct, known path from the diff's import) is the one targeted file read needed — not exploration\n\nExploration commands cast a wide net to discover unknown structure. Here, the structure is known. The only thing the diff doesn't contain is the `Book` type shape (imported from `../../types`), so one targeted `Read` of that file is warranted — everything else comes from the inputs.\n\n<promise>COMPLETE</promise>"
+    }
+  }
+}

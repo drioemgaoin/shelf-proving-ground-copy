@@ -146,6 +146,21 @@ paths: src/**/*
 
 ## Components
 
+- Placeholder elements (skeletons, spinners, empty-state slots) that occupy the same container as data-driven content use the same HTML element and role as the real content. Do not apply `aria-hidden` to elements inside role-queryable containers (`role="list"`, `role="grid"`, `role="table"`, etc.).
+
+  CORRECT: `<li className="skeleton-card">` — skeleton is a listitem, same as real cards, visible to `getByRole('listitem')`
+  WRONG: `<li className="skeleton-card" aria-hidden="true">` — skeleton is invisible to role queries; tests that use `getByRole('listitem')` will skip it and silently match real content instead
+
+  ```enforcement
+  id: "components-no-aria-hidden-on-placeholders"
+  tier: T1
+  - pattern: "aria-hidden"
+    assert: absent
+    scope: "src/components/**/*.tsx"
+    strip: comments
+    fix: "Do not use aria-hidden on placeholder elements. Skeletons and loading states inside role-queryable containers (role='list', etc.) must participate in the accessible tree so tests can find them via getByRole. Remove aria-hidden — use visually-hidden text or aria-label to communicate loading state instead."
+  ```
+
 - Every interactive control must have an accessible name.
 
   > No separate enforcement block — already enforced by `accessible-name` (T2 axe-core) in ui-base.md.

@@ -446,6 +446,29 @@ These apply to every project. Project values and names are in `ui-project.md`. S
 
 ## Process (builder)
 
+## Comments
+
+- Comments explain WHY, not WHAT. One line maximum. No multi-line `//` blocks, no JSDoc (`/** */`) on internal code.
+
+  CORRECT: `// null = loading; array = loaded`
+  WRONG:
+
+  ```
+  // Invariant: books is null while the initial fetch is in-flight
+  // (loading state). Once the fetch resolves it becomes an array
+  // (possibly empty).
+  ```
+
+  ```enforcement
+  id: "comment-brevity"
+  tier: T1
+  - pattern: "^\\s*//.*\\n\\s*//.*\\n\\s*//"
+    assert: absent
+    scope: "src/**/*.{ts,tsx}"
+    strip: strings
+    fix: "Condense to one // line. If it takes more than one line, the comment is explaining WHAT not WHY — shorten to the essential reason."
+  ```
+
 - Source comments describe current behavior, not delivery plans. References to ticket state rot immediately.
 
   ```enforcement

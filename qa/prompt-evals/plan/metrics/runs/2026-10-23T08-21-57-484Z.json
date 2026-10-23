@@ -1,0 +1,155 @@
+{
+  "score": 5,
+  "total": 5,
+  "pass_rate": 100,
+  "metrics": {
+    "format_compliance": {
+      "pass": 4,
+      "total": 4,
+      "rate": 100
+    },
+    "judgment_accuracy": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "by_rule": {
+    "output-structure": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "branch-convention": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "touches-ui-field": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "empty-when-none": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "scope-field": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "cases": [
+    {
+      "id": "PQ-01",
+      "rule": "output-structure",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "format_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Output must contain issues array"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 13787
+    },
+    {
+      "id": "PQ-02",
+      "rule": "branch-convention",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "format_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Branch names must follow convention"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 26623
+    },
+    {
+      "id": "PQ-03",
+      "rule": "touches-ui-field",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "format_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Must include touchesUI field"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 54999
+    },
+    {
+      "id": "PQ-04",
+      "rule": "empty-when-none",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Empty issues array for no work"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 5017
+    },
+    {
+      "id": "PQ-05",
+      "rule": "scope-field",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "format_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Must include scope field"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 51068
+    }
+  ],
+  "controls": {
+    "pass": 0,
+    "total": 0
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-23T08:21:57.484Z",
+  "run_id": "run-1792743717485",
+  "artifacts": {
+    "PQ-01": {
+      "prompt_excerpt": "Analyze ready issues and plan.",
+      "output": "The `src/` directory is empty. Both issues are independent UI component tickets (BookCard and Drawer) with no shared files or dependencies between them. Neither requires the other's code or infrastructure.\n\n<plan>\n{\"issues\": [{\"id\": \"abc.1\", \"title\": \"Implement BookCard\", \"branch\": \"sandcastle/issue-abc.1\", \"touchesUI\": true, \"scope\": \"src/components/BookCard/**\"}, {\"id\": \"def.2\", \"title\": \"Add Drawer component\", \"branch\": \"sandcastle/issue-def.2\", \"touchesUI\": true, \"scope\": \"src/components/Drawer/**\"}]}\n</plan>",
+      "code": "The `src/` directory is empty. Both issues are independent UI component tickets (BookCard and Drawer) with no shared files or dependencies between them. Neither requires the other's code or infrastructure.\n\n<plan>\n{\"issues\": [{\"id\": \"abc.1\", \"title\": \"Implement BookCard\", \"branch\": \"sandcastle/issue-abc.1\", \"touchesUI\": true, \"scope\": \"src/components/BookCard/**\"}, {\"id\": \"def.2\", \"title\": \"Add Drawer component\", \"branch\": \"sandcastle/issue-def.2\", \"touchesUI\": true, \"scope\": \"src/components/Drawer/**\"}]}\n</plan>"
+    },
+    "PQ-02": {
+      "prompt_excerpt": "Plan implementation.",
+      "output": "Both issues are independent UI components. Neither requires the other's infrastructure — BookCard and Drawer are parallel leaf components sharing only the token stylesheet, which already exists. No blocking dependencies.\n\n<plan>\n{\"issues\":[{\"id\":\"abc.1\",\"title\":\"Implement BookCard\",\"branch\":\"sandcastle/issue-abc.1\",\"touchesUI\":true,\"scope\":\"src/components/BookCard/**,src/styles/tokens.css\"},{\"id\":\"def.2\",\"title\":\"Add Drawer component\",\"branch\":\"sandcastle/issue-def.2\",\"touchesUI\":true,\"scope\":\"src/components/Drawer/**,src/styles/tokens.css\"}]}\n</plan>",
+      "code": "Both issues are independent UI components. Neither requires the other's infrastructure — BookCard and Drawer are parallel leaf components sharing only the token stylesheet, which already exists. No blocking dependencies.\n\n<plan>\n{\"issues\":[{\"id\":\"abc.1\",\"title\":\"Implement BookCard\",\"branch\":\"sandcastle/issue-abc.1\",\"touchesUI\":true,\"scope\":\"src/components/BookCard/**,src/styles/tokens.css\"},{\"id\":\"def.2\",\"title\":\"Add Drawer component\",\"branch\":\"sandcastle/issue-def.2\",\"touchesUI\":true,\"scope\":\"src/components/Drawer/**,src/styles/tokens.css\"}]}\n</plan>"
+    },
+    "PQ-03": {
+      "prompt_excerpt": "Plan.",
+      "output": "Both issues are independent UI components with no overlap — `src/` is empty and each targets a distinct component subtree. Neither requires infrastructure the other establishes.\n\n<plan>\n{\"issues\":[{\"id\":\"abc.1\",\"title\":\"Implement BookCard\",\"branch\":\"sandcastle/issue-abc.1\",\"touchesUI\":true,\"scope\":\"src/components/BookCard/**,src/styles/**\"},{\"id\":\"def.2\",\"title\":\"Add Drawer component\",\"branch\":\"sandcastle/issue-def.2\",\"touchesUI\":true,\"scope\":\"src/components/Drawer/**,src/styles/**\"}]}\n</plan>",
+      "code": "Both issues are independent UI components with no overlap — `src/` is empty and each targets a distinct component subtree. Neither requires infrastructure the other establishes.\n\n<plan>\n{\"issues\":[{\"id\":\"abc.1\",\"title\":\"Implement BookCard\",\"branch\":\"sandcastle/issue-abc.1\",\"touchesUI\":true,\"scope\":\"src/components/BookCard/**,src/styles/**\"},{\"id\":\"def.2\",\"title\":\"Add Drawer component\",\"branch\":\"sandcastle/issue-def.2\",\"touchesUI\":true,\"scope\":\"src/components/Drawer/**,src/styles/**\"}]}\n</plan>"
+    },
+    "PQ-04": {
+      "prompt_excerpt": "No issues ready.",
+      "output": "<plan>{\"issues\": []}</plan>",
+      "code": "<plan>{\"issues\": []}</plan>"
+    },
+    "PQ-05": {
+      "prompt_excerpt": "Plan implementation.",
+      "output": "Both issues are independent UI components on a fresh codebase with no existing source. Neither BlockCard nor Drawer depends on the other — they can be implemented concurrently without conflict.\n\n<plan>\n{\"issues\":[{\"id\":\"abc.1\",\"title\":\"Implement BookCard\",\"branch\":\"sandcastle/issue-abc.1\",\"touchesUI\":true,\"scope\":\"src/components/BookCard/**,src/styles/**\"},{\"id\":\"def.2\",\"title\":\"Add Drawer component\",\"branch\":\"sandcastle/issue-def.2\",\"touchesUI\":true,\"scope\":\"src/components/Drawer/**,src/styles/**\"}]}\n</plan>",
+      "code": "Both issues are independent UI components on a fresh codebase with no existing source. Neither BlockCard nor Drawer depends on the other — they can be implemented concurrently without conflict.\n\n<plan>\n{\"issues\":[{\"id\":\"abc.1\",\"title\":\"Implement BookCard\",\"branch\":\"sandcastle/issue-abc.1\",\"touchesUI\":true,\"scope\":\"src/components/BookCard/**,src/styles/**\"},{\"id\":\"def.2\",\"title\":\"Add Drawer component\",\"branch\":\"sandcastle/issue-def.2\",\"touchesUI\":true,\"scope\":\"src/components/Drawer/**,src/styles/**\"}]}\n</plan>"
+    }
+  }
+}

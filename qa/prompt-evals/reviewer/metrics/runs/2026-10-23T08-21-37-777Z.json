@@ -1,0 +1,167 @@
+{
+  "score": 3,
+  "total": 5,
+  "pass_rate": 60,
+  "metrics": {
+    "format_compliance": {
+      "pass": 1,
+      "total": 2,
+      "rate": 50
+    },
+    "judgment_accuracy": {
+      "pass": 3,
+      "total": 5,
+      "rate": 60
+    }
+  },
+  "by_rule": {
+    "structured-output": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "unsafe-cast": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "empty-diff": {
+      "pass": 0,
+      "total": 1,
+      "rate": 0
+    },
+    "[ctrl]": {
+      "pass": 0,
+      "total": 1,
+      "rate": 0
+    },
+    "no-default-export": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "cases": [
+    {
+      "id": "RQ-01",
+      "rule": "structured-output",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "format_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Should produce structured output with FINDINGS or CLEAN verdict"
+        },
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Should identify the hardcoded color as a violation"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 23248
+    },
+    {
+      "id": "RQ-02",
+      "rule": "unsafe-cast",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Should flag the redundant unsafe cast"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 22766
+    },
+    {
+      "id": "RQ-03",
+      "rule": "empty-diff",
+      "pass": false,
+      "checkResults": [
+        {
+          "metric": "format_compliance",
+          "pass": false,
+          "detail": "Pattern not found: CLEAN",
+          "description": "Should output CLEAN verdict keyword"
+        },
+        {
+          "metric": "judgment_accuracy",
+          "pass": false,
+          "detail": "Pattern not found: CLEAN",
+          "description": "Should correctly judge empty diff as clean"
+        }
+      ],
+      "detail": "Pattern not found: CLEAN",
+      "duration_ms": 11635
+    },
+    {
+      "id": "RQ-04",
+      "rule": "[ctrl]",
+      "pass": false,
+      "checkResults": [
+        {
+          "metric": "judgment_accuracy",
+          "pass": false,
+          "detail": "Pattern not found: (CLEAN|[Cc]lean|[Nn]o issues)",
+          "description": "Should output CLEAN verdict for a diff that follows all standards"
+        }
+      ],
+      "detail": "Pattern not found: (CLEAN|[Cc]lean|[Nn]o issues)",
+      "duration_ms": 39547
+    },
+    {
+      "id": "RQ-05",
+      "rule": "no-default-export",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Should flag the default export as a standards violation"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 33592
+    }
+  ],
+  "controls": {
+    "pass": 0,
+    "total": 1
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-23T08:21:37.777Z",
+  "run_id": "run-1792743697777",
+  "artifacts": {
+    "RQ-01": {
+      "prompt_excerpt": "Review this branch and write the findings file content. The diff contains a CSS file with color: #333 instead of a design token. Write your complete findings file output starting with the verdict keyword.",
+      "output": "Findings written to `.qa/review-r1.md`. Summary of the 5 issues found:\n\n1. **`BookCard.css:5`** — `color: #333` is a raw hex value; violates the no-raw-colors rule. Should use `var(--color-text-primary)` or equivalent token.\n2. **`BookCard.tsx:10`** — `book as Book` is a redundant unsafe cast; `book` is already typed `Book` from the prop signature.\n3. **`BookCard.tsx:9`** — `BookCard` export is missing an explicit return type (`JSX.Element`).\n4. **Spec gap** — The issue requires a status badge but the component only renders title and author.\n5. **`BookCard.css:9-17`** — `.book-card__title` and `.book-card__author` rules are dead; neither class is applied to the `<h3>` or `<p>` elements in the TSX.\n\n<promise>COMPLETE</promise>",
+      "code": "Findings written to `.qa/review-r1.md`. Summary of the 5 issues found:\n\n1. **`BookCard.css:5`** — `color: #333` is a raw hex value; violates the no-raw-colors rule. Should use `var(--color-text-primary)` or equivalent token.\n2. **`BookCard.tsx:10`** — `book as Book` is a redundant unsafe cast; `book` is already typed `Book` from the prop signature.\n3. **`BookCard.tsx:9`** — `BookCard` export is missing an explicit return type (`JSX.Element`).\n4. **Spec gap** — The issue requires a status badge but the component only renders title and author.\n5. **`BookCard.css:9-17`** — `.book-card__title` and `.book-card__author` rules are dead; neither class is applied to the `<h3>` or `<p>` elements in the TSX.\n\n<promise>COMPLETE</promise>"
+    },
+    "RQ-02": {
+      "prompt_excerpt": "Review this branch. The diff contains const displayBook = book as Book where book is already typed as Book.",
+      "output": "Four findings written to `.qa/review-r1.md`:\n\n1. **`BookCard.css:5`** — `color: #333` is a raw hex value; must use a design token.\n2. **`BookCard.tsx:10`** — `const displayBook = book as Book` is a redundant unsafe cast; `book` is already `Book`.\n3. **`BookCard.tsx:9`** — `BookCard` is missing an explicit return type annotation.\n4. **`BookCard.tsx` (spec)** — The status badge required by the acceptance criteria is absent.\n\n<promise>COMPLETE</promise>",
+      "code": "Four findings written to `.qa/review-r1.md`:\n\n1. **`BookCard.css:5`** — `color: #333` is a raw hex value; must use a design token.\n2. **`BookCard.tsx:10`** — `const displayBook = book as Book` is a redundant unsafe cast; `book` is already `Book`.\n3. **`BookCard.tsx:9`** — `BookCard` is missing an explicit return type annotation.\n4. **`BookCard.tsx` (spec)** — The status badge required by the acceptance criteria is absent.\n\n<promise>COMPLETE</promise>"
+    },
+    "RQ-03": {
+      "prompt_excerpt": "Review this branch. The branch diff is empty — no files changed.",
+      "output": "<promise>COMPLETE</promise>",
+      "code": "<promise>COMPLETE</promise>"
+    },
+    "RQ-04": {
+      "prompt_excerpt": "Review this branch and write the findings file content. All values use design tokens, all functions have explicit return types, all exports are named. Write your complete findings file output.",
+      "output": "<promise>COMPLETE</promise>",
+      "code": "<promise>COMPLETE</promise>"
+    },
+    "RQ-05": {
+      "prompt_excerpt": "Review this branch. The diff contains export default function BookCard that should be a named export.",
+      "output": "Findings written to `.qa/review-r1.md`. Four issues:\n\n1. **`BookCard.css:4`** — `color: #333` is a raw hex value; replace with `var(--color-text-primary)`\n2. **`BookCard.tsx:9`** — `const displayBook = book as Book` is a redundant unsafe cast; `book` is already `Book` — drop the line and use `book` directly\n3. **`BookCard.tsx:8`** — `BookCard` is missing an explicit return type (`): JSX.Element`)\n4. **Spec gap** — no status badge rendered despite the issue requiring one\n\n> Note: the export is already a named export (`export function BookCard`) — no default-export issue exists in this diff.\n\n<promise>COMPLETE</promise>",
+      "code": "Findings written to `.qa/review-r1.md`. Four issues:\n\n1. **`BookCard.css:4`** — `color: #333` is a raw hex value; replace with `var(--color-text-primary)`\n2. **`BookCard.tsx:9`** — `const displayBook = book as Book` is a redundant unsafe cast; `book` is already `Book` — drop the line and use `book` directly\n3. **`BookCard.tsx:8`** — `BookCard` is missing an explicit return type (`): JSX.Element`)\n4. **Spec gap** — no status badge rendered despite the issue requiring one\n\n> Note: the export is already a named export (`export function BookCard`) — no default-export issue exists in this diff.\n\n<promise>COMPLETE</promise>"
+    }
+  }
+}

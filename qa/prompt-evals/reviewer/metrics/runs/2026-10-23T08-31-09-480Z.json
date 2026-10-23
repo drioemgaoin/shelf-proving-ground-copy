@@ -1,0 +1,50 @@
+{
+  "score": 1,
+  "total": 1,
+  "pass_rate": 100,
+  "metrics": {
+    "judgment_accuracy": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "by_rule": {
+    "[ctrl]": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "cases": [
+    {
+      "id": "RQ-04",
+      "rule": "[ctrl]",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Should output CLEAN verdict for a diff that follows all standards"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 12972
+    }
+  ],
+  "controls": {
+    "pass": 1,
+    "total": 1
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-23T08:31:09.480Z",
+  "run_id": "run-1792744269481",
+  "artifacts": {
+    "RQ-04": {
+      "prompt_excerpt": "Review this branch and write the findings file.",
+      "output": "The diff adds two lines to `.shelf-header` — both use design tokens (`--shelf-space-md`, `--shelf-borderWidth-thin`, `--shelf-borderColor-default`), no raw values. Spec is fully satisfied. No T3 violations, no locked files touched.\n\n<promise>COMPLETE</promise>",
+      "code": "CLEAN\nNo issues found.\n"
+    }
+  }
+}

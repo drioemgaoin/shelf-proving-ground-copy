@@ -20,9 +20,9 @@ const hostLock = !afk && process.env.UI_HOST_LOCK !== 'off';
 const projectDir = process.env.CLAUDE_PROJECT_DIR ?? process.cwd();
 
 const CONTRACT = [
-  /^e2e\/acceptance\//,
+  /^tests\/acceptance\//,
   /__screenshots__\//,
-  /^e2e\/support\//,
+  /^qa\/support\//,
   /^playwright\.config\.[cm]?[jt]s$/,
   /^scripts\/ui-qa\//,
   /^\.claude\//,
@@ -53,7 +53,7 @@ if (tool === 'Bash') {
       .replace(/"(?:[^"\\]|\\.)*"/g, '""')
       .replace(/'[^']*'/g, "''")
       .replace(/<<-?\s*['"]?(\w+)['"]?[\s\S]*?\1/g, '');
-    const touches = /__screenshots__|e2e\/acceptance|e2e\/support|playwright\.config|scripts\/ui-qa|\.claude\//.test(structural);
+    const touches = /__screenshots__|tests\/acceptance|qa\/support|playwright\.config|scripts\/ui-qa|\.claude\//.test(structural);
     // Match file-write operations. The > for redirects excludes:
     //   2>&1, >&2  (fd redirects — not file writes)
     //   ->         (arrows in structural text)
@@ -66,8 +66,8 @@ if (tool === 'Bash') {
     // Does NOT catch: npm install > log.js (redirect, not script creation)
     const createsScript = /\b(cat|echo)\b.*>\s*\S+\.(mjs|js)\b/.test(cmd)
       || /\btee\b\s+\S+\.(mjs|js)\b/.test(cmd);
-    if (createsScript && !/e2e\/agent\//.test(cmd)) {
-      block('Standalone scripts are not allowed. Add your experiment as a test in e2e/agent/ (e.g. e2e/agent/pw-facts.spec.ts) and run it with Playwright. The result persists for future agents.');
+    if (createsScript && !/tests\/investigation\//.test(cmd)) {
+      block('Standalone scripts are not allowed. Add your experiment as a test in tests/investigation/ (e.g. tests/investigation/probe.spec.ts) and run it with Playwright. The result persists for future agents.');
     }
   }
   process.exit(0);
@@ -79,13 +79,13 @@ if (['Edit', 'Write', 'MultiEdit', 'NotebookEdit'].includes(tool)) {
 
   if (p.startsWith('.ui-qa/')) block('.ui-qa/ is written only by `npm run ui:qa`.');
 
-  // Block standalone scripts outside e2e/agent/ and src/.
-  if (afk && /\.(mjs|js)$/.test(p) && !p.startsWith('e2e/agent/') && !p.startsWith('src/') && !p.startsWith('.sandcastle/') && !p.startsWith('scripts/')) {
-    block(`Standalone scripts are not allowed: ${p}. Add your experiment as a test in e2e/agent/ (e.g. e2e/agent/pw-facts.spec.ts) and run it with Playwright. The result persists for future agents.`);
+  // Block standalone scripts outside tests/investigation/ and src/.
+  if (afk && /\.(mjs|js)$/.test(p) && !p.startsWith('tests/investigation/') && !p.startsWith('src/') && !p.startsWith('.sandcastle/') && !p.startsWith('scripts/')) {
+    block(`Standalone scripts are not allowed: ${p}. Add your experiment as a test in tests/investigation/ (e.g. tests/investigation/probe.spec.ts) and run it with Playwright. The result persists for future agents.`);
   }
 
   if (afk && CONTRACT.some((r) => r.test(p))) {
-    block(`Locked in the sandbox: ${p}. The UI contract can't be changed by the builder. If it looks wrong, comment on the ticket, apply ready-for-human, and stop. Extra tests go in e2e/agent/.`);
+    block(`Locked in the sandbox: ${p}. The UI contract can't be changed by the builder. If it looks wrong, comment on the ticket, apply ready-for-human, and stop. Extra tests go in tests/investigation/.`);
   }
   if (hostLock && APP_CODE.test(p) && !HOST_ALLOWED.test(p)) {
     block(`App code is built in Sandcastle, not in this session: ${p}. Turn the work into a ticket (to-tickets, or triage + ui-contract for a bug), then run \`npm run sandcastle\`. For a deliberate manual edit, restart with UI_HOST_LOCK=off.`);

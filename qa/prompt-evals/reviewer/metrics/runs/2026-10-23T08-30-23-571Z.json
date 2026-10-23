@@ -1,0 +1,50 @@
+{
+  "score": 0,
+  "total": 1,
+  "pass_rate": 0,
+  "metrics": {
+    "judgment_accuracy": {
+      "pass": 0,
+      "total": 1,
+      "rate": 0
+    }
+  },
+  "by_rule": {
+    "[ctrl]": {
+      "pass": 0,
+      "total": 1,
+      "rate": 0
+    }
+  },
+  "cases": [
+    {
+      "id": "RQ-04",
+      "rule": "[ctrl]",
+      "pass": false,
+      "checkResults": [
+        {
+          "metric": "judgment_accuracy",
+          "pass": false,
+          "detail": "Pattern not found: (CLEAN|[Cc]lean|[Nn]o issues)",
+          "description": "Should output CLEAN verdict for a diff that follows all standards"
+        }
+      ],
+      "detail": "Pattern not found: (CLEAN|[Cc]lean|[Nn]o issues)",
+      "duration_ms": 22395
+    }
+  ],
+  "controls": {
+    "pass": 0,
+    "total": 1
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-23T08:30:23.571Z",
+  "run_id": "run-1792744223572",
+  "artifacts": {
+    "RQ-04": {
+      "prompt_excerpt": "Review this branch and write the findings file.",
+      "output": "Findings written to `.qa/review-r1.md`. One issue found: the `.book-card__badge` element is missing `background-color` and `color` tokens, so it renders as plain inline text rather than a visually distinct badge — inconsistent with the spec's \"status badge\" requirement. All T3 rules pass (tokens only, named export, explicit return type, no unsafe casts).\n\n<promise>COMPLETE</promise>",
+      "code": "FINDINGS\n- src/components/BookCard/BookCard.css:10 `.book-card__badge`\n  Cause: [spec] Badge has no background-color or color tokens, so it renders as unstyled inline text rather than a visually distinct badge\n  Current: `.book-card__badge { display: inline-block; font-size: ...; padding: ...; border-radius: ...; }`\n  Fix: Add `background-color: var(--shelf-bgColor-badge);` and `color: var(--shelf-fgColor-badge);` (or the appropriate shelf badge tokens) so the element is visually distinguishable as a status badge per the acceptance criteria\n"
+    }
+  }
+}

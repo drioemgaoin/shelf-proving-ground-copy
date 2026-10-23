@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Prompt Eval Runner — universal across all sandcastle prompts
+ * Prompt Eval Runner — ratchet model
  *
  * Replicates the real sandcastle execution environment:
  *   1. Sets up a temp sandbox with .claude/rules/ (enforcement blocks stripped)
@@ -16,28 +16,31 @@
  * Directory layout per prompt:
  *
  *   qa/prompt-evals/{name}/
- *     adjustment.txt    — exact text added to the prompt (stripped for baseline)
  *     vars.json         — default {{VAR}} values for template expansion
- *     supplementary-rules.md — rules pending addition to .claude/rules/
  *     evals/*.jsonl     — eval cases
- *     metrics/*.jsonl   — saved run data
+ *     metrics/
+ *       baseline.json   — best scoring run
+ *       runs/<ts>.json  — every run
+ *       inspect/        — generated markdown files
  *
  * ═══════════════════════════════════════════════════════════════════
  * Usage
  * ═══════════════════════════════════════════════════════════════════
  *
- *   node qa/prompt-evals/runner.mjs --prompt implementer             Both modes
- *   node qa/prompt-evals/runner.mjs --prompt implementer --mode baseline
+ *   node qa/prompt-evals/runner.mjs --prompt implementer             Run all
  *   node qa/prompt-evals/runner.mjs --prompt implementer --case SR-01
+ *   node qa/prompt-evals/runner.mjs --prompt implementer --rule X
  *   node qa/prompt-evals/runner.mjs --prompt implementer --tag escape
- *   node qa/prompt-evals/runner.mjs --prompt implementer --model sonnet
  *   node qa/prompt-evals/runner.mjs --prompt implementer --save
+ *   node qa/prompt-evals/runner.mjs --prompt implementer --save --force
+ *   node qa/prompt-evals/runner.mjs --prompt implementer --baseline
+ *   node qa/prompt-evals/runner.mjs --prompt implementer --inspect RQD-01
  *   node qa/prompt-evals/runner.mjs --prompt implementer --verbose
  *   node qa/prompt-evals/runner.mjs --prompt implementer --dry-run
  */
 
-import { readdirSync, readFileSync, writeFileSync, appendFileSync, mkdirSync, existsSync, rmSync } from "node:fs";
-import { join } from "node:path";
+import { readdirSync, readFileSync, writeFileSync, mkdirSync, existsSync, rmSync } from "node:fs";
+import { join, dirname } from "node:path";
 import { spawnSync, execSync } from "node:child_process";
 import { tmpdir } from "node:os";
 
@@ -52,17 +55,19 @@ const RULES_DIR = join(PROJECT, ".claude", "rules");
 
 const args = process.argv.slice(2);
 const promptName = flagValue(args, "--prompt");
-const modeFilter = flagValue(args, "--mode");
 const caseFilter = flagValue(args, "--case");
 const ruleFilter = flagValue(args, "--rule");
 const tagFilter = flagValue(args, "--tag");
+const inspectCase = flagValue(args, "--inspect");
 const model = flagValue(args, "--model") || "sonnet";
 const save = args.includes("--save");
+const force = args.includes("--force");
+const showBaseline = args.includes("--baseline");
 const verbose = args.includes("--verbose") || caseFilter != null || ruleFilter != null || tagFilter != null;
 const dryRun = args.includes("--dry-run");
 
 if (!promptName) {
-  console.error("Usage: runner.mjs --prompt <name> [--mode baseline|adjusted] [--case ID] [--rule RULE] [--tag TAG] [--model MODEL] [--save] [--verbose] [--dry-run]");
+  console.error("Usage: runner.mjs --prompt <name> [--case ID] [--rule RULE] [--tag TAG] [--model MODEL] [--save] [--force] [--baseline] [--inspect CASE] [--verbose] [--dry-run]");
   console.error("\nAvailable prompts:");
   try {
     const dirs = readdirSync(EVALS_BASE, { withFileTypes: true })
@@ -82,20 +87,17 @@ function flagValue(argv, flag) {
 
 const PROMPT_FILE = join(PROMPTS_DIR, `${promptName}.prompt.md`);
 const PROMPT_DIR = join(EVALS_BASE, promptName);
-const ADJUSTMENT_FILE = join(PROMPT_DIR, "adjustment.txt");
 const VARS_FILE = join(PROMPT_DIR, "vars.json");
-const SUPPLEMENTARY_RULES_FILE = join(PROMPT_DIR, "supplementary-rules.md");
 const EVALS_DIR = join(PROMPT_DIR, "evals");
 const METRICS_DIR = join(PROMPT_DIR, "metrics");
+const BASELINE_FILE = join(METRICS_DIR, "baseline.json");
+const RUNS_DIR = join(METRICS_DIR, "runs");
+const INSPECT_DIR = join(METRICS_DIR, "inspect");
 
 if (!existsSync(PROMPT_FILE)) { console.error(`Prompt not found: ${PROMPT_FILE}`); process.exit(1); }
 if (!existsSync(EVALS_DIR)) { console.error(`Evals not found: ${EVALS_DIR}`); process.exit(1); }
 
 // ─── Load config ───────────────────────────────────────────────────
-
-const adjustmentText = existsSync(ADJUSTMENT_FILE)
-  ? readFileSync(ADJUSTMENT_FILE, "utf8").trim()
-  : null;
 
 const defaultVars = existsSync(VARS_FILE)
   ? JSON.parse(readFileSync(VARS_FILE, "utf8"))
@@ -113,7 +115,6 @@ function substituteVars(template, vars) {
 // This replicates what the sandbox onSandboxReady hooks do:
 //   - git init (so Claude Code recognizes it as a project)
 //   - .claude/rules/ with enforcement blocks stripped
-//   - supplementary rules copied in
 
 let sandboxDir = null;
 
@@ -125,17 +126,23 @@ function createSandbox() {
   // git init so Claude Code recognizes it as a project
   execSync("git init -q", { cwd: sandboxDir });
 
+  // Mock git so the model can't commit, push, or trigger credential prompts.
+  // The mock exits 0 for status/diff (Claude Code housekeeping) and no-ops everything else.
+  const mockBin = join(sandboxDir, ".mock-bin");
+  mkdirSync(mockBin, { recursive: true });
+  writeFileSync(join(mockBin, "git"), `#!/bin/sh
+# Mock git for prompt evals — prevents real commits and credential prompts
+case "$1" in
+  status|diff|log|rev-parse|config|branch|show-ref|ls-files|remote) exec /usr/bin/git "$@" ;;
+  *) exit 0 ;;
+esac
+`, { mode: 0o755 });
+
   // Copy rules with enforcement blocks stripped
   const files = readdirSync(RULES_DIR).filter((f) => f.endsWith(".md"));
   for (const f of files) {
     const raw = readFileSync(join(RULES_DIR, f), "utf8");
     writeFileSync(join(rulesTarget, f), stripEnforcementFences(raw));
-  }
-
-  // Copy supplementary rules if they exist
-  if (existsSync(SUPPLEMENTARY_RULES_FILE)) {
-    const raw = readFileSync(SUPPLEMENTARY_RULES_FILE, "utf8");
-    writeFileSync(join(rulesTarget, "supplementary.md"), stripEnforcementFences(raw));
   }
 
   return sandboxDir;
@@ -150,15 +157,8 @@ function cleanupSandbox() {
 
 // ─── Build the expanded prompt ─────────────────────────────────────
 
-function buildExpandedPrompt(mode, caseVars) {
-  let raw = readFileSync(PROMPT_FILE, "utf8");
-
-  // Baseline: strip the adjustment text
-  if (mode === "baseline" && adjustmentText) {
-    raw = raw.replace(adjustmentText, "").replace(/\n\n\n+/g, "\n\n");
-  }
-
-  // Merge per-case var overrides over defaults
+function buildExpandedPrompt(caseVars) {
+  const raw = readFileSync(PROMPT_FILE, "utf8");
   const vars = caseVars ? { ...defaultVars, ...caseVars } : defaultVars;
   return substituteVars(raw, vars);
 }
@@ -185,17 +185,36 @@ function filterCases(cases) {
   return f;
 }
 
+// ─── Resolve checks for a case ────────────────────────────────────
+// Backward compat: `check` (singular) → wrapped as `checks: [check]`
+// New format: `checks` array with optional `metric` per check
+
+function resolveChecks(c) {
+  if (c.checks && Array.isArray(c.checks)) return c.checks;
+  if (c.check) return [c.check];
+  return [];
+}
+
+// Returns true if the case uses the new multi-check format with metrics
+function caseUsesMetrics(c) {
+  const checks = resolveChecks(c);
+  return checks.some((ch) => ch.metric);
+}
+
 // ─── Run one case ──────────────────────────────────────────────────
 
 function callClaude(stdinMessage) {
-  // Matches sandcastle SDK: claude -p --model MODEL
+  // Matches sandcastle SDK: claude -p --model MODEL --dangerously-skip-permissions
   // Runs from the sandbox dir so .claude/rules/ auto-load with stripped content.
-  // No --system-prompt: Claude Code's default system prompt applies (same as Docker).
+  // Permissions skipped so the model can use Write/Edit tools (same as Docker sandbox).
   try {
     const result = spawnSync(
       "claude",
-      ["-p", "--no-session-persistence", "--model", model],
-      { input: stdinMessage, encoding: "utf8", timeout: 300_000, cwd: sandboxDir },
+      ["-p", "--no-session-persistence", "--dangerously-skip-permissions",
+       "--allowedTools", "Write,Edit,Read,Glob,Grep",
+       "--model", model],
+      { input: stdinMessage, encoding: "utf8", timeout: 600_000, cwd: sandboxDir,
+        env: { ...process.env, PATH: `${join(sandboxDir, ".mock-bin")}:${process.env.PATH}` } },
     );
     if (result.error) return { output: "", error: result.error.message.slice(0, 200) };
     if (result.status !== 0 && !result.stdout?.trim()) return { output: "", error: (result.stderr ?? "").trim().slice(0, 200) };
@@ -251,31 +270,27 @@ function runCheck(check, code) {
 
 // ─── Run one case ──────────────────────────────────────────────────
 
-function runCase(c, mode, expandedPrompt) {
+function runCase(c, expandedPrompt) {
   // Create parent dirs for the target file in the sandbox
   if (c.file) {
     const filePath = join(sandboxDir, c.file);
-    mkdirSync(join(filePath, ".."), { recursive: true });
+    mkdirSync(dirname(filePath), { recursive: true });
   }
 
   // Two modes:
-  // 1. Code-producing agents (implementer, fixer, test-author): "Write file X"
-  // 2. Analysis agents (reviewer, plan, visual-qa, merger): raw task, check full output
+  // 1. Code-producing agents (implementer, fixer, test-author): prompt + task,
+  //    model uses Write/Edit tools (same as sandcastle Docker). Check the file on disk.
+  // 2. Analysis agents (reviewer, plan, visual-qa, merger): prompt + task,
+  //    check stdout (they produce verdicts as text).
   const stdinMessage = c.raw_task
     ? `${expandedPrompt}\n\n---\n\n${c.task}`
-    : `${expandedPrompt}
+    : `${expandedPrompt}\n\n---\n\nTask: ${c.task}\n\nWrite the file: ${c.file}`;
 
----
-
-Write the following file: ${c.file}
-
-Task: ${c.task}
-
-Output ONLY the file content — no explanations, no markdown fences, no other text. Just the raw TypeScript/CSS code.`;
+  const checks = resolveChecks(c);
 
   if (dryRun) {
     console.log(`\n${"─".repeat(60)}`);
-    console.log(`Case: ${c.id} | Mode: ${mode}`);
+    console.log(`Case: ${c.id}`);
     console.log(`${"─".repeat(60)}`);
     const idx = expandedPrompt.indexOf("Before committing:");
     if (idx >= 0) {
@@ -283,175 +298,673 @@ Output ONLY the file content — no explanations, no markdown fences, no other t
       console.log(expandedPrompt.slice(idx, idx + 500));
     }
     console.log(`\nTask: ${c.task}`);
-    console.log(`Check: ${c.check.description}`);
+    for (const ch of checks) {
+      console.log(`Check: ${ch.description}${ch.metric ? ` [${ch.metric}]` : ""}`);
+    }
     console.log(`Sandbox: ${sandboxDir}`);
-    return { id: c.id, mode, pass: null, detail: "(dry run)", raw: "(dry run)", duration_ms: 0, error: null };
+    return {
+      id: c.id,
+      pass: null,
+      checkResults: checks.map((ch) => ({
+        metric: ch.metric || null,
+        pass: null,
+        detail: "(dry run)",
+        description: ch.description || "",
+      })),
+      raw: "(dry run)",
+      code: "(dry run)",
+      duration_ms: 0,
+      error: null,
+    };
   }
 
   const start = performance.now();
   const { output, error } = callClaude(stdinMessage);
   const duration = Math.round(performance.now() - start);
 
-  if (error) return { id: c.id, mode, pass: false, detail: error, raw: output, duration_ms: duration, error };
-
-  // For raw_task cases, check the full output (not code-extracted)
-  const code = c.raw_task ? output : extractCode(output);
-  const { pass, detail } = runCheck(c.check, code);
-
-  return { id: c.id, mode, pass, detail, raw: output, duration_ms: duration, error: null };
-}
-
-// ─── Reporting ─────────────────────────────────────────────────────
-
-function report(cases, results) {
-  const sep = "═".repeat(68);
-  const thin = "─".repeat(68);
-  const modes = [...new Set(results.map((r) => r.mode))].sort();
-  const date = new Date().toISOString().slice(0, 10);
-
-  console.log("");
-  console.log(sep);
-  console.log(`  Prompt Eval: ${promptName}.prompt.md`);
-  console.log(`  ${date} | model: ${model}`);
-  console.log(sep);
-
-  const byCase = new Map();
-  for (const r of results) {
-    if (!byCase.has(r.id)) byCase.set(r.id, {});
-    byCase.get(r.id)[r.mode] = r;
+  if (error) {
+    return {
+      id: c.id,
+      pass: false,
+      checkResults: checks.map((ch) => ({
+        metric: ch.metric || null,
+        pass: false,
+        detail: error,
+        description: ch.description || "",
+      })),
+      raw: output,
+      code: "",
+      duration_ms: duration,
+      error,
+    };
   }
 
-  let bMiss = 0, bCatch = 0, aCatch = 0, aMiss = 0;
-  let cPassB = 0, cPassA = 0, cFailB = 0, cFailA = 0;
-  let flipped = 0;
-
-  console.log("");
-  console.log("  RESULTS");
-  console.log(thin);
-  console.log(`  ${"ID".padEnd(8)} ${"Expect".padEnd(7)} ${"Baseline".padEnd(10)} ${"Adjusted".padEnd(10)} ${"Delta".padEnd(10)} Description`);
-  console.log(thin);
-
-  for (const c of cases) {
-    const e = byCase.get(c.id) ?? {};
-    const bR = e.baseline, aR = e.adjusted;
-    const bL = bR ? (bR.pass ? "PASS" : "FAIL") : "—";
-    const aL = aR ? (aR.pass ? "PASS" : "FAIL") : "—";
-
-    let delta = "—";
-    if (bR && aR) {
-      if (!bR.pass && aR.pass) { delta = "FLIPPED"; flipped++; }
-      else if (bR.pass && aR.pass) delta = "both ok";
-      else if (!bR.pass && !aR.pass) delta = "both fail";
-      else delta = "REGRESS";
+  // For raw_task cases, check stdout. For code cases, read the file from disk
+  // (the model used Write/Edit tools). Fall back to extracting from stdout.
+  let code;
+  if (c.raw_task) {
+    code = output;
+  } else if (c.file) {
+    const filePath = join(sandboxDir, c.file);
+    try {
+      code = readFileSync(filePath, "utf8");
+    } catch {
+      // File wasn't written — fall back to stdout extraction
+      code = extractCode(output);
     }
+  } else {
+    code = extractCode(output);
+  }
 
+  const checkResults = [];
+  for (const ch of checks) {
+    const { pass, detail } = runCheck(ch, code);
+    checkResults.push({
+      metric: ch.metric || null,
+      pass,
+      detail,
+      description: ch.description || "",
+    });
+  }
+
+  const allPass = checkResults.every((cr) => cr.pass);
+
+  return {
+    id: c.id,
+    pass: allPass,
+    checkResults,
+    raw: output,
+    code,
+    duration_ms: duration,
+    error: null,
+  };
+}
+
+// ─── Baseline ─────────────────────────────────────────────────────
+
+function loadBaseline() {
+  if (!existsSync(BASELINE_FILE)) return null;
+  try { return JSON.parse(readFileSync(BASELINE_FILE, "utf8")); }
+  catch { return null; }
+}
+
+function loadLatestRun() {
+  if (!existsSync(RUNS_DIR)) return null;
+  const files = readdirSync(RUNS_DIR).filter((f) => f.endsWith(".json")).sort();
+  if (files.length === 0) return null;
+  try { return JSON.parse(readFileSync(join(RUNS_DIR, files[files.length - 1]), "utf8")); }
+  catch { return null; }
+}
+
+// ─── Build run data ───────────────────────────────────────────────
+
+function buildRunData(cases, results) {
+  const ts = new Date().toISOString();
+  const runId = `run-${Date.now()}`;
+
+  const caseResults = [];
+  const artifacts = {};
+  const byRule = {};
+  // metric → { pass: Set<caseId>, total: Set<caseId> }
+  const metricSets = {};
+
+  for (let i = 0; i < cases.length; i++) {
+    const c = cases[i];
+    const r = results[i];
     const isControl = c.expect_clean === true;
-    if (!isControl) {
-      if (bR?.pass) bCatch++; else if (bR) bMiss++;
-      if (aR?.pass) aCatch++; else if (aR) aMiss++;
-    } else {
-      if (bR?.pass) cPassB++; else if (bR) cFailB++;
-      if (aR?.pass) cPassA++; else if (aR) cFailA++;
-    }
+    const ruleKey = isControl ? "[ctrl]" : c.rule;
 
-    const type = isControl ? "ctrl" : "check";
-    const mark = delta === "FLIPPED" ? "+" : delta === "REGRESS" ? "!" : delta === "both fail" ? "-" : " ";
-    console.log(`${mark} ${c.id.padEnd(8)} ${type.padEnd(7)} ${bL.padEnd(10)} ${aL.padEnd(10)} ${delta.padEnd(10)} ${c.description}`);
+    caseResults.push({
+      id: c.id,
+      rule: ruleKey,
+      pass: r.pass,
+      checkResults: r.checkResults,
+      detail: r.checkResults?.find((cr) => !cr.pass)?.detail ?? null,
+      duration_ms: r.duration_ms,
+    });
 
-    if (verbose) {
-      for (const m of modes) {
-        const r = e[m]; if (!r) continue;
-        if (r.error) console.log(`           ${m.padEnd(10)} ERROR: ${r.error.slice(0, 80)}`);
-        else if (!r.pass && r.detail) console.log(`           ${m.padEnd(10)} FAIL: ${r.detail}`);
-        else console.log(`           ${m.padEnd(10)} check passed`);
-        if (r.raw && r.raw !== "(dry run)") console.log(`           ${m.padEnd(10)} CODE: ${extractCode(r.raw).slice(0, 150).replace(/\n/g, "\\n")}`);
+    artifacts[c.id] = {
+      prompt_excerpt: c.task?.slice(0, 500) ?? "",
+      output: r.raw,
+      code: r.code,
+    };
+
+    // by_rule aggregation (backward compat)
+    if (!byRule[ruleKey]) byRule[ruleKey] = { pass: 0, total: 0, rate: 0 };
+    byRule[ruleKey].total++;
+    if (r.pass) byRule[ruleKey].pass++;
+
+    // per-metric aggregation
+    // Group checks by metric for this case, then: case passes a metric if ALL checks
+    // for that metric passed.
+    if (r.checkResults) {
+      const byMetricForCase = {};
+      for (const cr of r.checkResults) {
+        if (cr.metric) {
+          if (!byMetricForCase[cr.metric]) byMetricForCase[cr.metric] = [];
+          byMetricForCase[cr.metric].push(cr);
+        }
+      }
+      for (const [metric, crs] of Object.entries(byMetricForCase)) {
+        if (!metricSets[metric]) metricSets[metric] = { pass: 0, total: 0 };
+        metricSets[metric].total++;
+        if (crs.every((cr) => cr.pass)) metricSets[metric].pass++;
       }
     }
   }
 
-  const checkCases = cases.filter((c) => !c.expect_clean);
-  const controlCases = cases.filter((c) => c.expect_clean);
-
-  console.log(""); console.log("  SUMMARY"); console.log(thin);
-  console.log("  PASS = the LLM's code passed the deterministic check (avoided the violation)");
-  console.log("");
-  if (modes.length === 2) {
-    console.log(`  Violation cases (${checkCases.length}): baseline ${bCatch}/${checkCases.length}, adjusted ${aCatch}/${checkCases.length}, flipped ${flipped}/${checkCases.length}`);
-    console.log(`  Control cases (${controlCases.length}): baseline ${cPassB}/${controlCases.length}, adjusted ${cPassA}/${controlCases.length}`);
-    console.log("");
-    if (aMiss === 0 && cFailA === 0) console.log("  VERDICT: ALL CLEAR");
-    else if (flipped > 0 && cFailA === 0) console.log(`  VERDICT: IMPROVEMENT — ${flipped} flipped, ${aMiss} still missed`);
-    else if (cFailA > 0) console.log(`  VERDICT: FALSE POSITIVES — ${cFailA} control(s) failed`);
-    else console.log("  VERDICT: NO IMPROVEMENT");
-  } else {
-    const m = modes[0];
-    const catches = m === "baseline" ? bCatch : aCatch;
-    const cPass = m === "baseline" ? cPassB : cPassA;
-    console.log(`  Mode: ${m} | Checks passed: ${catches}/${checkCases.length} | Controls: ${cPass}/${controlCases.length}`);
+  // Compute rates for by_rule
+  for (const key of Object.keys(byRule)) {
+    byRule[key].rate = byRule[key].total > 0 ? Math.round((byRule[key].pass / byRule[key].total) * 100) : 0;
   }
-  console.log(""); console.log(sep);
 
-  return { flipped, bCatch, bMiss, aCatch, aMiss, cPassB, cPassA, cFailB, cFailA };
+  // Build metrics object with rates
+  const metrics = {};
+  for (const [metric, data] of Object.entries(metricSets)) {
+    metrics[metric] = {
+      pass: data.pass,
+      total: data.total,
+      rate: data.total > 0 ? Math.round((data.pass / data.total) * 100) : 0,
+    };
+  }
+
+  const total = caseResults.length;
+  const score = caseResults.filter((c) => c.pass).length;
+  const passRate = total > 0 ? Math.round((score / total) * 100) : 0;
+
+  const controls = byRule["[ctrl]"] ?? { pass: 0, total: 0 };
+
+  return {
+    score,
+    total,
+    pass_rate: passRate,
+    metrics,
+    by_rule: byRule,
+    cases: caseResults,
+    controls: { pass: controls.pass, total: controls.total },
+    model,
+    timestamp: ts,
+    run_id: runId,
+    artifacts,
+  };
 }
 
-function saveMetrics(results, summary) {
-  mkdirSync(METRICS_DIR, { recursive: true });
-  const file = join(METRICS_DIR, `${new Date().toISOString().slice(0, 10)}.jsonl`);
-  const ts = new Date().toISOString();
-  const runId = `run-${Date.now()}`;
-  for (const r of results) appendFileSync(file, JSON.stringify({ type: "case", timestamp: ts, run_id: runId, model, prompt: promptName, ...r }) + "\n");
-  appendFileSync(file, JSON.stringify({ type: "summary", timestamp: ts, run_id: runId, model, prompt: promptName, ...summary }) + "\n");
-  return { file, runId };
+// ─── Reporting ─────────────────────────────────────────────────────
+
+function bar(rate, width) {
+  const filled = Math.round((rate / 100) * width);
+  return "█".repeat(filled) + "░".repeat(width - filled);
+}
+
+function report(runData, baseline) {
+  const sep = "══════════════════════════════════════════════════════════════";
+  const thin = "  " + "─".repeat(59);
+  const date = runData.timestamp.slice(0, 10);
+
+  console.log("");
+  console.log(sep);
+  console.log(`  ${promptName} evals │ ${date} │ ${model} │ ${runData.total} cases`);
+  console.log(sep);
+  console.log("");
+
+  // Score line
+  const currentStr = `${runData.score}/${runData.total} (${runData.pass_rate}%)`;
+  const baselineStr = baseline
+    ? `${baseline.score}/${baseline.total} (${baseline.pass_rate}%)`
+    : "—";
+  const deltaStr = baseline
+    ? `${runData.pass_rate >= baseline.pass_rate ? "+" : ""}${runData.pass_rate - baseline.pass_rate}%`
+    : "";
+
+  process.stdout.write(`  SCORE   ${currentStr}`);
+  process.stdout.write(`        baseline  ${baselineStr}`);
+  if (deltaStr) process.stdout.write(`        \u0394 ${deltaStr}`);
+  console.log("");
+  console.log("");
+
+  // Determine which sections to show
+  const hasMetrics = Object.keys(runData.metrics).length > 0;
+  const hasLegacyCases = runData.cases.some((c) => {
+    const evalCase = _allCases.find((ec) => ec.id === c.id);
+    return evalCase && !caseUsesMetrics(evalCase);
+  });
+
+  // METRICS section (new format)
+  if (hasMetrics) {
+    console.log("  METRICS                                    now     base");
+    console.log(thin);
+
+    for (const [metric, md] of Object.entries(runData.metrics)) {
+      const bd = baseline?.metrics?.[metric];
+      const nowStr = `${md.rate}%`.padStart(4);
+      const baseStr = bd ? `${bd.rate}%`.padStart(4) : "   —";
+      const countStr = `${md.pass}/${md.total}`;
+      const label = metric.replace(/_/g, " ");
+      const capitalLabel = label.charAt(0).toUpperCase() + label.slice(1);
+      console.log(`  ${capitalLabel.padEnd(30)} ${bar(md.rate, 12)}  ${countStr.padEnd(5)} ${nowStr}  ${baseStr}`);
+    }
+
+    console.log("");
+  }
+
+  // BY RULE section (old format — shown if any cases use old format)
+  if (hasLegacyCases) {
+    const ruleKeys = Object.keys(runData.by_rule).filter((k) => k !== "[ctrl]");
+    const hasCtrl = "[ctrl]" in runData.by_rule;
+
+    console.log("  BY RULE                                        now     base");
+    console.log(thin);
+
+    for (const rule of ruleKeys) {
+      const rd = runData.by_rule[rule];
+      const bd = baseline?.by_rule?.[rule];
+      const nowStr = `${rd.rate}%`.padStart(4);
+      const baseStr = bd ? `${bd.rate}%`.padStart(4) : "   —";
+      const countStr = `${rd.pass}/${rd.total}`;
+      console.log(`  ${rule.padEnd(30)} ${bar(rd.rate, 12)}  ${countStr.padEnd(5)} ${nowStr}  ${baseStr}`);
+    }
+
+    if (hasCtrl) {
+      const rd = runData.by_rule["[ctrl]"];
+      const bd = baseline?.by_rule?.["[ctrl]"];
+      const nowStr = `${rd.rate}%`.padStart(4);
+      const baseStr = bd ? `${bd.rate}%`.padStart(4) : "   —";
+      const countStr = `${rd.pass}/${rd.total}`;
+      console.log(`  ${"[ctrl]".padEnd(30)} ${bar(rd.rate, 12)}  ${countStr.padEnd(5)} ${nowStr}  ${baseStr}`);
+    }
+
+    console.log("");
+  }
+
+  // Cases
+  console.log("  CASES");
+  console.log(thin);
+
+  for (const c of runData.cases) {
+    const mark = c.pass ? "\u2713" : "\u2717";
+    const desc = findCaseDescription(c.id);
+    const checkResults = c.checkResults || [];
+    const totalChecks = checkResults.length;
+    const passedChecks = checkResults.filter((cr) => cr.pass).length;
+
+    // Show check count if there are multiple checks
+    const checkCountStr = totalChecks > 1 ? ` (${passedChecks}/${totalChecks} checks)` : "";
+    const line = `  ${mark}  ${c.id.padEnd(8)} ${desc}${checkCountStr}`;
+    console.log(line);
+
+    if (!c.pass) {
+      // Show each failed check with metric name and detail
+      const failedChecks = checkResults.filter((cr) => !cr.pass);
+      for (const fc of failedChecks) {
+        const metricLabel = fc.metric ? `${fc.metric}: ` : "";
+        if (fc.detail) {
+          console.log(`             ${metricLabel}${fc.detail}`);
+        }
+      }
+    }
+
+    // In verbose mode, show ALL check results for ALL cases
+    if (verbose && c.pass) {
+      for (const cr of checkResults) {
+        const metricLabel = cr.metric ? `[${cr.metric}] ` : "";
+        const resultMark = cr.pass ? "\u2713" : "\u2717";
+        console.log(`             ${resultMark} ${metricLabel}${cr.description}`);
+      }
+    }
+  }
+
+  console.log(thin);
+  console.log("");
+
+  // Footer
+  if (baseline) {
+    const bDate = baseline.timestamp.slice(0, 10);
+    console.log(`  baseline: ${bDate} │ ${baseline.score}/${baseline.total} (${baseline.pass_rate}%) │ ${baseline.model}`);
+  } else {
+    console.log("  no baseline yet");
+  }
+}
+
+// We need case descriptions available for reporting
+let _allCases = [];
+function findCaseDescription(id) {
+  const c = _allCases.find((c) => c.id === id);
+  if (!c) return "";
+  const isControl = c.expect_clean === true;
+  return isControl ? `[ctrl] ${c.description}` : c.description;
+}
+
+// ─── Inspect mode ─────────────────────────────────────────────────
+
+function handleInspect(caseId) {
+  // --inspect X --baseline → inspect from baseline; otherwise from latest run
+  const source = showBaseline ? loadBaseline() : loadLatestRun();
+  const sourceLabel = showBaseline ? "baseline" : "latest run";
+  if (!source) {
+    console.error(`No ${sourceLabel} found. Run evals first.`);
+    process.exit(1);
+  }
+
+  const caseData = source.cases?.find((c) => c.id === caseId);
+  if (!caseData) {
+    console.error(`Case ${caseId} not found in ${sourceLabel}.`);
+    process.exit(1);
+  }
+
+  const artifact = source.artifacts?.[caseId];
+  if (!artifact) {
+    console.error(`No artifacts found for case ${caseId}. ${showBaseline ? "Baseline was saved without artifacts (promoted before this feature). Re-run and --save to update." : ""}`);
+    process.exit(1);
+  }
+
+  // Find the eval case for metadata
+  const allCases = loadCases();
+  const evalCase = allCases.find((c) => c.id === caseId);
+  if (!evalCase) {
+    console.error(`Eval case ${caseId} not found in evals.`);
+    process.exit(1);
+  }
+
+  const result = caseData.pass ? "\u2713 PASS" : "\u2717 FAIL";
+  const duration = (caseData.duration_ms / 1000).toFixed(1);
+
+  // Build checks table if checkResults are available
+  const checkResults = caseData.checkResults || [];
+  let checksSection;
+
+  if (checkResults.length > 0) {
+    const rows = checkResults.map((cr) => {
+      const metricLabel = cr.metric || "(none)";
+      const resultStr = cr.pass
+        ? "\u2713 PASS"
+        : `\u2717 FAIL — ${cr.detail || ""}`;
+      return `| ${metricLabel} | ${cr.description} | ${resultStr} |`;
+    });
+
+    checksSection = `## Checks
+
+| Metric | Check | Result |
+|---|---|---|
+${rows.join("\n")}`;
+  } else {
+    // Legacy fallback: single check display
+    const checks = resolveChecks(evalCase);
+    const ch = checks[0];
+    let checkResult;
+    if (ch?.type === "regex_absent") {
+      checkResult = caseData.pass
+        ? `\u2713 Pattern not found — PASS`
+        : `\u2717 ${caseData.detail} — FAIL`;
+    } else if (ch?.type === "regex_present") {
+      checkResult = caseData.pass
+        ? `\u2713 Pattern found — PASS`
+        : `\u2717 ${caseData.detail} — FAIL`;
+    } else {
+      checkResult = caseData.pass
+        ? `\u2713 Check passed — PASS`
+        : `\u2717 ${caseData.detail} — FAIL`;
+    }
+
+    checksSection = `## Check
+
+- **Type:** ${ch?.type ?? "unknown"}
+- **Pattern:** \`${ch?.pattern || ch?.max || ""}\`
+- **Result:** ${checkResult}`;
+  }
+
+  const md = `# ${caseId} — ${evalCase.description}
+
+**Result:** ${result}
+**Rule:** ${caseData.rule}
+**Duration:** ${duration}s
+**Model:** ${source.model}
+**Source:** ${sourceLabel}
+
+## Task
+
+${evalCase.task}
+
+## Output
+
+\`\`\`tsx
+${artifact.code || artifact.output}
+\`\`\`
+
+${checksSection}
+`;
+
+  mkdirSync(INSPECT_DIR, { recursive: true });
+  const outPath = join(INSPECT_DIR, `${caseId}.md`);
+  writeFileSync(outPath, md);
+  console.log(`Inspect written: ${outPath}`);
+
+  // Try to open in VS Code
+  try {
+    execSync(`code "${outPath}"`, { stdio: "ignore" });
+  } catch {
+    // code not available, just printed the path
+  }
+}
+
+// ─── Show baseline ────────────────────────────────────────────────
+
+function handleShowBaseline() {
+  const baseline = loadBaseline();
+  if (!baseline) {
+    console.log("No baseline found.");
+    process.exit(0);
+  }
+
+  const sep = "══════════════════════════════════════════════════════════════";
+  const thin = "  " + "─".repeat(59);
+  const date = baseline.timestamp.slice(0, 10);
+
+  console.log("");
+  console.log(sep);
+  console.log(`  ${promptName} baseline │ ${date} │ ${baseline.model} │ ${baseline.total} cases`);
+  console.log(sep);
+  console.log("");
+  console.log(`  SCORE   ${baseline.score}/${baseline.total} (${baseline.pass_rate}%)`);
+  console.log("");
+
+  // METRICS section
+  if (baseline.metrics && Object.keys(baseline.metrics).length > 0) {
+    console.log("  METRICS                                    rate");
+    console.log(thin);
+
+    for (const [metric, data] of Object.entries(baseline.metrics)) {
+      const rateStr = `${data.rate}%`.padStart(4);
+      const countStr = `${data.pass}/${data.total}`;
+      const label = metric.replace(/_/g, " ");
+      const capitalLabel = label.charAt(0).toUpperCase() + label.slice(1);
+      console.log(`  ${capitalLabel.padEnd(30)} ${bar(data.rate, 12)}  ${countStr.padEnd(5)} ${rateStr}`);
+    }
+
+    console.log("");
+  }
+
+  // BY RULE section
+  console.log("  BY RULE                                        rate");
+  console.log(thin);
+
+  for (const [rule, data] of Object.entries(baseline.by_rule)) {
+    const rateStr = `${data.rate}%`.padStart(4);
+    const countStr = `${data.pass}/${data.total}`;
+    console.log(`  ${rule.padEnd(30)} ${bar(data.rate, 12)}  ${countStr.padEnd(5)} ${rateStr}`);
+  }
+
+  console.log("");
+
+  console.log("  CASES");
+  console.log(thin);
+
+  for (const c of baseline.cases) {
+    const mark = c.pass ? "\u2713" : "\u2717";
+    const checkResults = c.checkResults || [];
+    const totalChecks = checkResults.length;
+    const passedChecks = checkResults.filter((cr) => cr.pass).length;
+    const checkCountStr = totalChecks > 1 ? ` (${passedChecks}/${totalChecks} checks)` : "";
+    console.log(`  ${mark}  ${c.id.padEnd(8)} ${c.rule}${checkCountStr}`);
+    if (!c.pass) {
+      const failedChecks = checkResults.filter((cr) => !cr.pass);
+      for (const fc of failedChecks) {
+        const metricLabel = fc.metric ? `${fc.metric}: ` : "";
+        if (fc.detail) {
+          console.log(`             ${metricLabel}${fc.detail}`);
+        }
+      }
+      // Legacy fallback for cases without checkResults
+      if (failedChecks.length === 0 && c.detail) {
+        console.log(`             ${c.detail}`);
+      }
+    }
+  }
+
+  console.log(thin);
+  console.log(sep);
+}
+
+// ─── Save / Promote ───────────────────────────────────────────────
+
+function saveRun(runData) {
+  mkdirSync(RUNS_DIR, { recursive: true });
+  const runFile = join(RUNS_DIR, `${runData.timestamp.replace(/[:.]/g, "-")}.json`);
+  writeFileSync(runFile, JSON.stringify(runData, null, 2));
+  return runFile;
+}
+
+function promoteBaseline(runData, baseline) {
+  // Keep artifacts in baseline so --inspect --baseline works
+  const baselineData = runData;
+
+  if (!baseline) {
+    mkdirSync(METRICS_DIR, { recursive: true });
+    writeFileSync(BASELINE_FILE, JSON.stringify(baselineData, null, 2));
+    console.log("  \u2B06 PROMOTED (first baseline)");
+    return;
+  }
+
+  if (force) {
+    writeFileSync(BASELINE_FILE, JSON.stringify(baselineData, null, 2));
+    console.log("  \u2B06 PROMOTED (--force)");
+    return;
+  }
+
+  // Check for metric regressions
+  const hasMetrics = Object.keys(runData.metrics).length > 0;
+  const baselineHasMetrics = baseline.metrics && Object.keys(baseline.metrics).length > 0;
+
+  if (hasMetrics && baselineHasMetrics) {
+    // Per-metric promotion: no metric may regress, at least one must improve (or all stable)
+    let anyRegressed = false;
+    let anyImproved = false;
+
+    for (const [metric, current] of Object.entries(runData.metrics)) {
+      const base = baseline.metrics[metric];
+      if (!base) continue; // new metric, not a regression
+      if (current.rate < base.rate) anyRegressed = true;
+      if (current.rate > base.rate) anyImproved = true;
+    }
+
+    if (anyRegressed) {
+      console.log(`  \u2B07 REGRESSED — baseline kept (metric regression detected; run with --save --force to override)`);
+      return;
+    }
+
+    // Promote: improved or stable
+    writeFileSync(BASELINE_FILE, JSON.stringify(baselineData, null, 2));
+    if (anyImproved) {
+      console.log("  \u2B06 PROMOTED (--save)");
+    } else {
+      console.log("  \u2B06 PROMOTED (--save, stable)");
+    }
+  } else {
+    // Legacy promotion: overall pass rate
+    if (runData.pass_rate >= baseline.pass_rate) {
+      writeFileSync(BASELINE_FILE, JSON.stringify(baselineData, null, 2));
+      console.log("  \u2B06 PROMOTED (--save)");
+    } else {
+      console.log(`  \u2B07 REGRESSED — baseline kept (run with --save --force to override)`);
+    }
+  }
 }
 
 // ─── Main ──────────────────────────────────────────────────────────
 
-const cases = filterCases(loadCases());
+// Handle --inspect mode
+if (inspectCase) {
+  _allCases = loadCases();
+  handleInspect(inspectCase);
+  process.exit(0);
+}
+
+// Handle --baseline mode
+if (showBaseline) {
+  handleShowBaseline();
+  process.exit(0);
+}
+
+const allCases = loadCases();
+_allCases = allCases;
+const cases = filterCases(allCases);
 if (cases.length === 0) { console.log("No eval cases match the filter."); process.exit(0); }
 
-const modes = modeFilter ? [modeFilter] : ["baseline", "adjusted"];
-
-// Set up the sandbox once — reused across all cases and modes
+// Set up the sandbox once — reused across all cases
 console.log("Setting up sandbox...");
 createSandbox();
 console.log(`  Sandbox: ${sandboxDir}`);
 console.log(`  Rules: ${readdirSync(join(sandboxDir, ".claude", "rules")).join(", ")}`);
 
-// Pre-build expanded prompts (one per mode).
-// Cases without per-case vars share the default expansion.
-// Cases WITH per-case vars get a fresh expansion at runtime.
-const defaultExpandedPrompts = {};
-for (const mode of modes) defaultExpandedPrompts[mode] = buildExpandedPrompt(mode);
+// Pre-build expanded prompt (cases without per-case vars share the default expansion).
+const defaultExpandedPrompt = buildExpandedPrompt();
 
 const results = [];
 
 try {
-  for (const mode of modes) {
-    console.log(`\nRunning ${cases.length} cases in ${mode} mode (model: ${model})...`);
-    for (let i = 0; i < cases.length; i++) {
-      const c = cases[i];
-      process.stdout.write(`  [${i + 1}/${cases.length}] ${c.id} ...`);
-      const expandedPrompt = c.vars
-        ? buildExpandedPrompt(mode, c.vars)
-        : defaultExpandedPrompts[mode];
-      const result = runCase(c, mode, expandedPrompt);
-      results.push(result);
-      if (!dryRun) {
-        const label = result.pass ? "PASS" : result.error ? "ERROR" : "FAIL";
-        process.stdout.write(` ${label} (${result.duration_ms}ms)\n`);
-      } else {
-        process.stdout.write(" (dry run)\n");
-      }
+  console.log(`\nRunning ${cases.length} cases (model: ${model})...`);
+  for (let i = 0; i < cases.length; i++) {
+    const c = cases[i];
+    process.stdout.write(`  [${i + 1}/${cases.length}] ${c.id} ...`);
+    const expandedPrompt = c.vars
+      ? buildExpandedPrompt(c.vars)
+      : defaultExpandedPrompt;
+    const result = runCase(c, expandedPrompt);
+    results.push(result);
+    if (!dryRun) {
+      const label = result.pass ? "PASS" : result.error ? "ERROR" : "FAIL";
+      const sec = (result.duration_ms / 1000).toFixed(1);
+      process.stdout.write(` ${label} (${sec}s)\n`);
+    } else {
+      process.stdout.write(" (dry run)\n");
     }
   }
 
   if (!dryRun) {
-    const summary = report(cases, results);
+    const baseline = loadBaseline();
+    const runData = buildRunData(cases, results);
+
+    // Save run
+    const runFile = saveRun(runData);
+    console.log(`\nRun saved: ${runFile}`);
+
+    // Report
+    report(runData, baseline);
+
+    // Promote
     if (save) {
-      const { file, runId } = saveMetrics(results, summary);
-      console.log(`Metrics saved: ${file} (run: ${runId})\n`);
+      promoteBaseline(runData, baseline);
+    } else if (!baseline) {
+      console.log("  no baseline yet — run with --save to create one");
+    } else if (runData.pass_rate > baseline.pass_rate) {
+      console.log(`  \u2197 IMPROVED but not saved (run with --save)`);
+    } else if (runData.pass_rate < baseline.pass_rate) {
+      console.log(`  \u2B07 REGRESSED from baseline`);
+    } else {
+      console.log("  \u2194 STABLE — matches baseline");
     }
   }
+
+  console.log("");
 } finally {
   cleanupSandbox();
   console.log("Sandbox cleaned up.");

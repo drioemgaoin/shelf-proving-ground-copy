@@ -53,6 +53,10 @@ await mock.module("fs", {
     statSync: () => ({ isFile: () => true }),
     cpSync: () => {},
     renameSync: () => {},
+    openSync: () => 3,
+    fstatSync: () => ({ size: 0 }),
+    readSync: () => 0,
+    closeSync: () => {},
   },
 });
 

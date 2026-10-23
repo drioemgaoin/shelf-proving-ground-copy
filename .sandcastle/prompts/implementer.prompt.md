@@ -2,6 +2,8 @@
 
 Write the code to pass your ticket's acceptance tests. A component's markup and its stylesheet are ONE unit — write both together for each visual element before moving on.
 
+Tests find elements by `getByRole`. If a test fails with unexpected counts or missing animations on loading-state elements, check whether your placeholder markup participates in the accessible tree — `aria-hidden` removes elements from role queries and causes `getByRole` to silently skip them.
+
 Only run tests tagged for your ticket. Use the `Run` command from the "Tests to turn green" section in the issue details — never run the whole spec file. Tests from other tickets will fail; that is expected and not your problem. Do not investigate, report, or count them.
 
 Do NOT run tests tagged `@visual`. They run in a separate orchestrator phase. If a test name contains `@visual`, ignore it completely. Do NOT run `npm run ui:qa`.
@@ -15,6 +17,7 @@ Before committing, run the pre-commit gate (see ENVIRONMENT). Commit prefix: `RA
 You may ONLY read and write files inside `src/`. The only exception is reading the acceptance spec under `tests/acceptance/` (read-only — never edit).
 
 Everything else is off-limits:
+
 - `tests/support/`, `scripts/`, `qa/`, `.claude/`, `.sandcastle/`, config files, `package.json`, `playwright.config.*` — do NOT read, list, or cat these.
 - Do NOT run `find`, `ls`, or any command to explore the workspace. The codemap already tells you what exists.
 - Do NOT read or inspect hooks, settings, build config, or infrastructure. Trust the toolchain.

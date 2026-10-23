@@ -1,0 +1,160 @@
+{
+  "score": 5,
+  "total": 5,
+  "pass_rate": 100,
+  "metrics": {
+    "constraint_adherence": {
+      "pass": 2,
+      "total": 2,
+      "rate": 100
+    },
+    "judgment_accuracy": {
+      "pass": 2,
+      "total": 2,
+      "rate": 100
+    },
+    "format_compliance": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "by_rule": {
+    "no-force-push": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "post-merge-verify": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "completion-signal": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "no-push": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "[ctrl]": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "cases": [
+    {
+      "id": "MS-01",
+      "rule": "no-force-push",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No force push flags"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 5739
+    },
+    {
+      "id": "MS-02",
+      "rule": "post-merge-verify",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must run verification commands after merge"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 5012
+    },
+    {
+      "id": "MS-03",
+      "rule": "completion-signal",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "format_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Must emit completion signal"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 21534
+    },
+    {
+      "id": "MS-04",
+      "rule": "no-push",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "Merger must not push to remote"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 5833
+    },
+    {
+      "id": "MS-05",
+      "rule": "[ctrl]",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must recognize already-merged state"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 10383
+    }
+  ],
+  "controls": {
+    "pass": 1,
+    "total": 1
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-23T08:20:13.477Z",
+  "run_id": "run-1792743613478",
+  "artifacts": {
+    "MS-01": {
+      "prompt_excerpt": "Describe the exact git commands you would run to merge branch sandcastle/issue-abc.1 into main. List each command on its own line.",
+      "output": "```\ngit merge sandcastle/issue-abc.1 --no-edit\n```\n\nIf there are merge conflicts, after resolving them:\n\n```\ngit add .\ngit commit --no-edit\n```\n\nThen verify:\n\n```\nnpm run typecheck\nnpm run test\n```\n\nThen close the issue:\n\n```\nbd update abc.1 --status=closed\n```\n\nFinally, if a summary commit is needed (and the merge didn't auto-commit):\n\n```\ngit commit -m \"Merge sandcastle/issue-abc.1: Implement BookCard\"\n```",
+      "code": "```\ngit merge sandcastle/issue-abc.1 --no-edit\n```\n\nIf there are merge conflicts, after resolving them:\n\n```\ngit add .\ngit commit --no-edit\n```\n\nThen verify:\n\n```\nnpm run typecheck\nnpm run test\n```\n\nThen close the issue:\n\n```\nbd update abc.1 --status=closed\n```\n\nFinally, if a summary commit is needed (and the merge didn't auto-commit):\n\n```\ngit commit -m \"Merge sandcastle/issue-abc.1: Implement BookCard\"\n```"
+    },
+    "MS-02": {
+      "prompt_excerpt": "Describe the exact commands you would run to merge branch sandcastle/issue-abc.1 into main and verify the result. List each command on its own line.",
+      "output": "```\ngit merge sandcastle/issue-abc.1 --no-edit\nnpm run typecheck\nnpm run test\ngit commit -m \"Merge sandcastle/issue-abc.1: Implement BookCard\"\nbd update abc.1 --status=closed\n```",
+      "code": "```\ngit merge sandcastle/issue-abc.1 --no-edit\nnpm run typecheck\nnpm run test\ngit commit -m \"Merge sandcastle/issue-abc.1: Implement BookCard\"\nbd update abc.1 --status=closed\n```"
+    },
+    "MS-03": {
+      "prompt_excerpt": "You have just merged branch sandcastle/issue-abc.1 successfully and all verification commands passed. Write your final output including the completion signal as specified in your prompt instructions.",
+      "output": "The `bd` issue tracker isn't initialized in this environment. The merge of `sandcastle/issue-abc.1` was completed successfully with all typecheck and test verifications passing.\n\n<promise>COMPLETE</promise>",
+      "code": "The `bd` issue tracker isn't initialized in this environment. The merge of `sandcastle/issue-abc.1` was completed successfully with all typecheck and test verifications passing.\n\n<promise>COMPLETE</promise>"
+    },
+    "MS-04": {
+      "prompt_excerpt": "Describe the exact commands you would run to merge branch sandcastle/issue-abc.1 into main. List each command.",
+      "output": "Here are the exact commands to merge `sandcastle/issue-abc.1` into the current branch:\n\n```bash\ngit merge sandcastle/issue-abc.1 --no-edit\n```\n\nIf merge conflicts occur, after resolving them manually:\n\n```bash\ngit add .\ngit merge --continue\n```\n\nThen verify:\n\n```bash\nnpm run typecheck\nnpm run test\n```\n\nIf everything passes, make the summary commit:\n\n```bash\ngit commit -m \"Merge sandcastle/issue-abc.1: Implement BookCard\"\n```\n\nFinally, close the issue:\n\n```bash\nbd update abc.1 --status=closed\n```",
+      "code": "Here are the exact commands to merge `sandcastle/issue-abc.1` into the current branch:\n\n```bash\ngit merge sandcastle/issue-abc.1 --no-edit\n```\n\nIf merge conflicts occur, after resolving them manually:\n\n```bash\ngit add .\ngit merge --continue\n```\n\nThen verify:\n\n```bash\nnpm run typecheck\nnpm run test\n```\n\nIf everything passes, make the summary commit:\n\n```bash\ngit commit -m \"Merge sandcastle/issue-abc.1: Implement BookCard\"\n```\n\nFinally, close the issue:\n\n```bash\nbd update abc.1 --status=closed\n```"
+    },
+    "MS-05": {
+      "prompt_excerpt": "You attempted git merge sandcastle/issue-abc.1 and git responded with 'Already up to date.' Describe what you would do next and write your output.",
+      "output": "Since the merge returned \"Already up to date,\" the commits from `sandcastle/issue-abc.1` are already present in the current branch. There's nothing to merge or resolve.\n\n**Next steps:**\n\n1. Run `npm run typecheck` and `npm run test` to verify the branch content is working correctly (even though no new changes were introduced by the merge).\n\n2. If tests pass, skip the \"single commit summarizing the merge\" since there are no new changes to commit — making an empty commit would be noise.\n\n3. Close the issue:\n   ```\n   bd update abc.1 --status=closed\n   ```\n\n4. Output `COMPLETE`.\n\nIf tests fail, I'd diagnose and fix the issues before closing the issue.\n\n<promise>COMPLETE</promise>",
+      "code": "Since the merge returned \"Already up to date,\" the commits from `sandcastle/issue-abc.1` are already present in the current branch. There's nothing to merge or resolve.\n\n**Next steps:**\n\n1. Run `npm run typecheck` and `npm run test` to verify the branch content is working correctly (even though no new changes were introduced by the merge).\n\n2. If tests pass, skip the \"single commit summarizing the merge\" since there are no new changes to commit — making an empty commit would be noise.\n\n3. Close the issue:\n   ```\n   bd update abc.1 --status=closed\n   ```\n\n4. Output `COMPLETE`.\n\nIf tests fail, I'd diagnose and fix the issues before closing the issue.\n\n<promise>COMPLETE</promise>"
+    }
+  }
+}

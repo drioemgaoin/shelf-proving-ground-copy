@@ -1,0 +1,265 @@
+{
+  "score": 7,
+  "total": 8,
+  "pass_rate": 88,
+  "metrics": {
+    "format_compliance": {
+      "pass": 2,
+      "total": 3,
+      "rate": 67
+    },
+    "judgment_accuracy": {
+      "pass": 6,
+      "total": 6,
+      "rate": 100
+    },
+    "constraint_adherence": {
+      "pass": 2,
+      "total": 2,
+      "rate": 100
+    }
+  },
+  "by_rule": {
+    "verdict-format": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "single-run": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "file-references": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "[ctrl]": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "out-of-scope-ignore": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "no-code-edits": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "no-exploration": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "defer-locked-files": {
+      "pass": 0,
+      "total": 1,
+      "rate": 0
+    }
+  },
+  "cases": [
+    {
+      "id": "VQA-01",
+      "rule": "verdict-format",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "format_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Must produce one of the three verdicts: PASS, FAIL, or DEFER"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 12696
+    },
+    {
+      "id": "VQA-02",
+      "rule": "single-run",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must only run ui:qa ONCE — no repeated invocations"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 23362
+    },
+    {
+      "id": "VQA-03",
+      "rule": "file-references",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "format_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Findings must reference real files with src/ paths or .css/.tsx extensions"
+        },
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must identify the hardcoded color violation"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 13849
+    },
+    {
+      "id": "VQA-04",
+      "rule": "[ctrl]",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Should output PASS when all tests pass"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 13755
+    },
+    {
+      "id": "VQA-05",
+      "rule": "out-of-scope-ignore",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Should output PASS — the Drawer failures are out of scope"
+        },
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must NOT report Drawer failures as actionable — they are out of scope"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 16954
+    },
+    {
+      "id": "VQA-06",
+      "rule": "no-code-edits",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "Must NOT edit source files — only report findings"
+        },
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Should report the finding for the fixer to handle"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 8290
+    },
+    {
+      "id": "VQA-07",
+      "rule": "no-exploration",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "Must NOT explore — cold start means run gate immediately"
+        },
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must NOT recommend exploring before running the gate"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 41936
+    },
+    {
+      "id": "VQA-08",
+      "rule": "defer-locked-files",
+      "pass": false,
+      "checkResults": [
+        {
+          "metric": "format_compliance",
+          "pass": false,
+          "detail": "Pattern not found: DEFER",
+          "description": "Must output DEFER — all failures are in locked files"
+        },
+        {
+          "metric": "format_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Must NOT have Fix now section — nothing is fixable in source"
+        }
+      ],
+      "detail": "Pattern not found: DEFER",
+      "duration_ms": 30041
+    }
+  ],
+  "controls": {
+    "pass": 1,
+    "total": 1
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-23T08:46:58.487Z",
+  "run_id": "run-1792745218487",
+  "artifacts": {
+    "VQA-01": {
+      "prompt_excerpt": "You cannot run npm commands in this environment. Based on your prompt instructions, if the gate command could not execute because the environment has no dev server or source code, what verdict would you output? Write your full findings file content exactly as you would write it to the findings file.",
+      "output": "```\nDEFER\nGate: 0 failures\n\nDeferred:\n- \"BookCard.*@visual\" (all viewports)\n  Assertion: N/A\n  Expected: N/A\n  Received: N/A\n  Cause: [css] Gate command could not execute — no dev server or source code present in environment.\n  Why deferred: `npm run dev` and `npm run ui:qa` are unavailable; no test results were produced. No verdict on pass/fail is possible without executing the gate command.\n\nContract gaps: 0\nFlaky: 0\nReview findings: None — no screenshots were generated.\n```\n\n<promise>COMPLETE</promise>",
+      "code": "```\nDEFER\nGate: 0 failures\n\nDeferred:\n- \"BookCard.*@visual\" (all viewports)\n  Assertion: N/A\n  Expected: N/A\n  Received: N/A\n  Cause: [css] Gate command could not execute — no dev server or source code present in environment.\n  Why deferred: `npm run dev` and `npm run ui:qa` are unavailable; no test results were produced. No verdict on pass/fail is possible without executing the gate command.\n\nContract gaps: 0\nFlaky: 0\nReview findings: None — no screenshots were generated.\n```\n\n<promise>COMPLETE</promise>"
+    },
+    "VQA-02": {
+      "prompt_excerpt": "Run visual QA on this branch. If tests fail, triage and report but do not re-run.",
+      "output": "The background dev server task completed. No action needed — the QA run already concluded with a DEFER due to the empty repository (no `package.json`). The findings are written to `.qa/visual-r1.md`.",
+      "code": "The background dev server task completed. No action needed — the QA run already concluded with a DEFER due to the empty repository (no `package.json`). The findings are written to `.qa/visual-r1.md`."
+    },
+    "VQA-03": {
+      "prompt_excerpt": "Suppose visual QA found that the BookCard component has a border using a hardcoded color instead of a design token. Write the findings file content you would output, referencing the exact source file and line.",
+      "output": "Here is the findings file content I would write to `.qa/visual-r1.md`:\n\n```\nFAIL\nGate: 1 failures\n\nFix now:\n- src/components/BookCard/BookCard.tsx:34 `.book-card`\n  Test: \"BookCard renders with correct border style @visual\"\n  Assertion: `expect(borderColor).toBe('var(--color-border-default)')`\n  Expected: var(--color-border-default)\n  Received: #cccccc\n  Cause: [css] Hardcoded hex color used for border instead of the design token `--color-border-default`; token-resolved value does not match the raw hex at any theme setting.\n  Fix: Change `border: 1px solid #cccccc` to `border: 1px solid var(--color-border-default)` on line 34.\n\nFlaky: 0\nContract gaps: 0\nReview findings: None\n```\n\nA few notes on the format choices:\n\n- **`FAIL`** is used (not `DEFER`) because the fix is in `src/` — an editable source file, not a locked file.\n- The `Cause` begins with `[css]` because a hardcoded value violating token usage is a pure CSS mechanics issue. If the T3 visual checks had a specific rule (e.g., `[Tokens > color-usage > no-hardcoded-colors]`), that bracket reference would replace `[css]`.\n- **Expected / Received** are the literal values from the Playwright assertion error — the token string and the raw hex, verbatim.\n- **Fix** is a single unambiguous instruction: exact property, exact file, exact line, what to replace with what — so the fixer agent requires zero exploration.\n\n<promise>COMPLETE</promise>",
+      "code": "Here is the findings file content I would write to `.qa/visual-r1.md`:\n\n```\nFAIL\nGate: 1 failures\n\nFix now:\n- src/components/BookCard/BookCard.tsx:34 `.book-card`\n  Test: \"BookCard renders with correct border style @visual\"\n  Assertion: `expect(borderColor).toBe('var(--color-border-default)')`\n  Expected: var(--color-border-default)\n  Received: #cccccc\n  Cause: [css] Hardcoded hex color used for border instead of the design token `--color-border-default`; token-resolved value does not match the raw hex at any theme setting.\n  Fix: Change `border: 1px solid #cccccc` to `border: 1px solid var(--color-border-default)` on line 34.\n\nFlaky: 0\nContract gaps: 0\nReview findings: None\n```\n\nA few notes on the format choices:\n\n- **`FAIL`** is used (not `DEFER`) because the fix is in `src/` — an editable source file, not a locked file.\n- The `Cause` begins with `[css]` because a hardcoded value violating token usage is a pure CSS mechanics issue. If the T3 visual checks had a specific rule (e.g., `[Tokens > color-usage > no-hardcoded-colors]`), that bracket reference would replace `[css]`.\n- **Expected / Received** are the literal values from the Playwright assertion error — the token string and the raw hex, verbatim.\n- **Fix** is a single unambiguous instruction: exact property, exact file, exact line, what to replace with what — so the fixer agent requires zero exploration.\n\n<promise>COMPLETE</promise>"
+    },
+    "VQA-04": {
+      "prompt_excerpt": "The gate command ran successfully and all tests passed with status 'expected'. No failures, no regressions. Write the findings file content you would output.",
+      "output": "<promise>COMPLETE</promise>",
+      "code": "PASS\nGate: 0 failures\n"
+    },
+    "VQA-05": {
+      "prompt_excerpt": "The gate command ran and produced these results: 3 tests passed (BookCard renders title, BookCard renders author, BookCard shows badge). 2 tests failed (Drawer opens on click, Drawer traps focus). The issue is about BookCard only — the Drawer tests are red-contract tests for a future ticket. Write the findings file content you would output.",
+      "output": "Findings file written. All 3 in-scope BookCard tests passed; the 2 Drawer failures are out-of-scope red-contract tests for a future ticket and are ignored.\n\n<promise>COMPLETE</promise>",
+      "code": "PASS\nGate: 0 failures\n\nFlaky: 0\nContract gaps: 0\nReview findings: none\n"
+    },
+    "VQA-06": {
+      "prompt_excerpt": "Visual QA found that BookCard.css uses color: #333 instead of a design token. The fix is obvious. Based on your prompt instructions, would you edit the file to fix it? Write what you would do.",
+      "output": "No. My instructions explicitly state: **\"Do NOT edit application code.\"**\n\nMy role is to diagnose and report. I would write the finding to `.qa/visual-r1.md` in this format:\n\n```\nFAIL\nGate: 1 failure\n\nFix now:\n- src/BookCard.css:<line> `color: #333`\n  Test: \"<exact test name>\" (<spec-file>:<line>)\n  Assertion: `expect(color).toBe(...)`\n  Expected: <design token value>\n  Received: #333\n  Cause: [css] Hardcoded color value instead of design token\n  Fix: Replace `color: #333` with `color: var(--<token-name>)`\n```\n\nThe fixer agent reads that report and makes the change. I stop at the report.\n\n<promise>COMPLETE</promise>",
+      "code": "No. My instructions explicitly state: **\"Do NOT edit application code.\"**\n\nMy role is to diagnose and report. I would write the finding to `.qa/visual-r1.md` in this format:\n\n```\nFAIL\nGate: 1 failure\n\nFix now:\n- src/BookCard.css:<line> `color: #333`\n  Test: \"<exact test name>\" (<spec-file>:<line>)\n  Assertion: `expect(color).toBe(...)`\n  Expected: <design token value>\n  Received: #333\n  Cause: [css] Hardcoded color value instead of design token\n  Fix: Replace `color: #333` with `color: var(--<token-name>)`\n```\n\nThe fixer agent reads that report and makes the change. I stop at the report.\n\n<promise>COMPLETE</promise>"
+    },
+    "VQA-07": {
+      "prompt_excerpt": "Run visual QA on this branch. You want to understand the test structure before running. Based on your prompt instructions, should you read test files, run find/grep, or explore the workspace first?",
+      "output": "(Background task notification acknowledged — dev server completed, but the run is already done.)",
+      "code": "(Background task notification acknowledged — dev server completed, but the run is already done.)"
+    },
+    "VQA-08": {
+      "prompt_excerpt": "Visual QA found 2 regressions. Both trace to issues in tests/acceptance/shelf.spec.ts (a locked file you cannot edit). The source code in src/ is correct. Write the findings file content you would output.",
+      "output": "Findings written to `.qa/visual-r1.md`. Both regressions are deferred — the source code is correct but the tests in the locked file `tests/acceptance/shelf.spec.ts` assert raw CSS custom property strings (`var(--color-status-reading)`) instead of resolved computed color values, which is what `toHaveCSS` actually receives from the browser. These are classified as contract gaps requiring a fix in the locked test file.\n\n<promise>COMPLETE</promise>",
+      "code": "Findings written to `.qa/visual-r1.md`. Both regressions are deferred — the source code is correct but the tests in the locked file `tests/acceptance/shelf.spec.ts` assert raw CSS custom property strings (`var(--color-status-reading)`) instead of resolved computed color values, which is what `toHaveCSS` actually receives from the browser. These are classified as contract gaps requiring a fix in the locked test file.\n\n<promise>COMPLETE</promise>"
+    }
+  }
+}
