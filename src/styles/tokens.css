@@ -82,6 +82,22 @@
 
     /* --- Shadow color channel (warm dark, used to compose shadows) --- */
     --shelf-base-shadow-channel: 16 12% 10%;
+
+    /* --- Border width --- */
+    --shelf-base-border-width-1: 1px;
+
+    /* --- Opacity --- */
+    --shelf-base-opacity-faint: 0.1;
+    --shelf-base-opacity-soft: 0.3;
+
+    /* --- Sizes (layout + placeholder dimensions) --- */
+    --shelf-base-size-grid-column: 280px;
+    --shelf-base-size-page-max: 1280px;
+    --shelf-base-size-card-min-height: 10rem;
+    --shelf-base-size-placeholder-bar: 0.75rem;
+    --shelf-base-size-placeholder-bar-narrow: 8rem;
+    --shelf-base-size-placeholder-pill-width: 4rem;
+    --shelf-base-size-placeholder-pill-height: 1.25rem;
   }
 
   /* ================================================================
@@ -158,6 +174,22 @@
     --shelf-motion-duration-slow: var(--shelf-base-duration-400);
     --shelf-motion-easing-enter: cubic-bezier(0, 0, 0.2, 1);
     --shelf-motion-easing-exit: cubic-bezier(0.4, 0, 1, 1);
+
+    /* --- Border width --- */
+    --shelf-borderWidth-default: var(--shelf-base-border-width-1);
+
+    /* --- Opacity --- */
+    --shelf-opacity-faint: var(--shelf-base-opacity-faint);
+    --shelf-opacity-soft: var(--shelf-base-opacity-soft);
+
+    /* --- Sizes --- */
+    --shelf-size-grid-column: var(--shelf-base-size-grid-column);
+    --shelf-size-page-max: var(--shelf-base-size-page-max);
+    --shelf-size-card-min-height: var(--shelf-base-size-card-min-height);
+    --shelf-size-placeholder-bar: var(--shelf-base-size-placeholder-bar);
+    --shelf-size-placeholder-bar-narrow: var(--shelf-base-size-placeholder-bar-narrow);
+    --shelf-size-placeholder-pill-width: var(--shelf-base-size-placeholder-pill-width);
+    --shelf-size-placeholder-pill-height: var(--shelf-base-size-placeholder-pill-height);
   }
 
   /* ================================================================
@@ -240,5 +272,22 @@
     background-color: var(--shelf-bgColor-default);
     color: var(--shelf-fgColor-default);
     font-family: var(--shelf-font-family-base);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  p {
+    margin: 0;
+  }
+
+  ul,
+  ol {
+    margin: 0;
+    padding: 0;
+    list-style: none;
   }
 }

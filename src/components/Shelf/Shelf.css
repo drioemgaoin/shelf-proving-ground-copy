@@ -1,0 +1,27 @@
+@layer components {
+  .shelf {
+    display: grid;
+    grid-template-columns: minmax(0, var(--shelf-size-page-max));
+    justify-content: center;
+    gap: var(--shelf-space-lg);
+    padding: var(--shelf-space-md);
+  }
+
+  .shelf-heading {
+    font-size: var(--shelf-font-size-2xl);
+    font-weight: var(--shelf-font-weight-semibold);
+    color: var(--shelf-fgColor-default);
+  }
+
+  .shelf-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(var(--shelf-size-grid-column), 1fr));
+    gap: var(--shelf-space-lg);
+  }
+
+  @media (width >= 768px) {
+    .shelf {
+      padding: var(--shelf-space-lg);
+    }
+  }
+}
