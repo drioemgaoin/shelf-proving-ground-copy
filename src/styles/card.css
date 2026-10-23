@@ -27,7 +27,6 @@
 
   /* Title clamps to two lines, author to one — height stays deterministic. */
   .book-card-title {
-    margin: 0;
     font-size: var(--shelf-font-size-base);
     font-weight: var(--shelf-font-weight-semibold);
     color: var(--shelf-fgColor-default);
@@ -38,7 +37,6 @@
   }
 
   .book-card-author {
-    margin: 0;
     font-size: var(--shelf-font-size-sm);
     color: var(--shelf-fgColor-muted);
     white-space: nowrap;
@@ -64,7 +62,7 @@
   }
 
   .skeleton-bar-short {
-    width: 60%;
+    width: var(--shelf-skeleton-bar-short-width);
   }
 
   @keyframes shelf-skeleton-pulse {

@@ -246,6 +246,7 @@
     --shelf-card-barHeight: 0.75rem;
     --shelf-card-pillHeight: 1.25rem;
     --shelf-card-pillWidth: 4rem;
+    --shelf-skeleton-bar-short-width: 60%;
   }
 }
 
@@ -261,5 +262,20 @@
     background-color: var(--shelf-bgColor-default);
     color: var(--shelf-fgColor-default);
     font-family: var(--shelf-font-family-base);
+  }
+
+  #app {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  p {
+    margin: 0;
+  }
+
+  ul {
+    margin: 0;
+    padding: 0;
   }
 }
