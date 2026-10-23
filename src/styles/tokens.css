@@ -225,6 +225,27 @@
     --shelf-button-primary-bgColor-hover: var(--shelf-bgColor-accent-hover);
     --shelf-button-primary-bgColor-active: var(--shelf-bgColor-accent-active);
     --shelf-button-primary-fgColor: var(--shelf-fgColor-on-accent);
+
+    /* Grid — fluid responsive column track and centered content cap */
+    --shelf-grid-columnMin: 280px;
+    --shelf-grid-maxWidth: 1280px;
+
+    /* Chip — filter toggle pills */
+    --shelf-chip-borderWidth: 1px;
+    --shelf-chip-bgColor-rest: var(--shelf-bgColor-default);
+    --shelf-chip-fgColor-rest: var(--shelf-fgColor-default);
+    --shelf-chip-borderColor-rest: var(--shelf-borderColor-subtle);
+    --shelf-chip-borderColor-hover: var(--shelf-borderColor-default);
+    --shelf-chip-bgColor-selected: var(--shelf-bgColor-accent);
+    --shelf-chip-bgColor-selected-hover: var(--shelf-bgColor-accent-hover);
+    --shelf-chip-fgColor-selected: var(--shelf-fgColor-on-accent);
+
+    /* Card + skeleton — shared box so placeholders swap without layout shift */
+    --shelf-card-minHeight: 10rem;
+    --shelf-card-badgeHeight: 1.5rem;
+    --shelf-card-barHeight: 0.75rem;
+    --shelf-card-pillHeight: 1.25rem;
+    --shelf-card-pillWidth: 4rem;
   }
 }
 

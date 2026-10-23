@@ -1,0 +1,91 @@
+@layer components {
+  /* Real card and skeleton share one box so the load swap shifts nothing. */
+  .book-card,
+  .skeleton-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--shelf-space-sm);
+    min-height: var(--shelf-card-minHeight);
+    padding: var(--shelf-space-md);
+    border-radius: var(--shelf-radius-lg);
+    background-color: var(--shelf-bgColor-raised);
+    box-shadow: var(--shelf-shadow-sm);
+  }
+
+  .book-card-badge {
+    align-self: flex-start;
+    height: var(--shelf-card-badgeHeight);
+    padding-inline: var(--shelf-space-sm);
+    display: inline-flex;
+    align-items: center;
+    border-radius: var(--shelf-radius-full);
+    background-color: var(--shelf-bgColor-default);
+    color: var(--shelf-fgColor-muted);
+    font-size: var(--shelf-font-size-xs);
+    font-weight: var(--shelf-font-weight-medium);
+  }
+
+  /* Title clamps to two lines, author to one — height stays deterministic. */
+  .book-card-title {
+    margin: 0;
+    font-size: var(--shelf-font-size-base);
+    font-weight: var(--shelf-font-weight-semibold);
+    color: var(--shelf-fgColor-default);
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+  }
+
+  .book-card-author {
+    margin: 0;
+    font-size: var(--shelf-font-size-sm);
+    color: var(--shelf-fgColor-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .skeleton-pill,
+  .skeleton-bar {
+    background-color: var(--shelf-borderColor-default);
+    border-radius: var(--shelf-radius-sm);
+  }
+
+  .skeleton-pill {
+    width: var(--shelf-card-pillWidth);
+    height: var(--shelf-card-pillHeight);
+    border-radius: var(--shelf-radius-full);
+  }
+
+  .skeleton-bar {
+    width: 100%;
+    height: var(--shelf-card-barHeight);
+  }
+
+  .skeleton-bar-short {
+    width: 60%;
+  }
+
+  @keyframes shelf-skeleton-pulse {
+    from {
+      opacity: 0.1;
+    }
+
+    to {
+      opacity: 0.3;
+    }
+  }
+
+  .skeleton-card {
+    animation: shelf-skeleton-pulse var(--shelf-motion-duration-slow)
+      var(--shelf-motion-easing-enter) infinite alternate;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .skeleton-card {
+      animation: none;
+      opacity: 0.1;
+    }
+  }
+}
