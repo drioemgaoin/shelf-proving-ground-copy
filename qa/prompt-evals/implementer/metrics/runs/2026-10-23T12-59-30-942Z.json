@@ -1,0 +1,159 @@
+{
+  "score": 2,
+  "total": 3,
+  "pass_rate": 67,
+  "metrics": {
+    "constraint_adherence": {
+      "pass": 1,
+      "total": 2,
+      "rate": 50
+    },
+    "output_compliance": {
+      "pass": 3,
+      "total": 3,
+      "rate": 100
+    },
+    "task_accuracy": {
+      "pass": 3,
+      "total": 3,
+      "rate": 100
+    }
+  },
+  "by_rule": {
+    "no-outer-margin": {
+      "pass": 1,
+      "total": 2,
+      "rate": 50
+    },
+    "[ctrl]": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "cases": [
+    {
+      "id": "NOM-01",
+      "rule": "no-outer-margin",
+      "pass": false,
+      "checkResults": [
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No margin-inline: auto — centering is the parent's job, not the child's"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No margin: 0 resets in component CSS — element resets belong in @layer base"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": false,
+          "detail": "Found at offset 659: padding: 0",
+          "description": "No padding: 0 list resets in component CSS — element resets belong in @layer base"
+        },
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "CSS must be wrapped in @layer components"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must set a max-width on the content wrapper"
+        }
+      ],
+      "detail": "Found at offset 659: padding: 0",
+      "duration_ms": 24949
+    },
+    {
+      "id": "NOM-02",
+      "rule": "no-outer-margin",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No margin: 0 in component CSS — list/paragraph resets belong in @layer base"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No padding: 0 list reset in component CSS — belongs in @layer base"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No margin-block resets in component CSS"
+        },
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "CSS must be wrapped in @layer components"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must use CSS grid for the layout"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 13010
+    },
+    {
+      "id": "NOM-C1",
+      "rule": "[ctrl]",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "CSS must be wrapped in @layer components"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Should use auto-margin for flex distribution — this is the allowed exception"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 24046
+    }
+  ],
+  "controls": {
+    "pass": 1,
+    "total": 1
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-23T12:59:30.942Z",
+  "run_id": "run-1792760370943",
+  "artifacts": {
+    "NOM-01": {
+      "prompt_excerpt": "Write a FeedPage component and its CSS. It renders a centered content wrapper (max-width 960px) containing a heading, a <ul role=\"list\"> of <li> FeedItem cards, and each card has a <p> for title and a <p> for description. The wrapper is centered on the page. Use @layer components for the CSS. Use tokens for all styling (assume --shelf-* tokens exist). Include the CSS file.",
+      "output": "The file is written. Key decisions:\n\n- **Centering**: `.feed-page` uses `display: flex; justify-content: center` instead of the prohibited `margin-inline: auto` on the wrapper itself.\n- **Max-width**: `var(--shelf-content-max-width)` — assumes a token representing 960px.\n- **All values**: tokens only — no raw px/rem/hex literals.\n- **No `@keyframes`**: not needed here, so no animation layer concern.\n- **Class names**: kebab-case throughout (`feed-page`, `feed-item-title`, etc.).\n- **`list-style: none; padding: 0`** on `.feed-list`: technically these are element resets; if the base layer already handles `ul` resets, these lines can be removed — left in as scoped safety net for the component context.\n\n<promise>COMPLETE</promise>",
+      "code": "@layer components {\n  .feed-page {\n    display: flex;\n    justify-content: center;\n    width: 100%;\n    padding-inline: var(--shelf-space-md);\n    padding-block: var(--shelf-space-lg);\n  }\n\n  .feed-page-wrapper {\n    width: 100%;\n    max-width: var(--shelf-content-max-width);\n  }\n\n  .feed-page-heading {\n    font-size: var(--shelf-font-size-xl);\n    font-weight: var(--shelf-font-weight-bold);\n    color: var(--shelf-color-text-primary);\n    line-height: var(--shelf-line-height-tight);\n    padding-block-end: var(--shelf-space-lg);\n  }\n\n  .feed-list {\n    display: flex;\n    flex-direction: column;\n    gap: var(--shelf-space-md);\n    list-style: none;\n    padding: 0;\n  }\n\n  .feed-item {\n    background-color: var(--shelf-color-surface);\n    border-radius: var(--shelf-radius-md);\n    border: var(--shelf-border-width) solid var(--shelf-color-border);\n    padding: var(--shelf-space-md);\n    display: flex;\n    flex-direction: column;\n    gap: var(--shelf-space-sm);\n  }\n\n  .feed-item-title {\n    font-size: var(--shelf-font-size-md);\n    font-weight: var(--shelf-font-weight-semibold);\n    color: var(--shelf-color-text-primary);\n    line-height: var(--shelf-line-height-tight);\n  }\n\n  .feed-item-description {\n    font-size: var(--shelf-font-size-sm);\n    color: var(--shelf-color-text-secondary);\n    line-height: var(--shelf-line-height-base);\n  }\n}\n"
+    },
+    "NOM-02": {
+      "prompt_excerpt": "Write a ProjectGrid component and its CSS. It renders a <ul role=\"list\"> of project cards as <li> elements. Each card has a <p> for the project name and a <p> for the description. The grid uses CSS grid with auto-fill columns. Use @layer components. Use tokens for all styling (assume --shelf-* tokens exist). Include the CSS file.",
+      "output": "<promise>COMPLETE</promise>",
+      "code": "@layer components {\n  .project-grid {\n    list-style: none;\n    display: grid;\n    grid-template-columns: repeat(auto-fill, minmax(var(--shelf-project-grid-col-min), 1fr));\n    gap: var(--shelf-project-grid-gap);\n    padding: var(--shelf-project-grid-padding);\n  }\n\n  .project-card {\n    background: var(--shelf-project-card-bg);\n    border-radius: var(--shelf-project-card-radius);\n    padding: var(--shelf-project-card-padding);\n    gap: var(--shelf-project-card-gap);\n    display: flex;\n    flex-direction: column;\n  }\n\n  .project-card-name {\n    color: var(--shelf-project-card-name-color);\n    font-size: var(--shelf-project-card-name-size);\n    font-weight: var(--shelf-project-card-name-weight);\n    line-height: var(--shelf-project-card-name-line-height);\n  }\n\n  .project-card-description {\n    color: var(--shelf-project-card-description-color);\n    font-size: var(--shelf-project-card-description-size);\n    line-height: var(--shelf-project-card-description-line-height);\n  }\n}\n"
+    },
+    "NOM-C1": {
+      "prompt_excerpt": "Write a CardFooter component and its CSS. It renders a flex row with a timestamp on the left and an action button pushed to the right using margin-inline-start: auto on the button (this is flex auto-margin for internal space distribution, which is allowed). Use @layer components. Use tokens for all styling. Include the CSS file.",
+      "output": "`src/components/CardFooter/CardFooter.css` written. Key design decisions:\n\n- `.card-footer` is a flex row with `align-items: center`\n- `.card-footer-timestamp` sits on the left using muted text tokens\n- `.card-footer-action` uses `margin-inline-start: auto` (the allowed flex auto-margin exception) to push to the right\n- All values come from tokens — no raw px/hex/rem literals\n- `@keyframes` not needed here; transition uses only `opacity` (allowed property) with motion tokens\n- All interactive states covered: hover, focus-visible, active, disabled\n\n<promise>COMPLETE</promise>",
+      "code": "@layer components {\n  .card-footer {\n    display: flex;\n    flex-direction: row;\n    align-items: center;\n    gap: var(--shelf-space-sm);\n    padding-block-start: var(--shelf-space-sm);\n    border-block-start: var(--shelf-borderWidth-thin) solid var(--shelf-borderColor-subtle);\n  }\n\n  .card-footer-timestamp {\n    color: var(--shelf-fgColor-muted);\n    font-size: var(--shelf-font-size-xs);\n    font-weight: var(--shelf-font-weight-regular);\n    line-height: var(--shelf-font-lineHeight-base);\n  }\n\n  .card-footer-action {\n    margin-inline-start: auto;\n    color: var(--shelf-fgColor-accent);\n    font-size: var(--shelf-font-size-xs);\n    font-weight: var(--shelf-font-weight-medium);\n    background: none;\n    border: none;\n    padding: var(--shelf-space-xs) var(--shelf-space-sm);\n    border-radius: var(--shelf-radius-md);\n    cursor: pointer;\n    transition: opacity var(--shelf-motion-duration-fast) var(--shelf-motion-easing-enter);\n  }\n\n  .card-footer-action:hover {\n    opacity: var(--shelf-opacity-hover);\n  }\n\n  .card-footer-action:focus-visible {\n    outline: var(--shelf-focusRing);\n    outline-offset: var(--shelf-focusRing-offset);\n  }\n\n  .card-footer-action:active {\n    opacity: var(--shelf-opacity-active);\n  }\n\n  .card-footer-action:disabled {\n    opacity: var(--shelf-opacity-disabled);\n    cursor: not-allowed;\n  }\n}\n"
+    }
+  }
+}

@@ -1,0 +1,84 @@
+{
+  "score": 1,
+  "total": 1,
+  "pass_rate": 100,
+  "metrics": {
+    "constraint_adherence": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "output_compliance": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "task_accuracy": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "by_rule": {
+    "values-from-tokens": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "cases": [
+    {
+      "id": "VFT-01",
+      "rule": "values-from-tokens",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No border-width keyword 'thin' as a CSS property value — token names like --shelf-borderWidth-thin are fine"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No border-width keyword 'medium' as a CSS property value"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No raw percentage as a standard property value (e.g. width: 60%) — custom property declarations like --my-token: 60% are fine"
+        },
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "CSS must be wrapped in @layer components"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must include border styling"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 12815
+    }
+  ],
+  "controls": {
+    "pass": 0,
+    "total": 0
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-23T13:27:42.384Z",
+  "run_id": "run-1792762062385",
+  "artifacts": {
+    "VFT-01": {
+      "prompt_excerpt": "Write a ProfileCard component and its CSS. It has a bordered container with a thin border, a title, a subtitle, and a skeleton variant with two shimmer bars (one full-width, one shorter at about 60% width). Use @layer components for the CSS. Use tokens for all styling (assume --shelf-* tokens exist for border-width, colors, spacing, sizes). Include the CSS file.",
+      "output": "<promise>COMPLETE</promise>",
+      "code": "@layer components {\n  .profile-card {\n    border: var(--shelf-border-width) solid var(--shelf-color-border);\n    border-radius: var(--shelf-radius-md);\n    padding: var(--shelf-space-md);\n  }\n\n  .profile-card-title {\n    font-size: var(--shelf-text-size-lg);\n    font-weight: var(--shelf-text-weight-bold);\n    color: var(--shelf-color-text-primary);\n    line-height: var(--shelf-text-line-height-tight);\n  }\n\n  .profile-card-subtitle {\n    font-size: var(--shelf-text-size-sm);\n    color: var(--shelf-color-text-secondary);\n    line-height: var(--shelf-text-line-height-normal);\n  }\n\n  .profile-card-skeleton-bar {\n    height: var(--shelf-skeleton-height);\n    border-radius: var(--shelf-radius-sm);\n    background-color: var(--shelf-color-skeleton-base);\n    animation: shimmer var(--shelf-motion-duration-slow) var(--shelf-motion-easing-linear) infinite;\n  }\n\n  .profile-card-skeleton-bar--short {\n    width: var(--shelf-skeleton-width-short);\n  }\n\n  @keyframes shimmer {\n    0% {\n      opacity: var(--shelf-skeleton-opacity-low);\n    }\n    50% {\n      opacity: var(--shelf-skeleton-opacity-high);\n    }\n    100% {\n      opacity: var(--shelf-skeleton-opacity-low);\n    }\n  }\n}\n"
+    }
+  }
+}

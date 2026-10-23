@@ -1,0 +1,88 @@
+{
+  "score": 2,
+  "total": 2,
+  "pass_rate": 100,
+  "metrics": {
+    "judgment_accuracy": {
+      "pass": 2,
+      "total": 2,
+      "rate": 100
+    }
+  },
+  "by_rule": {
+    "coupled-layout-fix": {
+      "pass": 2,
+      "total": 2,
+      "rate": 100
+    }
+  },
+  "cases": [
+    {
+      "id": "CLF-01",
+      "rule": "coupled-layout-fix",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must add flex or grid display to #app for centering"
+        },
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must add centering alignment to #app"
+        },
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must preserve max-width in shelf.css (not remove it alongside margin-inline: auto)"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 6315
+    },
+    {
+      "id": "CLF-02",
+      "rule": "coupled-layout-fix",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must add p { margin: 0; } to @layer base in tokens.css"
+        },
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must preserve .card-title with font-size (only margin: 0 removed)"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 5713
+    }
+  ],
+  "controls": {
+    "pass": 0,
+    "total": 0
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-23T12:59:47.772Z",
+  "run_id": "run-1792760387774",
+  "artifacts": {
+    "CLF-01": {
+      "prompt_excerpt": "You read the findings file and it says:\n\nFINDINGS\n- src/styles/shelf.css:7 `.shelf`\n  Cause: [Values > no-outer-margin] Child self-centers with margin-inline: auto, which is prohibited. The parent layout must own centering.\n  Current: margin-inline: auto;\n  Fix: Remove the margin-inline: auto line from .shelf; add centering to #app in src/styles/global.css (e.g. #app { display: flex; flex-direction: column; align-items: center; }).\n\nYou open src/styles/shelf.css and it contains:\n@layer component",
+      "output": "**src/styles/shelf.css**\n```css\n@layer components {\n  .shelf {\n    max-width: var(--shelf-grid-maxWidth);\n    padding: var(--shelf-space-md);\n  }\n}\n```\n\n**src/styles/global.css**\n```css\n@layer base {\n  #app {\n    min-height: 100vh;\n    display: flex;\n    flex-direction: column;\n    align-items: center;\n  }\n}\n```\n\n<promise>COMPLETE</promise>",
+      "code": "**src/styles/shelf.css**\n```css\n@layer components {\n  .shelf {\n    max-width: var(--shelf-grid-maxWidth);\n    padding: var(--shelf-space-md);\n  }\n}\n```\n\n**src/styles/global.css**\n```css\n@layer base {\n  #app {\n    min-height: 100vh;\n    display: flex;\n    flex-direction: column;\n    align-items: center;\n  }\n}\n```\n\n<promise>COMPLETE</promise>"
+    },
+    "CLF-02": {
+      "prompt_excerpt": "You read the findings file and it says:\n\nFINDINGS\n- src/styles/card.css:10 `.card-title`\n  Cause: [Values > no-outer-margin] margin: 0 resets belong in @layer base, not component CSS.\n  Current: margin: 0;\n  Fix: Remove the margin: 0 line from .card-title; add p { margin: 0; } to @layer base in src/styles/tokens.css.\n\nYou open src/styles/card.css and it contains:\n@layer components {\n  .card {\n    padding: var(--shelf-space-md);\n  }\n  .card-title {\n    margin: 0;\n    font-size: var(--shelf-font-s",
+      "output": "**src/styles/card.css**\n```css\n@layer components {\n  .card {\n    padding: var(--shelf-space-md);\n  }\n  .card-title {\n    font-size: var(--shelf-font-size-lg);\n  }\n}\n```\n\n**src/styles/tokens.css**\n```css\n@layer base {\n  body {\n    margin: 0;\n    background-color: var(--shelf-bgColor-default);\n  }\n  p {\n    margin: 0;\n  }\n}\n```\n\n<promise>COMPLETE</promise>",
+      "code": "**src/styles/card.css**\n```css\n@layer components {\n  .card {\n    padding: var(--shelf-space-md);\n  }\n  .card-title {\n    font-size: var(--shelf-font-size-lg);\n  }\n}\n```\n\n**src/styles/tokens.css**\n```css\n@layer base {\n  body {\n    margin: 0;\n    background-color: var(--shelf-bgColor-default);\n  }\n  p {\n    margin: 0;\n  }\n}\n```\n\n<promise>COMPLETE</promise>"
+    }
+  }
+}

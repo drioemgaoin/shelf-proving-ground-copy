@@ -1,0 +1,203 @@
+{
+  "score": 4,
+  "total": 4,
+  "pass_rate": 100,
+  "metrics": {
+    "constraint_adherence": {
+      "pass": 3,
+      "total": 3,
+      "rate": 100
+    },
+    "output_compliance": {
+      "pass": 4,
+      "total": 4,
+      "rate": 100
+    },
+    "task_accuracy": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "by_rule": {
+    "comment-clarity": {
+      "pass": 3,
+      "total": 3,
+      "rate": 100
+    },
+    "[ctrl]": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "cases": [
+    {
+      "id": "CC-01",
+      "rule": "comment-clarity",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No JSDoc blocks (/** */) on internal code"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No comments restating what SKELETON_COUNT means — the name is self-documenting"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No multi-line // comment blocks — one line maximum"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No ticket delivery plan references in source comments"
+        },
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Must include the SKELETON_COUNT constant"
+        },
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Must export the component"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 20878
+    },
+    {
+      "id": "CC-02",
+      "rule": "comment-clarity",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No ticket references or delivery plan language in comments"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No JSDoc blocks on internal code"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No multi-line // comment blocks"
+        },
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Must export the component"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 15196
+    },
+    {
+      "id": "CC-03",
+      "rule": "comment-clarity",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No multi-line // comment blocks — one line maximum"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No JSDoc blocks on internal code"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No verbose null-state explanation — if commented at all, use // null = loading; array = loaded"
+        },
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Must use useState for the loading pattern"
+        },
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Must export the component"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 14792
+    },
+    {
+      "id": "CC-C1",
+      "rule": "[ctrl]",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Must export the component"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must include the ceiling rounding"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 13181
+    }
+  ],
+  "controls": {
+    "pass": 1,
+    "total": 1
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-23T11:51:01.071Z",
+  "run_id": "run-1792756261072",
+  "artifacts": {
+    "CC-01": {
+      "prompt_excerpt": "Write a NotificationPanel component (TSX). It has a constant SKELETON_COUNT = 4 for placeholders, a constant MAX_VISIBLE = 10 for visible items, and renders a list. The spec says notification grouping ships in a later ticket. Use tokens for styling. Include the component file.",
+      "output": "The file is written. Key decisions:\n\n- `SKELETON_COUNT = 4` and `MAX_VISIBLE = 10` are module-level constants.\n- Skeleton `<li>` elements use the same element and role as real content (constraint 7 for TSX) — no `aria-hidden`.\n- Grouping is intentionally absent — the spec says it ships in a later ticket; no comment references that ticket state (constraint: comments describe current behavior, not delivery plans).\n- No I/O in the component; data arrives via props.\n- Named export, no `any`, no nested ternaries.",
+      "code": "import { useId } from 'react';\n\nconst SKELETON_COUNT = 4;\nconst MAX_VISIBLE = 10;\n\nexport interface Notification {\n  id: string;\n  message: string;\n  timestamp: string;\n}\n\ninterface NotificationPanelProps {\n  notifications?: Notification[];\n  loading?: boolean;\n}\n\nexport function NotificationPanel({ notifications, loading = false }: NotificationPanelProps): JSX.Element {\n  const labelId = useId();\n\n  if (loading) {\n    return (\n      <section aria-labelledby={labelId}>\n        <h2 id={labelId}>Notifications</h2>\n        <ul>\n          {Array.from({ length: SKELETON_COUNT }, (_, i) => (\n            <li key={i} aria-label=\"Loading notification\">\n              <span className=\"notification-skeleton\" />\n            </li>\n          ))}\n        </ul>\n      </section>\n    );\n  }\n\n  const visible = (notifications ?? []).slice(0, MAX_VISIBLE);\n\n  return (\n    <section aria-labelledby={labelId}>\n      <h2 id={labelId}>Notifications</h2>\n      <ul>\n        {visible.map((n) => (\n          <li key={n.id} className=\"notification-item\">\n            <span className=\"notification-message\">{n.message}</span>\n            <time className=\"notification-timestamp\" dateTime={n.timestamp}>\n              {n.timestamp}\n            </time>\n          </li>\n        ))}\n      </ul>\n    </section>\n  );\n}\n"
+    },
+    "CC-02": {
+      "prompt_excerpt": "Write a FilterBar component (TSX). It renders four filter buttons. The spec says: this ticket only wires the pressed/styling state of the buttons; the actual list filtering is implemented by the parent and ships in a separate ticket (djk.2). Include the component file.",
+      "output": "File written. The component:\n\n- Manages `activeFilter` state locally (pressed/styling state only, per the ticket)\n- Renders four buttons with `aria-pressed` for accessible toggle state\n- Accepts an optional `onFilterChange` callback so the parent can wire filtering when that ships in djk.2\n- Uses no nested ternaries, named export, typed parameters and return\n\n<promise>COMPLETE</promise>",
+      "code": "import { useState } from 'react';\n\ntype FilterOption = 'All' | 'Reading' | 'Finished' | 'Want to Read';\n\nconst FILTER_OPTIONS: FilterOption[] = ['All', 'Reading', 'Finished', 'Want to Read'];\n\ninterface FilterBarProps {\n  onFilterChange?: (filter: FilterOption) => void;\n}\n\nexport function FilterBar({ onFilterChange }: FilterBarProps): JSX.Element {\n  const [activeFilter, setActiveFilter] = useState<FilterOption>('All');\n\n  function handleClick(filter: FilterOption): void {\n    setActiveFilter(filter);\n    onFilterChange?.(filter);\n  }\n\n  return (\n    <div role=\"group\" aria-label=\"Filter books\">\n      {FILTER_OPTIONS.map((filter) => (\n        <button\n          key={filter}\n          type=\"button\"\n          aria-pressed={activeFilter === filter}\n          onClick={() => handleClick(filter)}\n        >\n          {filter}\n        </button>\n      ))}\n    </div>\n  );\n}\n"
+    },
+    "CC-03": {
+      "prompt_excerpt": "Write a DataFeed component (TSX). It uses useState where null means loading and an array means loaded. It renders skeletons when null, the list when loaded. Include the component file.",
+      "output": "File written to `src/components/DataFeed/DataFeed.tsx`.\n\nKey decisions:\n- `useState<FeedItem[] | null>(null)` — `null` = loading, array = loaded, per spec\n- Skeleton state renders the same `<ul>/<li>` structure as loaded state (constraint #7: placeholders use same element/role as real content)\n- No `aria-hidden` on skeletons — they stay in the accessible tree so `getByRole('listitem')` works in both states\n- `setItems` is available if a caller wires up data fetching; I/O stays outside this component (constraint #10)\n\n<promise>COMPLETE</promise>",
+      "code": "import { useState } from 'react';\n\ninterface FeedItem {\n  id: string;\n  label: string;\n}\n\nconst SKELETON_COUNT = 3;\n\nexport function DataFeed(): JSX.Element {\n  const [items, setItems] = useState<FeedItem[] | null>(null);\n\n  const isLoading = items === null;\n\n  if (isLoading) {\n    return (\n      <ul>\n        {Array.from({ length: SKELETON_COUNT }, (_, i) => (\n          <li key={i} aria-busy=\"true\">\n            <span>Loading…</span>\n          </li>\n        ))}\n      </ul>\n    );\n  }\n\n  return (\n    <ul>\n      {items.map((item) => (\n        <li key={item.id}>{item.label}</li>\n      ))}\n    </ul>\n  );\n}\n"
+    },
+    "CC-C1": {
+      "prompt_excerpt": "Write a PriceDisplay component (TSX). It formats a price and shows a strikethrough for discounts. Add a one-line // comment explaining WHY the rounding uses Math.ceil (business rule: always round up to avoid under-charging). Include the component file.",
+      "output": "File written to `src/components/PriceDisplay/PriceDisplay.tsx`. Key points:\n\n- `Math.ceil` comment explains the business rule (round up to avoid under-charging)\n- Strikethrough on `originalPrice` via `<s>` element when a discount exists\n- Named export, typed props, no `any`, no nested ternaries\n\n<promise>COMPLETE</promise>",
+      "code": "import React from 'react';\n\ninterface PriceDisplayProps {\n  price: number;\n  originalPrice?: number;\n  currencySymbol?: string;\n}\n\n// Math.ceil used here because business rule requires always rounding up to avoid under-charging\nfunction formatPrice(value: number, symbol: string): string {\n  return `${symbol}${(Math.ceil(value * 100) / 100).toFixed(2)}`;\n}\n\nexport function PriceDisplay({ price, originalPrice, currencySymbol = '$' }: PriceDisplayProps): React.ReactElement {\n  const hasDiscount = originalPrice !== undefined && originalPrice > price;\n\n  return (\n    <span className=\"price-display\">\n      {hasDiscount && (\n        <span className=\"price-display__original\">\n          <s>{formatPrice(originalPrice, currencySymbol)}</s>\n        </span>\n      )}\n      <span className=\"price-display__current\">{formatPrice(price, currencySymbol)}</span>\n    </span>\n  );\n}\n"
+    }
+  }
+}

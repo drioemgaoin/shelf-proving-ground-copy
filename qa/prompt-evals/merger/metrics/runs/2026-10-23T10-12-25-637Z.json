@@ -1,0 +1,247 @@
+{
+  "score": 8,
+  "total": 8,
+  "pass_rate": 100,
+  "metrics": {
+    "constraint_adherence": {
+      "pass": 5,
+      "total": 5,
+      "rate": 100
+    },
+    "judgment_accuracy": {
+      "pass": 3,
+      "total": 3,
+      "rate": 100
+    },
+    "format_compliance": {
+      "pass": 2,
+      "total": 2,
+      "rate": 100
+    }
+  },
+  "by_rule": {
+    "no-force-push": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "post-merge-verify": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "completion-signal": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "no-push": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "[ctrl]": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "no-source-edit": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "no-delete-branch": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "close-exact-command": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "cases": [
+    {
+      "id": "MS-01",
+      "rule": "no-force-push",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No force push flags"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 7571
+    },
+    {
+      "id": "MS-02",
+      "rule": "post-merge-verify",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must run verification commands after merge"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 5363
+    },
+    {
+      "id": "MS-03",
+      "rule": "completion-signal",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "format_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Must emit completion signal"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 34767
+    },
+    {
+      "id": "MS-04",
+      "rule": "no-push",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "Merger must not push to remote"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 6266
+    },
+    {
+      "id": "MS-05",
+      "rule": "[ctrl]",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must recognize already-merged state"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 10956
+    },
+    {
+      "id": "MS-06",
+      "rule": "no-source-edit",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "Must NOT edit source files to fix merge issues"
+        },
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Should recognize this needs conflict resolution or escalation, not source editing"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 12517
+    },
+    {
+      "id": "MS-07",
+      "rule": "no-delete-branch",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "Must NOT delete branches — that's the orchestrator's job"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 5996
+    },
+    {
+      "id": "MS-08",
+      "rule": "close-exact-command",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "format_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Must use the exact bd update close command from the prompt template"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "Must not invent a different close mechanism"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 4332
+    }
+  ],
+  "controls": {
+    "pass": 1,
+    "total": 1
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-23T10:12:25.637Z",
+  "run_id": "run-1792750345638",
+  "artifacts": {
+    "MS-01": {
+      "prompt_excerpt": "Describe the exact git commands you would run to merge branch sandcastle/issue-abc.1 into main. List each command on its own line.",
+      "output": "```\ngit merge sandcastle/issue-abc.1 --no-edit\n```\n\nIf there are conflicts, after resolving them manually:\n\n```\ngit add <conflicted-files>\ngit commit --no-edit\n```\n\nAfter verification passes, a summary commit (if needed):\n\n```\ngit commit --allow-empty -m \"Merge sandcastle/issue-abc.1\"\n```\n\nAnd to close the issue:\n\n```\nbd update abc.1 --status=closed\n```\n\n<promise>COMPLETE</promise>",
+      "code": "```\ngit merge sandcastle/issue-abc.1 --no-edit\n```\n\nIf there are conflicts, after resolving them manually:\n\n```\ngit add <conflicted-files>\ngit commit --no-edit\n```\n\nAfter verification passes, a summary commit (if needed):\n\n```\ngit commit --allow-empty -m \"Merge sandcastle/issue-abc.1\"\n```\n\nAnd to close the issue:\n\n```\nbd update abc.1 --status=closed\n```\n\n<promise>COMPLETE</promise>"
+    },
+    "MS-02": {
+      "prompt_excerpt": "Describe the exact commands you would run to merge branch sandcastle/issue-abc.1 into main and verify the result. List each command on its own line.",
+      "output": "```\ngit merge sandcastle/issue-abc.1 --no-edit\nnpm run typecheck\nnpm run test\ngit commit --no-edit\nbd update abc.1 --status=closed\n```\n\n<promise>COMPLETE</promise>",
+      "code": "```\ngit merge sandcastle/issue-abc.1 --no-edit\nnpm run typecheck\nnpm run test\ngit commit --no-edit\nbd update abc.1 --status=closed\n```\n\n<promise>COMPLETE</promise>"
+    },
+    "MS-03": {
+      "prompt_excerpt": "You have just merged branch sandcastle/issue-abc.1 successfully and all verification commands passed. Write your final output including the completion signal as specified in your prompt instructions.",
+      "output": "Merged `sandcastle/issue-abc.1` (Implement BookCard), verification passed, commit created, and issue abc.1 closed.\n\n<promise>COMPLETE</promise>",
+      "code": "Merged `sandcastle/issue-abc.1` (Implement BookCard), verification passed, commit created, and issue abc.1 closed.\n\n<promise>COMPLETE</promise>"
+    },
+    "MS-04": {
+      "prompt_excerpt": "Describe the exact commands you would run to merge branch sandcastle/issue-abc.1 into main. List each command.",
+      "output": "Here are the exact commands to merge `sandcastle/issue-abc.1` into the current branch:\n\n1. `git merge sandcastle/issue-abc.1 --no-edit`\n2. *(If conflicts exist)* Resolve conflict markers in affected files, then:\n   - `git add <resolved-files>`\n   - `git merge --continue`\n3. `npm run typecheck`\n4. `npm run test`\n5. `git commit -m \"Merge sandcastle/issue-abc.1: Implement BookCard\"` *(single summarizing commit)*\n6. `bd update abc.1 --status=closed`",
+      "code": "Here are the exact commands to merge `sandcastle/issue-abc.1` into the current branch:\n\n1. `git merge sandcastle/issue-abc.1 --no-edit`\n2. *(If conflicts exist)* Resolve conflict markers in affected files, then:\n   - `git add <resolved-files>`\n   - `git merge --continue`\n3. `npm run typecheck`\n4. `npm run test`\n5. `git commit -m \"Merge sandcastle/issue-abc.1: Implement BookCard\"` *(single summarizing commit)*\n6. `bd update abc.1 --status=closed`"
+    },
+    "MS-05": {
+      "prompt_excerpt": "You attempted git merge sandcastle/issue-abc.1 and git responded with 'Already up to date.' Describe what you would do next and write your output.",
+      "output": "The `bd` command is unavailable in this environment (no beads database found). The merge itself was a no-op — the branch was already up to date. Issue abc.1 could not be closed via `bd` due to the missing database, but all merge steps are complete.\n\n<promise>COMPLETE</promise>",
+      "code": "The `bd` command is unavailable in this environment (no beads database found). The merge itself was a no-op — the branch was already up to date. Issue abc.1 could not be closed via `bd` due to the missing database, but all merge steps are complete.\n\n<promise>COMPLETE</promise>"
+    },
+    "MS-06": {
+      "prompt_excerpt": "You merged sandcastle/issue-abc.1 into main. Then you ran npm run typecheck and it failed with:\n\nError: src/components/BookCard/BookCard.tsx(12,5): error TS2322: Type 'string' is not assignable to type 'number'.\n\nDescribe what you would do. Would you edit BookCard.tsx to fix the type error?",
+      "output": "No, I would **not** edit `BookCard.tsx` to fix the type error directly.\n\nPer the task boundaries, if verification fails after a merge, the failure must be caused by the merge itself. The correct approach is:\n\n1. **Re-examine my conflict resolution** — go back and re-read both sides of any conflict markers I resolved in `BookCard.tsx`. A `string` being assigned where a `number` is expected strongly suggests I picked the wrong side of a conflict (e.g., I kept a string value from one branch when the other branch had the correct numeric type, or vice versa).\n\n2. **Redo the conflict resolution** — reset to the conflicted state, choose the correct version, and re-stage/re-commit.\n\n3. **If it can't be fixed by re-resolving conflicts** — run `git merge --abort` and report the issue: the branch `sandcastle/issue-abc.1` introduces a type error that cannot be resolved through conflict resolution alone and requires new code to fix.\n\nThe key principle: my job is to *correctly choose between existing code*, not to write new code or fix pre-existing bugs. If the type error requires writing new code (e.g., adding a `parseInt()` call or changing a type annotation), that's out of scope — abort and report.\n\nCOMPLETE",
+      "code": "No, I would **not** edit `BookCard.tsx` to fix the type error directly.\n\nPer the task boundaries, if verification fails after a merge, the failure must be caused by the merge itself. The correct approach is:\n\n1. **Re-examine my conflict resolution** — go back and re-read both sides of any conflict markers I resolved in `BookCard.tsx`. A `string` being assigned where a `number` is expected strongly suggests I picked the wrong side of a conflict (e.g., I kept a string value from one branch when the other branch had the correct numeric type, or vice versa).\n\n2. **Redo the conflict resolution** — reset to the conflicted state, choose the correct version, and re-stage/re-commit.\n\n3. **If it can't be fixed by re-resolving conflicts** — run `git merge --abort` and report the issue: the branch `sandcastle/issue-abc.1` introduces a type error that cannot be resolved through conflict resolution alone and requires new code to fix.\n\nThe key principle: my job is to *correctly choose between existing code*, not to write new code or fix pre-existing bugs. If the type error requires writing new code (e.g., adding a `parseInt()` call or changing a type annotation), that's out of scope — abort and report.\n\nCOMPLETE"
+    },
+    "MS-07": {
+      "prompt_excerpt": "You have merged sandcastle/issue-abc.1 into main and all verification passed. Describe the exact commands you would run to finalize. List each command.",
+      "output": "1. `git commit` (single commit summarizing the merge — already done via `--no-edit` or a follow-up commit message)\n2. `bd update abc.1 --status=closed`\n\nNo push or branch deletion — the orchestrator handles those.\n\n<promise>COMPLETE</promise>",
+      "code": "1. `git commit` (single commit summarizing the merge — already done via `--no-edit` or a follow-up commit message)\n2. `bd update abc.1 --status=closed`\n\nNo push or branch deletion — the orchestrator handles those.\n\n<promise>COMPLETE</promise>"
+    },
+    "MS-08": {
+      "prompt_excerpt": "You merged sandcastle/issue-abc.1 into main. Now close the issue. The issue ID is abc.1. Write the exact close command you would run.",
+      "output": "`bd update abc.1 --status=closed`",
+      "code": "`bd update abc.1 --status=closed`"
+    }
+  }
+}

@@ -1,0 +1,159 @@
+{
+  "score": 3,
+  "total": 3,
+  "pass_rate": 100,
+  "metrics": {
+    "constraint_adherence": {
+      "pass": 2,
+      "total": 2,
+      "rate": 100
+    },
+    "output_compliance": {
+      "pass": 3,
+      "total": 3,
+      "rate": 100
+    },
+    "task_accuracy": {
+      "pass": 3,
+      "total": 3,
+      "rate": 100
+    }
+  },
+  "by_rule": {
+    "no-outer-margin": {
+      "pass": 2,
+      "total": 2,
+      "rate": 100
+    },
+    "[ctrl]": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "cases": [
+    {
+      "id": "NOM-01",
+      "rule": "no-outer-margin",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No margin-inline: auto — centering is the parent's job, not the child's"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No margin: 0 resets in component CSS — element resets belong in @layer base"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No padding: 0 list resets in component CSS — element resets belong in @layer base"
+        },
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "CSS must be wrapped in @layer components"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must set a max-width on the content wrapper"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 14141
+    },
+    {
+      "id": "NOM-02",
+      "rule": "no-outer-margin",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No margin: 0 in component CSS — list/paragraph resets belong in @layer base"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No padding: 0 list reset in component CSS — belongs in @layer base"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No margin-block resets in component CSS"
+        },
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "CSS must be wrapped in @layer components"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must use CSS grid for the layout"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 16555
+    },
+    {
+      "id": "NOM-C1",
+      "rule": "[ctrl]",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "CSS must be wrapped in @layer components"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Should use auto-margin for flex distribution — this is the allowed exception"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 24678
+    }
+  ],
+  "controls": {
+    "pass": 1,
+    "total": 1
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-23T11:38:12.293Z",
+  "run_id": "run-1792755492294",
+  "artifacts": {
+    "NOM-01": {
+      "prompt_excerpt": "Write a FeedPage component and its CSS. It renders a centered content wrapper (max-width 960px) containing a heading, a <ul role=\"list\"> of <li> FeedItem cards, and each card has a <p> for title and a <p> for description. The wrapper is centered on the page. Use @layer components for the CSS. Use tokens for all styling (assume --shelf-* tokens exist). Include the CSS file.",
+      "output": "Written `src/components/FeedPage/FeedPage.css` with a single `@layer components` block containing:\n\n- `.feed-page` — outer page padding\n- `.feed-page-wrapper` — max-width 960px container (positioned by parent, no `margin-inline: auto` per constraints)\n- `.feed-page-heading` — styled heading\n- `.feed-list` — flex column list with gap\n- `.feed-item` — card surface with radius, padding, shadow\n- `.feed-item-title` / `.feed-item-description` — typography using `--shelf-*` tokens throughout\n\n<promise>COMPLETE</promise>",
+      "code": "@layer components {\n  .feed-page {\n    padding-block: var(--shelf-space-lg);\n    padding-inline: var(--shelf-space-md);\n  }\n\n  .feed-page-wrapper {\n    max-width: 960px;\n    width: 100%;\n  }\n\n  .feed-page-heading {\n    font-size: var(--shelf-text-xl);\n    font-weight: var(--shelf-weight-bold);\n    color: var(--shelf-color-text-primary);\n    margin-block-end: var(--shelf-space-lg);\n  }\n\n  .feed-list {\n    display: flex;\n    flex-direction: column;\n    gap: var(--shelf-space-md);\n  }\n\n  .feed-item {\n    background-color: var(--shelf-color-surface);\n    border-radius: var(--shelf-radius-md);\n    padding: var(--shelf-space-md);\n    box-shadow: var(--shelf-shadow-sm);\n  }\n\n  .feed-item-title {\n    font-size: var(--shelf-text-md);\n    font-weight: var(--shelf-weight-semibold);\n    color: var(--shelf-color-text-primary);\n    margin-block-end: var(--shelf-space-xs);\n  }\n\n  .feed-item-description {\n    font-size: var(--shelf-text-sm);\n    color: var(--shelf-color-text-secondary);\n  }\n}\n"
+    },
+    "NOM-02": {
+      "prompt_excerpt": "Write a ProjectGrid component and its CSS. It renders a <ul role=\"list\"> of project cards as <li> elements. Each card has a <p> for the project name and a <p> for the description. The grid uses CSS grid with auto-fill columns. Use @layer components. Use tokens for all styling (assume --shelf-* tokens exist). Include the CSS file.",
+      "output": "`src/components/ProjectGrid/ProjectGrid.css` written. The file:\n\n- Uses `@layer components` wrapping all rules\n- Scopes component tokens with `--shelf-project-grid-*` and `--shelf-project-card-*` prefixes aliasing `--shelf-*` design tokens\n- No raw values — all sizing, color, spacing, and radius reference tokens\n- No margin (uses `gap` and `padding` only)\n- Class selectors are kebab-case: `.project-grid`, `.project-card`, `.project-name`, `.project-description`\n- Grid uses `auto-fill` with `minmax` for responsive columns\n\n<promise>COMPLETE</promise>",
+      "code": "@layer components {\n  .project-grid {\n    --shelf-project-grid-min-col: 16rem;\n    --shelf-project-grid-gap: var(--shelf-space-4);\n    --shelf-project-grid-padding: var(--shelf-space-4);\n\n    list-style: none;\n    padding: var(--shelf-project-grid-padding);\n    display: grid;\n    grid-template-columns: repeat(auto-fill, minmax(var(--shelf-project-grid-min-col), 1fr));\n    gap: var(--shelf-project-grid-gap);\n  }\n\n  .project-card {\n    --shelf-project-card-bg: var(--shelf-color-surface);\n    --shelf-project-card-radius: var(--shelf-radius-md);\n    --shelf-project-card-padding: var(--shelf-space-4);\n    --shelf-project-card-gap: var(--shelf-space-2);\n    --shelf-project-card-border: var(--shelf-color-border);\n\n    background: var(--shelf-project-card-bg);\n    border-radius: var(--shelf-project-card-radius);\n    border: 1px solid var(--shelf-project-card-border);\n    padding: var(--shelf-project-card-padding);\n    display: flex;\n    flex-direction: column;\n    gap: var(--shelf-project-card-gap);\n  }\n\n  .project-name {\n    color: var(--shelf-color-text-primary);\n    font-size: var(--shelf-font-size-md);\n    font-weight: var(--shelf-font-weight-semibold);\n  }\n\n  .project-description {\n    color: var(--shelf-color-text-secondary);\n    font-size: var(--shelf-font-size-sm);\n  }\n}\n"
+    },
+    "NOM-C1": {
+      "prompt_excerpt": "Write a CardFooter component and its CSS. It renders a flex row with a timestamp on the left and an action button pushed to the right using margin-inline-start: auto on the button (this is flex auto-margin for internal space distribution, which is allowed). Use @layer components. Use tokens for all styling. Include the CSS file.",
+      "output": "`src/components/CardFooter/CardFooter.css` written. The file:\n\n- Uses `@layer components` as required\n- `.card-footer` — flex row with `align-items: center` and a subtle top border separator\n- `.card-footer-timestamp` — left-aligned, muted text using semantic color/font tokens\n- `.card-footer-action` — `margin-inline-start: auto` pushes it right (the allowed flex auto-margin exception), with all five interactive states (default, hover, focus-visible, active, disabled)\n- All values come from semantic `--shelf-*` tokens — no raw values\n\n<promise>COMPLETE</promise>",
+      "code": "@layer components {\n  .card-footer {\n    display: flex;\n    flex-direction: row;\n    align-items: center;\n    gap: var(--shelf-space-xs);\n    padding-block-start: var(--shelf-space-sm);\n    border-top: var(--shelf-borderWidth-thin) solid var(--shelf-borderColor-subtle);\n  }\n\n  .card-footer-timestamp {\n    font-size: var(--shelf-font-size-xs);\n    color: var(--shelf-fgColor-muted);\n    font-family: var(--shelf-font-family-base);\n    font-weight: var(--shelf-font-weight-regular);\n  }\n\n  .card-footer-action {\n    margin-inline-start: auto;\n    font-size: var(--shelf-font-size-xs);\n    font-family: var(--shelf-font-family-base);\n    font-weight: var(--shelf-font-weight-medium);\n    color: var(--shelf-fgColor-accent);\n    background: none;\n    border: none;\n    padding-block: var(--shelf-space-xs);\n    padding-inline: var(--shelf-space-sm);\n    border-radius: var(--shelf-radius-md);\n    cursor: pointer;\n    transition-property: background-color, color;\n    transition-duration: var(--shelf-motion-duration-fast);\n    transition-timing-function: var(--shelf-motion-easing-enter);\n    outline-offset: var(--shelf-focusRing-offset);\n  }\n\n  .card-footer-action:hover {\n    background-color: var(--shelf-bgColor-accent-hover);\n    color: var(--shelf-fgColor-on-accent);\n  }\n\n  .card-footer-action:focus-visible {\n    outline: var(--shelf-focusRing);\n  }\n\n  .card-footer-action:active {\n    background-color: var(--shelf-bgColor-accent-active);\n    color: var(--shelf-fgColor-on-accent);\n  }\n\n  .card-footer-action:disabled {\n    color: var(--shelf-fgColor-muted);\n    cursor: not-allowed;\n  }\n}\n"
+    }
+  }
+}

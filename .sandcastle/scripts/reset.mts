@@ -328,9 +328,12 @@ if (existsSync(logsDir)) {
   // Orchestrator logs and prompts: main-*.log, planner.prompt.md, merger.prompt.md
   const orchestratorPrefix = "main-";
 
+  // Shared orchestrator logs that accumulate across runs
+  const sharedLogs = ["planner.log"];
+
   for (const entry of readdirSync(logsDir)) {
     const p = `${logsDir}/${entry}`;
-    if (entry.startsWith(issueLogPrefix) || entry.startsWith(orchestratorPrefix)) {
+    if (entry.startsWith(issueLogPrefix) || entry.startsWith(orchestratorPrefix) || sharedLogs.includes(entry)) {
       log(`Removing log: ${p}`);
       rmSync(p, { force: true });
     } else if (entry.endsWith(".prompt.md")) {
@@ -338,6 +341,9 @@ if (existsSync(logsDir)) {
       rmSync(p, { force: true });
     } else if (entry === issueId && lstatSync(p).isDirectory()) {
       log(`Removing log subdirectory: ${p}`);
+      rmSync(p, { recursive: true, force: true });
+    } else if (entry === "monitor" && lstatSync(p).isDirectory()) {
+      log(`Removing monitor directory: ${p}`);
       rmSync(p, { recursive: true, force: true });
     }
   }

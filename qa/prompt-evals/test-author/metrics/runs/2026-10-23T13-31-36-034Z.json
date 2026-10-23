@@ -1,0 +1,72 @@
+{
+  "score": 1,
+  "total": 1,
+  "pass_rate": 100,
+  "metrics": {
+    "output_compliance": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "constraint_adherence": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "task_accuracy": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "by_rule": {
+    "test-a11y-queries": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "cases": [
+    {
+      "id": "TAQ-02",
+      "rule": "test-a11y-queries",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Model produced test code"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "Should use getByRole/getByText, not querySelector or data-testid"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must use accessible queries to locate elements"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 106303
+    }
+  ],
+  "controls": {
+    "pass": 0,
+    "total": 0
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-23T13:31:36.034Z",
+  "run_id": "run-1792762296035",
+  "artifacts": {
+    "TAQ-02": {
+      "prompt_excerpt": "Write tests for BookCard component that renders a book's title, author, and status badge. BookCard accepts a book prop and an onClick handler. The project uses Vitest + React Testing Library (@testing-library/react is installed). Use render() and screen queries.",
+      "output": "<promise>COMPLETE</promise>",
+      "code": "import { render, screen } from '@testing-library/react';\nimport userEvent from '@testing-library/user-event';\nimport { describe, it, expect, vi } from 'vitest';\nimport { BookCard } from './BookCard';\nimport type { Book } from '../../types';\n\nconst book: Book = {\n  id: 'book-1',\n  title: 'The Left Hand of Darkness',\n  author: 'Ursula K. Le Guin',\n  status: 'reading',\n};\n\ndescribe('BookCard', () => {\n  it('renders title', () => {\n    render(<BookCard book={book} onClick={vi.fn()} />);\n    expect(screen.getByRole('heading', { name: book.title })).toBeInTheDocument();\n  });\n\n  it('renders author', () => {\n    render(<BookCard book={book} onClick={vi.fn()} />);\n    expect(screen.getByText(book.author)).toBeInTheDocument();\n  });\n\n  it('renders status badge with correct data-status attribute', () => {\n    render(<BookCard book={book} onClick={vi.fn()} />);\n    const badge = screen.getByText(book.status);\n    expect(badge).toHaveAttribute('data-status', book.status);\n  });\n\n  it('calls onClick with the book id when clicked', async () => {\n    const handleClick = vi.fn();\n    render(<BookCard book={book} onClick={handleClick} />);\n    await userEvent.click(screen.getByRole('button', { name: `${book.title} by ${book.author}` }));\n    expect(handleClick).toHaveBeenCalledOnce();\n    expect(handleClick).toHaveBeenCalledWith(book.id);\n  });\n\n  it('calls onClick with the book id when Enter is pressed', async () => {\n    const handleClick = vi.fn();\n    render(<BookCard book={book} onClick={handleClick} />);\n    const card = screen.getByRole('button', { name: `${book.title} by ${book.author}` });\n    card.focus();\n    await userEvent.keyboard('{Enter}');\n    expect(handleClick).toHaveBeenCalledOnce();\n    expect(handleClick).toHaveBeenCalledWith(book.id);\n  });\n\n  it('does not call onClick when a non-Enter key is pressed', async () => {\n    const handleClick = vi.fn();\n    render(<BookCard book={book} onClick={handleClick} />);\n    const card = screen.getByRole('button', { name: `${book.title} by ${book.author}` });\n    card.focus();\n    await userEvent.keyboard('{Space}');\n    expect(handleClick).not.toHaveBeenCalled();\n  });\n\n  it('exposes an accessible label combining title and author', () => {\n    render(<BookCard book={book} onClick={vi.fn()} />);\n    expect(\n      screen.getByRole('button', { name: 'The Left Hand of Darkness by Ursula K. Le Guin' })\n    ).toBeInTheDocument();\n  });\n});\n"
+    }
+  }
+}

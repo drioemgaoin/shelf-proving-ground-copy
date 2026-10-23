@@ -2,5 +2,6 @@
   "BRANCH": "sandcastle/issue-eval-fix",
   "FINDINGS_FILE": ".qa/unified-r1.md",
   "VERIFY_COMMAND": "npm run typecheck && npm run lint && npm test",
-  "CONSTRAINTS": ""
+  "CONSTRAINTS": "",
+  "_CONSTRAINTS_NOTE": "CONSTRAINTS is computed live by the eval runner from rule files via buildConstraints() — same engine as sandcastle. Do not set this manually."
 }

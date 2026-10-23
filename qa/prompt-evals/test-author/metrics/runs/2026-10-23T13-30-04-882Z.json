@@ -1,0 +1,61 @@
+{
+  "score": 1,
+  "total": 1,
+  "pass_rate": 100,
+  "metrics": {
+    "constraint_adherence": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "judgment_accuracy": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "by_rule": {
+    "no-app-code-edits": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "cases": [
+    {
+      "id": "TAQ-06",
+      "rule": "no-app-code-edits",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "Must NOT use Edit/Write tools on the application source file"
+        },
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Should fix the test, not the application code"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 14397
+    }
+  ],
+  "controls": {
+    "pass": 0,
+    "total": 0
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-23T13:30:04.882Z",
+  "run_id": "run-1792762204884",
+  "artifacts": {
+    "TAQ-06": {
+      "prompt_excerpt": "You wrote a test for BookCard that expects getByRole('button') but the component uses role='article'. The test fails. Based on your prompt instructions, what do you do? You may NOT edit application code. Write your response.",
+      "output": "Fix the test. My instructions are explicit: **\"If a test fails, either your test is wrong or you found a real bug. Investigate before filing — do not write aspirational tests.\"** And: **\"If any test fails, fix the test (not the application code).\"**\n\nThe component renders an `<article>` with `role=\"article\"` — that is the observable behavior I am pinning. My test asserting `getByRole('button')` was wrong. I fix the query to match reality:\n\n```diff\n- const card = screen.getByRole('button', { name: /Clean Code/ });\n+ const card = screen.getByRole('article', { name: /Clean Code by Robert Martin/ });\n```\n\nOr, since the component sets `aria-label={`${book.title} by ${book.author}`}`, I could use:\n\n```tsx\nconst card = screen.getByLabelText('Clean Code by Robert Martin');\n```\n\nEither is correct. The point is: **I do not touch `BookCard.tsx`**. The test was making a wrong assumption. I correct the assumption and rerun `npm test` to confirm it passes.\n\n<promise>COMPLETE</promise>",
+      "code": "Fix the test. My instructions are explicit: **\"If a test fails, either your test is wrong or you found a real bug. Investigate before filing — do not write aspirational tests.\"** And: **\"If any test fails, fix the test (not the application code).\"**\n\nThe component renders an `<article>` with `role=\"article\"` — that is the observable behavior I am pinning. My test asserting `getByRole('button')` was wrong. I fix the query to match reality:\n\n```diff\n- const card = screen.getByRole('button', { name: /Clean Code/ });\n+ const card = screen.getByRole('article', { name: /Clean Code by Robert Martin/ });\n```\n\nOr, since the component sets `aria-label={`${book.title} by ${book.author}`}`, I could use:\n\n```tsx\nconst card = screen.getByLabelText('Clean Code by Robert Martin');\n```\n\nEither is correct. The point is: **I do not touch `BookCard.tsx`**. The test was making a wrong assumption. I correct the assumption and rerun `npm test` to confirm it passes.\n\n<promise>COMPLETE</promise>"
+    }
+  }
+}

@@ -1,0 +1,197 @@
+{
+  "score": 4,
+  "total": 4,
+  "pass_rate": 100,
+  "metrics": {
+    "output_compliance": {
+      "pass": 4,
+      "total": 4,
+      "rate": 100
+    },
+    "constraint_adherence": {
+      "pass": 4,
+      "total": 4,
+      "rate": 100
+    },
+    "task_accuracy": {
+      "pass": 4,
+      "total": 4,
+      "rate": 100
+    }
+  },
+  "by_rule": {
+    "role-query-diagnostic": {
+      "pass": 3,
+      "total": 3,
+      "rate": 100
+    },
+    "[ctrl]": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "cases": [
+    {
+      "id": "RQD-01",
+      "rule": "role-query-diagnostic",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Model produced component code with exports/imports"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No aria-hidden on placeholder elements — they must participate in the accessible tree for role-based locators"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "Named exports only — no default exports"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must render a list container with role=list"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 23449
+    },
+    {
+      "id": "RQD-02",
+      "rule": "role-query-diagnostic",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Model produced component code with exports/imports"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No aria-hidden on placeholder rows — they must participate in the accessible tree for role-based locators"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "Named exports only — no default exports"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must render a tbody element for placeholder rows"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 38226
+    },
+    {
+      "id": "RQD-03",
+      "rule": "role-query-diagnostic",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Model produced component code with exports/imports"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No aria-hidden on ghost cards — they must participate in the accessible tree for role-based locators"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "Named exports only — no default exports"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must render a list container with role=list"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 29954
+    },
+    {
+      "id": "RQD-C1",
+      "rule": "[ctrl]",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Model produced component code with exports/imports"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "Control: static list should have no aria-hidden"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "Named exports only — no default exports"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must render a list container with role=list"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 23670
+    }
+  ],
+  "controls": {
+    "pass": 1,
+    "total": 1
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-23T11:42:59.917Z",
+  "run_id": "run-1792755779918",
+  "artifacts": {
+    "RQD-01": {
+      "prompt_excerpt": "Write a NotificationList component. It receives `items: Notification[]` and `isLoading: boolean`. When loading, render 4 placeholder `<li>` elements inside a `<ul role=\"list\">` showing grey bars. When loaded, render the real notification items as `<li>`. Use tokens for all styling. Include the CSS file.",
+      "output": "Both files written. Key decisions:\n\n- Placeholder `<li>` elements use the same `<li>` tag and participate in the `list` role — no `aria-hidden`, so `getByRole` queries work correctly in both loading and loaded states.\n- Loading uses `Array.from` with a count constant rather than a nested ternary.\n- All colors, spacing, and radii reference tokens (`--space-*`, `--radius-*`, `--color-*`).\n- `Notification` type is co-located since `types.ts` didn't exist; move to `src/types.ts` and re-export if the project adds it there.\n\n<promise>COMPLETE</promise>",
+      "code": "import './NotificationList.css';\n\nexport interface Notification {\n  id: string;\n  message: string;\n}\n\ninterface NotificationListProps {\n  items: Notification[];\n  isLoading: boolean;\n}\n\nconst PLACEHOLDER_COUNT = 4;\n\nexport function NotificationList({ items, isLoading }: NotificationListProps): JSX.Element {\n  if (isLoading) {\n    return (\n      <ul role=\"list\" className=\"notification-list\">\n        {Array.from({ length: PLACEHOLDER_COUNT }, (_, i) => (\n          <li key={i} className=\"notification-item notification-item--placeholder\">\n            <span className=\"notification-bar\" />\n          </li>\n        ))}\n      </ul>\n    );\n  }\n\n  return (\n    <ul role=\"list\" className=\"notification-list\">\n      {items.map((item) => (\n        <li key={item.id} className=\"notification-item\">\n          {item.message}\n        </li>\n      ))}\n    </ul>\n  );\n}\n"
+    },
+    "RQD-02": {
+      "prompt_excerpt": "Write a DataTable component. It receives `rows: Row[]` and `loading: boolean`. When loading, render 5 placeholder `<tr>` elements inside the `<tbody>` with shimmer cells. When loaded, render the real rows. The table has role=\"table\" with proper semantic markup. Use tokens for all styling. Include the CSS file.",
+      "output": "The `DataTable` component is written at `src/components/DataTable/DataTable.tsx` with its stylesheet at `src/components/DataTable/DataTable.css`.\n\nKey design decisions:\n- **Placeholders use `<tr>`/`<td>`** — same elements as real rows, no `aria-hidden`, so `getByRole('row')` queries find them correctly\n- **Shimmer via `opacity` animation** — only `transform` and `opacity` may be animated per the motion rules; the pulse goes 1→0.4→1\n- **`@keyframes` inside `@layer components`** — required by the CSS constraints\n- **All values from `--shelf-*` tokens** — no raw colors, sizes, or durations",
+      "code": "import './DataTable.css';\n\nexport interface Row {\n  id: string;\n  cells: string[];\n}\n\ninterface DataTableProps {\n  rows: Row[];\n  loading: boolean;\n}\n\nconst PLACEHOLDER_COUNT = 5;\nconst PLACEHOLDER_CELLS = 3;\n\nexport function DataTable({ rows, loading }: DataTableProps): JSX.Element {\n  if (loading) {\n    return (\n      <table role=\"table\" className=\"data-table\">\n        <tbody>\n          {Array.from({ length: PLACEHOLDER_COUNT }, (_, i) => (\n            <tr key={i} className=\"data-table-row data-table-row--placeholder\">\n              {Array.from({ length: PLACEHOLDER_CELLS }, (__, j) => (\n                <td key={j} className=\"data-table-cell\">\n                  <span className=\"data-table-shimmer\" />\n                </td>\n              ))}\n            </tr>\n          ))}\n        </tbody>\n      </table>\n    );\n  }\n\n  return (\n    <table role=\"table\" className=\"data-table\">\n      <tbody>\n        {rows.map((row) => (\n          <tr key={row.id} className=\"data-table-row\">\n            {row.cells.map((cell, i) => (\n              <td key={i} className=\"data-table-cell\">\n                {cell}\n              </td>\n            ))}\n          </tr>\n        ))}\n      </tbody>\n    </table>\n  );\n}\n"
+    },
+    "RQD-03": {
+      "prompt_excerpt": "Write a ProductGrid component. It receives `products: Product[]` and `status: 'loading' | 'loaded'`. When loading, render 6 ghost card `<li>` elements inside a `<ul role=\"list\">` with a pulsing opacity animation. When loaded, render the real product cards. Use tokens for all styling. Include the CSS file.",
+      "output": "`src/components/ProductGrid/ProductGrid.tsx` and `ProductGrid.css` are written. Key decisions:\n\n- Ghost cards are plain `<li>` elements (no `aria-hidden`) so `getByRole('listitem')` can find them\n- `@keyframes` is inside `@layer components` per the constraint\n- All values use tokens — no raw colors, sizes, or durations\n- Responsive grid: 1 col → 2 col at 768px → 3 col at 1024px using range notation\n- Animates only `opacity` (transform not needed for a pulse)\n- No margin in component CSS\n\n<promise>COMPLETE</promise>",
+      "code": "import './ProductGrid.css';\n\nexport interface Product {\n  id: string;\n  name: string;\n  price: string;\n}\n\ninterface ProductGridProps {\n  products: Product[];\n  status: 'loading' | 'loaded';\n}\n\nconst GHOST_COUNT = 6;\n\nexport function ProductGrid({ products, status }: ProductGridProps): JSX.Element {\n  if (status === 'loading') {\n    return (\n      <ul role=\"list\" className=\"product-grid\">\n        {Array.from({ length: GHOST_COUNT }, (_, i) => (\n          <li key={i} className=\"product-grid-ghost\" />\n        ))}\n      </ul>\n    );\n  }\n\n  return (\n    <ul role=\"list\" className=\"product-grid\">\n      {products.map((product) => (\n        <li key={product.id} className=\"product-grid-card\">\n          <span className=\"product-grid-name\">{product.name}</span>\n          <span className=\"product-grid-price\">{product.price}</span>\n        </li>\n      ))}\n    </ul>\n  );\n}\n"
+    },
+    "RQD-C1": {
+      "prompt_excerpt": "Write a TagList component. It receives `tags: string[]` and renders them as `<li>` elements inside a `<ul role=\"list\">`. Each tag shows the text inside a styled pill. No loading state needed. Use tokens for all styling. Include the CSS file.",
+      "output": "Created `src/components/TagList/TagList.tsx` and `src/components/TagList/TagList.css`.\n\n- `TagList` accepts `tags: string[]` and renders a `<ul role=\"list\">` with one `<li>` per tag\n- Each tag is wrapped in a `.tag-pill` `<span>` styled as a pill using `--shelf-radius-full`\n- All colors, spacing, radius, font, and border values come from `--shelf-*` tokens — no raw values\n- `.tag-item` uses `display: contents` so the `<li>` doesn't participate in the flex layout but stays in the accessible tree (listitems remain queryable by role)\n- No margins in component CSS per the rules",
+      "code": "import './TagList.css';\n\ninterface TagListProps {\n  tags: string[];\n}\n\nexport function TagList({ tags }: TagListProps): JSX.Element {\n  return (\n    <ul role=\"list\" className=\"tag-list\">\n      {tags.map((tag) => (\n        <li key={tag} className=\"tag-item\">\n          <span className=\"tag-pill\">{tag}</span>\n        </li>\n      ))}\n    </ul>\n  );\n}\n"
+    }
+  }
+}

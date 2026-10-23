@@ -17,6 +17,7 @@ Do NOT explore the repo. Read the findings file immediately.
    - Apply the exact change from the `Fix:` field — do not reinterpret it
    - Do NOT re-diagnose the issue, run exploratory commands, or create debug test files
    - If line numbers have shifted or code doesn't match exactly, adapt the fix minimally to the current code
+   - When a fix removes a layout property (margin, width, display, centering) and its Fix: field says to add a replacement elsewhere, apply both the removal and the addition before moving to the next finding — they are one atomic change
 4. Run verification commands individually, without piping through `tail` or `head` — show full output so errors are visible:
    - `npm run typecheck 2>&1`
    - `npm run lint 2>&1`

@@ -1,0 +1,209 @@
+{
+  "score": 3,
+  "total": 4,
+  "pass_rate": 75,
+  "metrics": {
+    "constraint_adherence": {
+      "pass": 2,
+      "total": 3,
+      "rate": 67
+    },
+    "output_compliance": {
+      "pass": 4,
+      "total": 4,
+      "rate": 100
+    },
+    "task_accuracy": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "by_rule": {
+    "comment-clarity": {
+      "pass": 2,
+      "total": 3,
+      "rate": 67
+    },
+    "[ctrl]": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "cases": [
+    {
+      "id": "CC-01",
+      "rule": "comment-clarity",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No JSDoc blocks (/** */) on internal code"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No comments restating what SKELETON_COUNT means — the name is self-documenting"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No multi-line // comment blocks — one line maximum"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No ticket delivery plan references in source comments"
+        },
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Must include the SKELETON_COUNT constant"
+        },
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Must export symbols"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 169997
+    },
+    {
+      "id": "CC-02",
+      "rule": "comment-clarity",
+      "pass": false,
+      "checkResults": [
+        {
+          "metric": "constraint_adherence",
+          "pass": false,
+          "detail": "Found at offset 1935: wired by the consumer",
+          "description": "No ticket references, delivery plan language, or future-scope hedging in comments"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No JSDoc blocks on internal code"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No multi-line // comment blocks"
+        },
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Must use aria-pressed on chips"
+        },
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Must export the component"
+        }
+      ],
+      "detail": "Found at offset 1935: wired by the consumer",
+      "duration_ms": 78155
+    },
+    {
+      "id": "CC-03",
+      "rule": "comment-clarity",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No multi-line // comment blocks — one line maximum"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No JSDoc blocks on internal code"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No verbose null-state explanation — if any comment, max: // null = loading; array = loaded"
+        },
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Must use useState"
+        },
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Must export the component"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 84782
+    },
+    {
+      "id": "CC-C1",
+      "rule": "[ctrl]",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Must export the component"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must include the ceiling rounding"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 12993
+    }
+  ],
+  "controls": {
+    "pass": 1,
+    "total": 1
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-23T12:05:34.685Z",
+  "run_id": "run-1792757134686",
+  "artifacts": {
+    "CC-01": {
+      "prompt_excerpt": "Write the following in a single file:\n\n1. A STATUS_LABELS constant mapping status keys to display labels\n2. A SKELETON_COUNT = 6 constant for placeholder count\n3. A statusColor helper that maps status to a CSS class\n4. A StatusList component that renders items grouped by status, with skeleton placeholders during loading (null = loading, array = loaded)\n\nThe spec says: this ticket only implements the status list view; inline editing ships in ticket djk.3. Drag-to-reorder is planned for a later ti",
+      "output": "The mock git blocks `add`/`commit` by design — it's a prompt eval environment that prevents real commits. The source files are written correctly in `src/`.\n\nFiles created:\n- `src/types.ts` — `Book` and `BookStatus` types\n- `src/styles/tokens.css` — full token system with status color semantic tokens\n- `src/components/BookCard/BookCard.tsx` — renders `<h2>` title, author paragraph, status badge `<span>`\n- `src/components/BookCard/BookCard.css` — card and badge styles via semantic tokens only\n- `src/components/StatusList/StatusList.tsx` — `STATUS_LABELS`, `SKELETON_COUNT`, `statusColor`, `StatusList` with skeleton/loaded states\n\n<promise>COMPLETE</promise>",
+      "code": "import type { Book, BookStatus } from '../../types';\n\nexport const STATUS_LABELS: Record<BookStatus, string> = {\n  reading: 'Reading',\n  read: 'Read',\n  'want-to-read': 'Want to read',\n  dnf: 'Did not finish',\n};\n\nexport const SKELETON_COUNT = 6;\n\nexport function statusColor(status: BookStatus): string {\n  if (status === 'reading') return 'status-reading';\n  if (status === 'read') return 'status-read';\n  if (status === 'want-to-read') return 'status-want-to-read';\n  return 'status-dnf';\n}\n\ntype StatusListProps = {\n  items: Book[] | null;\n};\n\nexport function StatusList({ items }: StatusListProps): JSX.Element {\n  if (items === null) {\n    const skeletons = Array.from({ length: SKELETON_COUNT }, (_, i) => i);\n    return (\n      <ul aria-busy=\"true\">\n        {skeletons.map((i) => (\n          <li key={i} className=\"skeleton-card\" />\n        ))}\n      </ul>\n    );\n  }\n\n  const grouped = (Object.keys(STATUS_LABELS) as BookStatus[]).reduce<\n    Record<BookStatus, Book[]>\n  >(\n    (acc, status) => {\n      acc[status] = items.filter((book) => book.status === status);\n      return acc;\n    },\n    { reading: [], read: [], 'want-to-read': [], dnf: [] },\n  );\n\n  return (\n    <div>\n      {(Object.keys(STATUS_LABELS) as BookStatus[]).map((status) => {\n        const group = grouped[status];\n        if (group.length === 0) return null;\n        return (\n          <section key={status}>\n            <h2>{STATUS_LABELS[status]}</h2>\n            <ul>\n              {group.map((book) => (\n                <li key={book.id} className={statusColor(book.status)}>\n                  <span>{book.title}</span>\n                  <span>{book.author}</span>\n                </li>\n              ))}\n            </ul>\n          </section>\n        );\n      })}\n    </div>\n  );\n}\n"
+    },
+    "CC-02": {
+      "prompt_excerpt": "Write a ChipFilter component and its CSS in a single TSX file. It renders four filter chip buttons ('All', 'Active', 'Archived', 'Starred'). Each chip is a button with aria-pressed. On load 'All' is pressed.\n\nThe spec says: In this ticket, clicking a chip updates ONLY the chip bar's visual pressed state. The actual list filtering is wired by the consumer and ships in ticket djk.2. Keyboard navigation (arrow keys between chips) ships in a later ticket.\n\nInclude both component code and a @layer co",
+      "output": "The environment has no `package.json` — this is a source-only evaluation context. The ChipFilter component is written correctly per the task requirements.\n\n<promise>COMPLETE</promise>",
+      "code": "import { useState } from 'react';\n\nconst CHIP_LABELS = ['All', 'Active', 'Archived', 'Starred'] as const;\ntype ChipLabel = (typeof CHIP_LABELS)[number];\n\nconst CHIP_FILTER_STYLES = `\n@layer components {\n  .chip-filter {\n    display: flex;\n    gap: var(--shelf-space-sm);\n    flex-wrap: wrap;\n  }\n\n  .chip-filter-button {\n    padding: var(--shelf-space-xs) var(--shelf-space-md);\n    border-radius: var(--shelf-radius-full);\n    border: var(--shelf-borderWidth-thin) solid var(--shelf-borderColor-default);\n    background-color: var(--shelf-bgColor-raised);\n    color: var(--shelf-fgColor-default);\n    font-size: var(--shelf-font-size-sm);\n    font-weight: var(--shelf-font-weight-medium);\n    line-height: var(--shelf-font-size-lg);\n    cursor: pointer;\n    transition:\n      background-color var(--shelf-motion-duration-fast) var(--shelf-motion-easing-enter),\n      color var(--shelf-motion-duration-fast) var(--shelf-motion-easing-enter),\n      border-color var(--shelf-motion-duration-fast) var(--shelf-motion-easing-enter);\n  }\n\n  .chip-filter-button:hover {\n    background-color: var(--shelf-bgColor-default);\n  }\n\n  .chip-filter-button:focus-visible {\n    outline: var(--shelf-focusRing);\n    outline-offset: var(--shelf-focusRing-offset);\n  }\n\n  .chip-filter-button:active {\n    background-color: var(--shelf-bgColor-accent-active);\n    color: var(--shelf-fgColor-on-accent);\n    border-color: var(--shelf-bgColor-accent-active);\n  }\n\n  .chip-filter-button[aria-pressed=\"true\"] {\n    background-color: var(--shelf-bgColor-accent);\n    color: var(--shelf-fgColor-on-accent);\n    border-color: var(--shelf-bgColor-accent);\n  }\n\n  .chip-filter-button[aria-pressed=\"true\"]:hover {\n    background-color: var(--shelf-bgColor-accent-hover);\n    border-color: var(--shelf-bgColor-accent-hover);\n  }\n}\n`;\n\ntype ChipFilterProps = {\n  onFilterChange?: (filter: ChipLabel) => void;\n};\n\n// Owns only visual pressed state; grid filtering is wired by the consumer.\nexport function ChipFilter({ onFilterChange }: ChipFilterProps): JSX.Element {\n  const [active, setActive] = useState<ChipLabel>('All');\n\n  function handleClick(label: ChipLabel): void {\n    setActive(label);\n    onFilterChange?.(label);\n  }\n\n  return (\n    <>\n      <style>{CHIP_FILTER_STYLES}</style>\n      <div className=\"chip-filter\" role=\"group\" aria-label=\"Filter books\">\n        {CHIP_LABELS.map((label) => (\n          <button\n            key={label}\n            className=\"chip-filter-button\"\n            aria-pressed={active === label}\n            onClick={() => handleClick(label)}\n          >\n            {label}\n          </button>\n        ))}\n      </div>\n    </>\n  );\n}\n"
+    },
+    "CC-03": {
+      "prompt_excerpt": "Write a TaskBoard component in a single file. It uses useState<Task[] | null>(null) where null = loading. It fetches tasks via an async getTasks() call in useEffect, handles errors by setting an empty array, and shows: skeletons when null, an empty state when array is empty, the task list when populated.\n\nThe component is complex: it has a header with a count badge, a filter bar (stub — just the container div), and the main list area with three states. Export the component.",
+      "output": "The `TaskBoard` component is written at `src/components/TaskBoard/TaskBoard.tsx`. Here's a summary of the implementation:\n\n- **State**: `useState<Task[] | null>(null)` — `null` = loading, `Task[]` = loaded (possibly empty)\n- **Data fetching**: `useEffect` calls `getTasks()` from `../../api`; errors set an empty array\n- **Three list states**: skeletons (`null`), empty state (`[]`), populated list (`Task[]`)\n- **Skeleton accessibility**: `<TaskSkeleton>` renders as `<li>` (same role as real `<TaskItem>`), so `getByRole('listitem')` finds them — no `aria-hidden`\n- **Header**: shows a count badge with `…` while loading, count when loaded\n- **Filter bar**: stub `<div className=\"task-board-filter-bar\" />`\n- **No nested ternaries**: uses `if` chains in `TaskList`\n- **I/O isolation**: component imports `getTasks` from the adapter module, never calls `fetch` directly\n\nSupporting files updated:\n- `src/types.ts` — added `Task` type\n- `src/api.ts` — created with `getTasks()` adapter function\n\n<promise>COMPLETE</promise>",
+      "code": "import { useEffect, useState } from 'react';\nimport { getTasks } from '../../api';\nimport type { Task } from '../../types';\n\nconst SKELETON_COUNT = 4;\n\nfunction TaskBoardHeader({ tasks }: { tasks: Task[] | null }): JSX.Element {\n  const badgeText = tasks === null ? '…' : String(tasks.length);\n  return (\n    <header className=\"task-board-header\">\n      <h1 className=\"task-board-heading\">Tasks</h1>\n      <span className=\"task-board-count-badge\" aria-label={`${badgeText} tasks`}>\n        {badgeText}\n      </span>\n    </header>\n  );\n}\n\nfunction TaskItem({ task }: { task: Task }): JSX.Element {\n  return (\n    <li className=\"task-board-item\">\n      <span className=\"task-board-item-title\">{task.title}</span>\n      {task.description !== undefined && (\n        <span className=\"task-board-item-description\">{task.description}</span>\n      )}\n    </li>\n  );\n}\n\nfunction TaskSkeleton(): JSX.Element {\n  return (\n    <li className=\"task-board-item task-board-item-skeleton\" aria-busy=\"true\">\n      <span className=\"task-board-skeleton-title\" />\n    </li>\n  );\n}\n\nfunction TaskList({ tasks }: { tasks: Task[] | null }): JSX.Element {\n  if (tasks === null) {\n    return (\n      <ul className=\"task-board-list\">\n        {Array.from({ length: SKELETON_COUNT }, (_, i) => (\n          <TaskSkeleton key={i} />\n        ))}\n      </ul>\n    );\n  }\n\n  if (tasks.length === 0) {\n    return (\n      <div className=\"task-board-empty\" role=\"status\">\n        No tasks yet.\n      </div>\n    );\n  }\n\n  return (\n    <ul className=\"task-board-list\">\n      {tasks.map((task) => (\n        <TaskItem key={task.id} task={task} />\n      ))}\n    </ul>\n  );\n}\n\nexport function TaskBoard(): JSX.Element {\n  // null = loading; array = loaded\n  const [tasks, setTasks] = useState<Task[] | null>(null);\n\n  useEffect(() => {\n    getTasks()\n      .then(setTasks)\n      .catch(() => setTasks([]));\n  }, []);\n\n  return (\n    <section className=\"task-board\">\n      <TaskBoardHeader tasks={tasks} />\n      <div className=\"task-board-filter-bar\" />\n      <TaskList tasks={tasks} />\n    </section>\n  );\n}\n"
+    },
+    "CC-C1": {
+      "prompt_excerpt": "Write a PriceDisplay component (TSX). It formats a price and shows a strikethrough for discounts. Add a one-line // comment explaining WHY the rounding uses Math.ceil (business rule: always round up to avoid under-charging). Include the component file.",
+      "output": "<promise>COMPLETE</promise>",
+      "code": "import type { ReactElement } from 'react';\n\ntype PriceDisplayProps = {\n  price: number;\n  originalPrice?: number;\n};\n\nfunction formatPrice(value: number): string {\n  // Math.ceil avoids under-charging when fractional cents round down\n  const cents = Math.ceil(value * 100);\n  return (cents / 100).toFixed(2);\n}\n\nexport function PriceDisplay({ price, originalPrice }: PriceDisplayProps): ReactElement {\n  const hasDiscount = originalPrice !== undefined && originalPrice > price;\n\n  return (\n    <span className=\"price-display\">\n      <span className=\"price-display-current\">${formatPrice(price)}</span>\n      {hasDiscount && (\n        <s className=\"price-display-original\">${formatPrice(originalPrice)}</s>\n      )}\n    </span>\n  );\n}\n"
+    }
+  }
+}

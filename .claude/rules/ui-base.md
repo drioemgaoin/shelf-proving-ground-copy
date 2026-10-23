@@ -8,7 +8,7 @@ These apply to every project. Project values and names are in `ui-project.md`. S
 
 ## Values
 
-- Every color, size, spacing, radius, shadow, duration and easing comes from a token. No raw values in components.
+- Every visual value comes from a token. No raw values in component CSS: hex colors, px/rem/em/% literals, border-width keywords (thin/medium/thick), bare numerics (line-height). If no token exists, create one in tokens.css first.
 
   CORRECT: `color: var(--shelf-fgColor-default);`
   WRONG: `color: #333;`
@@ -87,7 +87,7 @@ These apply to every project. Project values and names are in `ui-project.md`. S
     fix: "Add *, *::before, *::after { box-sizing: border-box; } inside @layer base. Without this, elements with height: 100% and padding overflow their containers and cover grid/flex gaps."
   ```
 
-- Children own no space outside themselves. Spacing and positioning between siblings is the parent's job — via gap, padding, or a shared container constraint. A child setting margin positions itself independently from its siblings, causing alignment drift when siblings don't match.
+- No margin in component CSS. Element resets (margin: 0, padding: 0, list-style: none) belong in @layer base in tokens.css. Self-centering (margin-inline: auto) is prohibited — the parent layout owns centering via flex/grid. The only exception is flex auto-margin for internal space distribution (e.g., margin-inline-start: auto to push a button to the right inside a flex row).
 
   CORRECT: Container owns centering — all children align:
 
@@ -124,7 +124,7 @@ These apply to every project. Project values and names are in `ui-project.md`. S
   } /* pushes to bottom of flex column — this is layout within the parent */
   ```
 
-  WRONG: List reset via margin on child (belongs in @layer base):
+  WRONG: List/element reset in component CSS (all resets belong in @layer base, not here):
 
   ```css
   .my-list {
@@ -448,7 +448,7 @@ These apply to every project. Project values and names are in `ui-project.md`. S
 
 ## Comments
 
-- Comments explain WHY, not WHAT. One line maximum. No multi-line `//` blocks, no JSDoc (`/** */`) on internal code.
+- Comments explain WHY, not WHAT. One line maximum. No multi-line `//` blocks, no JSDoc (`/** */`) on internal code. Never describe what the code does not do or what another module handles (e.g., "filtering is wired by consumer", "is not wired").
 
   CORRECT: `// null = loading; array = loaded`
   WRONG:
@@ -469,7 +469,7 @@ These apply to every project. Project values and names are in `ui-project.md`. S
     fix: "Condense to one // line. If it takes more than one line, the comment is explaining WHAT not WHY — shorten to the essential reason."
   ```
 
-- Source comments describe current behavior, not delivery plans. References to ticket state rot immediately.
+- Source comments describe what the code does, never what it does not do or what ships later. Do not hedge about scope boundaries (e.g., "is not wired", "not implemented yet", "handled elsewhere"). References to ticket state rot immediately.
 
   ```enforcement
   id: "no-ticket-references"

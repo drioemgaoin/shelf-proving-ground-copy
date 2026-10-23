@@ -45,6 +45,7 @@ import { spawnSync, execSync } from "node:child_process";
 import { tmpdir } from "node:os";
 
 import { stripEnforcementFences } from "../../.claude/hooks/lib/rules.mjs";
+import { buildConstraints } from "../../scripts/build-constraints.mjs";
 
 const PROJECT = process.cwd();
 const PROMPTS_DIR = join(PROJECT, ".sandcastle", "prompts");
@@ -156,10 +157,35 @@ function cleanupSandbox() {
 }
 
 // ─── Build the expanded prompt ─────────────────────────────────────
+// CONSTRAINTS is computed live from rule files (same as the sandcastle
+// orchestrator in phases.mts) so evals always test against the real
+// constraint text. vars.json CONSTRAINTS is ignored — the live engine
+// is the single source of truth.
+
+/** Lazily computed live constraints (shared across all cases). */
+let _liveConstraints = null;
+function getLiveConstraints() {
+  if (_liveConstraints === null) {
+    const { constraints } = buildConstraints(PROJECT);
+    _liveConstraints = constraints;
+  }
+  return _liveConstraints;
+}
 
 function buildExpandedPrompt(caseVars) {
   const raw = readFileSync(PROMPT_FILE, "utf8");
   const vars = caseVars ? { ...defaultVars, ...caseVars } : defaultVars;
+
+  // If the prompt template uses {{CONSTRAINTS}} and neither caseVars nor
+  // defaultVars explicitly overrides it with a non-empty string, inject
+  // the live-built constraints from rule files — same engine as sandcastle.
+  if (raw.includes("{{CONSTRAINTS}}")) {
+    const caseOverride = caseVars?.CONSTRAINTS;
+    if (!caseOverride) {
+      vars.CONSTRAINTS = getLiveConstraints();
+    }
+  }
+
   return substituteVars(raw, vars);
 }
 
