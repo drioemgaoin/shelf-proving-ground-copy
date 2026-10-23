@@ -11,6 +11,13 @@
  * Deviations: none
  */
 
+/* ================================================================
+   VIEWPORT BREAKPOINTS — @custom-media (compiled by postcss-custom-media)
+   Change these values to update every @media query that uses them.
+   ================================================================ */
+@custom-media --viewport-md (width >= 768px);
+@custom-media --viewport-lg (width >= 1024px);
+
 @layer tokens {
 
   /* ================================================================
