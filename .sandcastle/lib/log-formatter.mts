@@ -80,19 +80,17 @@ function summarizeResult(content: any, toolUseResult: any): string {
       return `${f.totalLines ?? f.numLines ?? "?"} lines`;
     }
     if (typeof toolUseResult === "string") {
-      return toolUseResult.length > 150
-        ? toolUseResult.slice(0, 150).replace(/\n/g, " ") + "…"
-        : toolUseResult.replace(/\n/g, " ");
+      return toolUseResult.replace(/\n/g, " ");
     }
   }
 
   // Fall back to raw content
   if (typeof content === "string") {
-    if (content.length > 150) {
+    if (content.length > 2000) {
       const lines = content.split("\n").length;
       return `${lines} lines`;
     }
-    return content.replace(/\n/g, " ").slice(0, 150);
+    return content.replace(/\n/g, " ");
   }
   return "ok";
 }
@@ -141,13 +139,10 @@ export function createLogFormatter(logPath: string) {
       for (const block of obj.message.content) {
         // Thinking — the key event that was previously invisible
         if (block.type === "thinking" && typeof block.thinking === "string" && block.thinking.length > 0) {
-          const preview = block.thinking.length > 300
-            ? block.thinking.slice(0, 300) + "…"
-            : block.thinking;
           const dur = obj.thinking_duration_ms
             ? `(${(obj.thinking_duration_ms / 1000).toFixed(1)}s) `
             : "";
-          output = `[${ts()}] ${dur}${preview.replace(/\n/g, " ")}`;
+          output = `[${ts()}] ${dur}${block.thinking.replace(/\n/g, " ")}`;
           break;
         }
 
@@ -161,12 +156,24 @@ export function createLogFormatter(logPath: string) {
           return;
         }
 
-        // Text — log with timestamp
+        // Text — log with timestamp.
+        // If the text contains <promise>COMPLETE</promise>, ensure it
+        // lands on its own line (agents often emit it inline with a
+        // final summary).
         if (block.type === "text" && typeof block.text === "string" && block.text.length > 0) {
-          const preview = block.text.length > 300
-            ? block.text.slice(0, 300).replace(/\n/g, " ") + "…"
-            : block.text.replace(/\n/g, " ");
-          output = `[${ts()}] ${preview}`;
+          const completeTag = "<promise>COMPLETE</promise>";
+          const idx = block.text.indexOf(completeTag);
+          if (idx !== -1) {
+            const before = block.text.slice(0, idx).replace(/\n/g, " ").trim();
+            const after = block.text.slice(idx + completeTag.length).replace(/\n/g, " ").trim();
+            const parts: string[] = [];
+            if (before) parts.push(`[${ts()}] ${before}`);
+            parts.push(`[${ts()}] ${completeTag}`);
+            if (after) parts.push(`[${ts()}] ${after}`);
+            output = parts.join("\n");
+          } else {
+            output = `[${ts()}] ${block.text.replace(/\n/g, " ")}`;
+          }
           break;
         }
       }
@@ -188,7 +195,7 @@ export function createLogFormatter(logPath: string) {
         const isError = !!block.is_error;
         const resultSummary = isError
           ? (typeof block.content === "string"
-              ? block.content.replace(/\n/g, " ").slice(0, 150)
+              ? block.content.replace(/\n/g, " ")
               : "failed")
           : summarizeResult(block.content, obj.tool_use_result);
 

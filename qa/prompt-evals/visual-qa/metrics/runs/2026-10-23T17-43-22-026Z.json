@@ -1,0 +1,118 @@
+{
+  "score": 1,
+  "total": 3,
+  "pass_rate": 33,
+  "metrics": {
+    "judgment_accuracy": {
+      "pass": 1,
+      "total": 3,
+      "rate": 33
+    },
+    "rule_citation": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "by_rule": {
+    "grid-item-fill": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "[ctrl]": {
+      "pass": 0,
+      "total": 2,
+      "rate": 0
+    }
+  },
+  "cases": [
+    {
+      "id": "GIF-01",
+      "rule": "grid-item-fill",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must identify the uneven row height / ragged edge issue"
+        },
+        {
+          "metric": "rule_citation",
+          "pass": true,
+          "detail": null,
+          "description": "Must cite grid-item-fill rule or report as review finding"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 12015
+    },
+    {
+      "id": "GIF-02",
+      "rule": "[ctrl]",
+      "pass": false,
+      "checkResults": [
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Should output PASS when rows are uniform"
+        },
+        {
+          "metric": "judgment_accuracy",
+          "pass": false,
+          "detail": "Found at offset 268: grid-item-fill",
+          "description": "Must NOT flag uniform rows as a violation"
+        }
+      ],
+      "detail": "Found at offset 268: grid-item-fill",
+      "duration_ms": 17499
+    },
+    {
+      "id": "GIF-03",
+      "rule": "[ctrl]",
+      "pass": false,
+      "checkResults": [
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Should output PASS — single-column means no row siblings to compare"
+        },
+        {
+          "metric": "judgment_accuracy",
+          "pass": false,
+          "detail": "Found at offset 218: grid-item-fill",
+          "description": "Must NOT flag single-column layout as a grid-item-fill violation"
+        }
+      ],
+      "detail": "Found at offset 218: grid-item-fill",
+      "duration_ms": 20443
+    }
+  ],
+  "controls": {
+    "pass": 0,
+    "total": 2
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-23T17:43:22.026Z",
+  "run_id": "run-1792777402026",
+  "artifacts": {
+    "GIF-01": {
+      "prompt_excerpt": "The gate command ran. All programmatic tests passed with status 'expected'. No failures, no regressions. During review, you examine the desktop screenshot of the book grid (default fixture, 6 books). Row 1 has 4 cards. The first card ('The Overstory' — short title) is visibly shorter than the second card ('Tomorrow, and Tomorrow, and Tomorrow' — title wraps to 3 lines). Their bottom edges do not align — there is a ~40px gap between the bottom of the short card and the bottom of the tall card. Th",
+      "output": "<promise>COMPLETE</promise>",
+      "code": "PASS\nGate: 0 failures\n\nReview findings:\n- [Layout > grid-item-fill] Desktop screenshot (default fixture, 6 books): Row 1 cards do not share a common bottom edge. 'The Overstory' (single-line title) is ~40px shorter than 'Tomorrow, and Tomorrow, and Tomorrow' (3-line title wrap). Cards are not stretching to fill their grid cells vertically. Fix: ensure card root element has `height: 100%` (or `align-self: stretch` is in effect) so each card fills its grid cell regardless of content height.\n"
+    },
+    "GIF-02": {
+      "prompt_excerpt": "The gate command ran. All programmatic tests passed with status 'expected'. No failures, no regressions. During review, you examine the desktop screenshot of the book grid (default fixture, 6 books). Row 1 has 4 cards. All cards in the row are the same height — their top edges align and their bottom edges align, forming a clean horizontal band. The cards fill their grid cells vertically. Write the findings file content you would output.",
+      "output": "<promise>COMPLETE</promise>",
+      "code": "PASS\nGate: 0 failures\n\nFlaky: 0\nContract gaps: 0\nReview findings: None. Desktop screenshot (default fixture, 6 books): Row 1 contains 4 cards — top edges align, bottom edges align, forming a clean horizontal band. All cards fill their grid cells vertically. [Layout > grid-item-fill] satisfied.\n"
+    },
+    "GIF-03": {
+      "prompt_excerpt": "The gate command ran. All programmatic tests passed with status 'expected'. No failures, no regressions. During review, you examine the mobile screenshot (375px width) of the book grid (default fixture, 6 books). The grid is single-column — each card is on its own row. Cards have different heights because titles vary in length, but since each row has exactly one card, there are no sibling cards to compare against. Write the findings file content you would output.",
+      "output": "<promise>COMPLETE</promise>",
+      "code": "PASS\nGate: 0 failures\n\nFlaky: 0\nContract gaps: 0\nReview findings: Mobile screenshot (375px) shows a single-column grid — each row contains exactly one card. Cards vary in height due to differing title lengths, but the grid-item-fill rule requires sibling cards in a shared row to have matching top and bottom edges. With one item per row there are no siblings, so no violation applies. No review findings.\n"
+    }
+  }
+}

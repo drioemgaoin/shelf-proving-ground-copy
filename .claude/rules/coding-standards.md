@@ -146,7 +146,7 @@ paths: src/**/*
 
 ## Components
 
-- Placeholder elements (skeletons, spinners, empty-state slots) that occupy the same container as data-driven content use the same HTML element and role as the real content. Do not apply `aria-hidden` to elements inside role-queryable containers (`role="list"`, `role="grid"`, `role="table"`, etc.).
+- Placeholders (skeletons, spinners) use the same element and role as real content. No `aria-hidden` inside role-queryable containers (list, grid, table).
 
   CORRECT: `<li className="skeleton-card">` — skeleton is a listitem, same as real cards, visible to `getByRole('listitem')`
   WRONG: `<li className="skeleton-card" aria-hidden="true">` — skeleton is invisible to role queries; tests that use `getByRole('listitem')` will skip it and silently match real content instead

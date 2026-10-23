@@ -18,7 +18,7 @@ All tokens use `--shelf-`.
 
 - **Primitive** (`--shelf-base-*`): raw values, stay in tokens.css. Never reference in component CSS.
 - **Semantic** (`--shelf-{role}-*` where role is `fgColor`, `bgColor`, `borderColor`, `borderWidth`, `font`, `space`, `radius`, `shadow`, `z`, `motion`, `focusRing`): role-based tokens. Use these in component CSS.
-- **Component** (`--shelf-{component}-*` where component is a UI element name like `chip`, `skeleton`, `button`, `shelf`): aliases scoped to one component. Only that component's CSS file uses them.
+- **Component** (`--shelf-{component}-*` e.g. `chip`, `skeleton`, `button`): aliases scoped to one component. Only that component’s CSS file uses them.
 
   CORRECT: `border: var(--shelf-borderWidth-thin) solid var(--shelf-borderColor-default);`
   WRONG: `border: var(--shelf-chip-borderWidth) solid var(--shelf-borderColor-default);` — chip-scoped token used on a non-chip element

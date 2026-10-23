@@ -154,6 +154,102 @@ describe("log formatter: noise exclusion", () => {
 });
 
 // ═══════════════════════════════════════════════════════════════════
+// Unit: <promise>COMPLETE</promise> is always on its own line
+// ═══════════════════════════════════════════════════════════════════
+
+describe("log formatter: COMPLETE tag isolation", () => {
+  let logPath: string;
+  beforeEach(() => { logPath = join(tmpdir(), `fmt-${Date.now()}-${Math.random().toString(36).slice(2)}.log`); });
+  afterEach(() => { try { rmSync(logPath); } catch {} });
+
+  test("COMPLETE inline with summary gets its own line", () => {
+    const fmt = createLogFormatter(logPath);
+    const text = "Implemented ticket djk.1 — all tests pass.\n<promise>COMPLETE</promise>";
+    fmt({ type: "raw", line: JSON.stringify({ type: "assistant", message: { content: [{ type: "text", text }] } }) });
+
+    const log = readFileSync(logPath, "utf8");
+    const lines = log.trim().split("\n");
+    const lastLine = lines[lines.length - 1]!;
+    assert.match(lastLine, /^\[\d{2}:\d{2}:\d{2}\] <promise>COMPLETE<\/promise>$/, `COMPLETE must be the entire last line, got: "${lastLine}"`);
+    assert.equal(lines.length, 2, "should be summary line + COMPLETE line");
+  });
+
+  test("standalone COMPLETE text block is on its own line", () => {
+    const fmt = createLogFormatter(logPath);
+    fmt({ type: "raw", line: JSON.stringify({ type: "assistant", message: { content: [{ type: "text", text: "<promise>COMPLETE</promise>" }] } }) });
+
+    const log = readFileSync(logPath, "utf8");
+    const lines = log.trim().split("\n");
+    assert.equal(lines.length, 1, "single COMPLETE line");
+    assert.match(lines[0]!, /^\[\d{2}:\d{2}:\d{2}\] <promise>COMPLETE<\/promise>$/, "COMPLETE is the full line");
+  });
+
+  test("COMPLETE with text after it preserves both", () => {
+    const fmt = createLogFormatter(logPath);
+    const text = "Summary here.\n<promise>COMPLETE</promise>\nExtra trailing text.";
+    fmt({ type: "raw", line: JSON.stringify({ type: "assistant", message: { content: [{ type: "text", text }] } }) });
+
+    const log = readFileSync(logPath, "utf8");
+    const lines = log.trim().split("\n");
+    assert.equal(lines.length, 3, "before + COMPLETE + after");
+    assert.match(lines[1]!, /^\[\d{2}:\d{2}:\d{2}\] <promise>COMPLETE<\/promise>$/, "COMPLETE on its own line");
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════
+// Unit: long content is never truncated
+// ═══════════════════════════════════════════════════════════════════
+
+describe("log formatter: no truncation", () => {
+  let logPath: string;
+  beforeEach(() => { logPath = join(tmpdir(), `fmt-${Date.now()}-${Math.random().toString(36).slice(2)}.log`); });
+  afterEach(() => { try { rmSync(logPath); } catch {} });
+
+  test("long text blocks are preserved in full", () => {
+    const fmt = createLogFormatter(logPath);
+    const longText = "The cascade layers are inverted. " + "X".repeat(500) + " — this is the conclusion.";
+    fmt({ type: "raw", line: JSON.stringify({ type: "assistant", message: { content: [{ type: "text", text: longText }] } }) });
+
+    const log = readFileSync(logPath, "utf8");
+    assert.ok(!log.includes("…"), "text must not be truncated with ellipsis");
+    assert.ok(log.includes("this is the conclusion"), "full text preserved");
+    assert.ok(log.includes("X".repeat(500)), "middle content preserved");
+  });
+
+  test("long thinking blocks are preserved in full", () => {
+    const fmt = createLogFormatter(logPath);
+    const longThinking = "Planning implementation. " + "Y".repeat(500) + " — final decision.";
+    fmt({ type: "raw", line: JSON.stringify({ type: "assistant", message: { content: [{ type: "thinking", thinking: longThinking }] }, thinking_duration_ms: 3000 }) });
+
+    const log = readFileSync(logPath, "utf8");
+    assert.ok(!log.includes("…"), "thinking must not be truncated with ellipsis");
+    assert.ok(log.includes("final decision"), "full thinking preserved");
+    assert.ok(log.includes("Y".repeat(500)), "middle content preserved");
+  });
+
+  test("tool result error messages are preserved in full", () => {
+    const fmt = createLogFormatter(logPath);
+    const longError = "Error: " + "Z".repeat(300) + " — end of trace.";
+    fmt({ type: "raw", line: JSON.stringify({ type: "assistant", message: { content: [{ type: "tool_use", id: "t1", name: "Bash", input: { command: "npm test" } }] } }) });
+    fmt({ type: "raw", line: JSON.stringify({ type: "user", message: { content: [{ type: "tool_result", tool_use_id: "t1", content: longError, is_error: true }] } }) });
+
+    const log = readFileSync(logPath, "utf8");
+    assert.ok(log.includes("end of trace"), "full error message preserved");
+    assert.ok(log.includes("Z".repeat(300)), "error content not truncated");
+  });
+
+  test("tool result content under 2000 chars is shown in full", () => {
+    const fmt = createLogFormatter(logPath);
+    const content = "Line 1\nLine 2\n" + "W".repeat(500) + "\nLine 4 — the important part.";
+    fmt({ type: "raw", line: JSON.stringify({ type: "assistant", message: { content: [{ type: "tool_use", id: "t1", name: "Bash", input: { command: "cat file" } }] } }) });
+    fmt({ type: "raw", line: JSON.stringify({ type: "user", message: { content: [{ type: "tool_result", tool_use_id: "t1", content }] } }) });
+
+    const log = readFileSync(logPath, "utf8");
+    assert.ok(log.includes("the important part"), "full result content preserved");
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════
 // Unit: every line gets a timestamp — no concatenation, no gaps
 // ═══════════════════════════════════════════════════════════════════
 

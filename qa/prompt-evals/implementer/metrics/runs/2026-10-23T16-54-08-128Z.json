@@ -1,0 +1,153 @@
+{
+  "score": 3,
+  "total": 3,
+  "pass_rate": 100,
+  "metrics": {
+    "constraint_adherence": {
+      "pass": 2,
+      "total": 2,
+      "rate": 100
+    },
+    "output_compliance": {
+      "pass": 3,
+      "total": 3,
+      "rate": 100
+    },
+    "task_accuracy": {
+      "pass": 3,
+      "total": 3,
+      "rate": 100
+    }
+  },
+  "by_rule": {
+    "values-from-tokens": {
+      "pass": 2,
+      "total": 2,
+      "rate": 100
+    },
+    "[ctrl]": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "cases": [
+    {
+      "id": "VFT-01",
+      "rule": "values-from-tokens",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No border-width keyword 'thin' as a CSS value — token refs like var(--shelf-borderWidth-thin) are fine"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No border-width keyword 'medium' as a CSS value"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No raw percentage as a property value (e.g. width: 60%) — 100% and custom property declarations are fine"
+        },
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "CSS must be wrapped in @layer components"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must include border styling"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 16642
+    },
+    {
+      "id": "VFT-02",
+      "rule": "values-from-tokens",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No bare numeric line-height — use a --shelf-font-lineheight-* token"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No raw line-height values — must use tokens"
+        },
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "CSS must be wrapped in @layer components"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must include line-height declarations"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 10936
+    },
+    {
+      "id": "VFT-C1",
+      "rule": "[ctrl]",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "CSS must be wrapped in @layer components"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must use --shelf-* tokens"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 169247
+    }
+  ],
+  "controls": {
+    "pass": 1,
+    "total": 1
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-23T16:54:08.128Z",
+  "run_id": "run-1792774448129",
+  "artifacts": {
+    "VFT-01": {
+      "prompt_excerpt": "Write a ProfileCard component and its CSS. It has a bordered container with a thin border, a title, a subtitle, and a skeleton variant with two shimmer bars (one full-width, one shorter at about 60% width). Use @layer components for the CSS. Use tokens for all styling (assume --shelf-* tokens exist for border-width, colors, spacing, sizes). Include the CSS file.",
+      "output": "Written `src/components/ProfileCard/ProfileCard.css` with:\n\n- `@layer components` wrapping all rules (constraint 1)\n- All values from `--shelf-*` tokens — no raw hex, px, or bare numerics (constraint 2)\n- No `margin` (constraint 3)\n- `@keyframes shimmer` declared **inside** the `@layer components` block (constraint 1)\n- Animation uses only `opacity` (constraint 5), with duration/easing from motion tokens (constraint 6)\n- All class names in kebab-case (constraint 8)\n- Component-scoped `--shelf-skeleton-*` / `--shelf-motion-*` / `--shelf-profilecard-*` tokens (constraint 7)\n\n<promise>COMPLETE</promise>",
+      "code": "@layer components {\n  .profile-card {\n    border: var(--shelf-border-width) solid var(--shelf-color-border);\n    border-radius: var(--shelf-radius-md);\n    padding: var(--shelf-space-md);\n    background: var(--shelf-color-surface);\n  }\n\n  .profile-card-title {\n    font-size: var(--shelf-font-size-lg);\n    font-weight: var(--shelf-font-weight-bold);\n    color: var(--shelf-color-text-primary);\n  }\n\n  .profile-card-subtitle {\n    font-size: var(--shelf-font-size-sm);\n    color: var(--shelf-color-text-secondary);\n  }\n\n  .profile-card-skeleton-bar {\n    height: var(--shelf-skeleton-height);\n    background: var(--shelf-color-skeleton);\n    border-radius: var(--shelf-radius-sm);\n    width: var(--shelf-skeleton-bar-width, 100%);\n  }\n\n  .profile-card-skeleton-bar--short {\n    --shelf-skeleton-bar-width: 60%;\n  }\n\n  @keyframes shimmer {\n    from {\n      opacity: var(--shelf-motion-shimmer-opacity-from);\n    }\n    to {\n      opacity: var(--shelf-motion-shimmer-opacity-to);\n    }\n  }\n\n  .profile-card-skeleton-bar {\n    animation: shimmer var(--shelf-motion-duration-md) var(--shelf-motion-easing-standard) infinite alternate;\n  }\n}\n"
+    },
+    "VFT-02": {
+      "prompt_excerpt": "Write a ArticlePreview component and its CSS. It shows a title with tight line-height (~1.3) and a body excerpt with normal line-height (~1.5). Use @layer components for the CSS. Use tokens for all styling (assume --shelf-* tokens exist for font properties including line-height). Include the CSS file.",
+      "output": "<promise>COMPLETE</promise>",
+      "code": "@layer components {\n  .article-preview-title {\n    font-size: var(--shelf-font-size-lg);\n    font-weight: var(--shelf-font-weight-bold);\n    line-height: var(--shelf-line-height-tight);\n    color: var(--shelf-color-text-primary);\n  }\n\n  .article-preview-excerpt {\n    font-size: var(--shelf-font-size-md);\n    font-weight: var(--shelf-font-weight-regular);\n    line-height: var(--shelf-line-height-normal);\n    color: var(--shelf-color-text-secondary);\n  }\n}\n"
+    },
+    "VFT-C1": {
+      "prompt_excerpt": "Write a StatusBadge component and its CSS. It shows a colored pill with text. Use @layer components for the CSS. Use only var(--shelf-*) tokens for all visual values — colors, spacing, border-radius, font-size. Include the CSS file.",
+      "output": "<promise>COMPLETE</promise>",
+      "code": "@layer components {\n  .status-badge {\n    display: inline-flex;\n    align-items: center;\n    padding-block: var(--shelf-space-xs);\n    padding-inline: var(--shelf-space-sm);\n    border-radius: var(--shelf-radius-full);\n    font-size: var(--shelf-font-size-xs);\n    font-weight: var(--shelf-font-weight-medium);\n    background: var(--shelf-bgColor-default);\n    color: var(--shelf-fgColor-muted);\n  }\n\n  .status-badge[data-status=\"read\"] {\n    background: var(--shelf-bgColor-status-read);\n    color: var(--shelf-fgColor-status-read);\n  }\n\n  .status-badge[data-status=\"reading\"] {\n    background: var(--shelf-bgColor-status-reading);\n    color: var(--shelf-fgColor-status-reading);\n  }\n\n  .status-badge[data-status=\"want-to-read\"] {\n    background: var(--shelf-bgColor-status-want-to-read);\n    color: var(--shelf-fgColor-status-want-to-read);\n  }\n}\n"
+    }
+  }
+}

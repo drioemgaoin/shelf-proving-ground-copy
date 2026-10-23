@@ -43,7 +43,7 @@ test('outputs constraints header', () => {
 test('includes T1 rules only (no T3, T2, Human)', () => {
   const out = run();
   // T1 rule should appear (values-from-tokens extracts bullet text or falls back to sectionHeading)
-  assert(out.includes('Every color') || out.includes('Values') || out.includes('--shelf-*Color-*'), 'Missing values-from-tokens constraint');
+  assert(out.includes('Every visual value'), 'Missing values-from-tokens constraint');
   // T3-only rules should NOT appear
   assert(!out.includes('interactive-states'), 'T3 interactive-states should not be in constraints');
   assert(!out.includes('data-view-states'), 'T3 data-view-states should not be in constraints');
@@ -55,7 +55,7 @@ test('groups CSS rules under CSS heading', () => {
   assert(out.includes('## When writing CSS files'), 'Missing CSS heading');
   // values-from-tokens is CSS-scoped
   const cssSection = out.split('## When writing CSS files')[1]?.split('##')[0] ?? '';
-  assert(cssSection.includes('Every color') || cssSection.includes('Values') || cssSection.includes('--shelf-*Color-*'), 'values-from-tokens not in CSS section');
+  assert(cssSection.includes('Every visual value'), 'values-from-tokens not in CSS section');
 });
 
 test('groups TS rules under TS heading', () => {
@@ -71,7 +71,7 @@ test('deduplicates by id (values-from-tokens has 7 patterns but 1 numbered const
   // Distinct fix texts are merged into a single WRONG line.
   const cssSection = out.split('## When writing CSS files')[1]?.split('##')[0] ?? '';
   // After parser fix, ruleText is extracted from the bullet (not the section heading fallback)
-  const numberedLines = cssSection.split('\n').filter(l => /^\d+\.\s+(Values|Every color)/.test(l));
+  const numberedLines = cssSection.split('\n').filter(l => /^\d+\.\s+Every visual value/.test(l));
   assert(numberedLines.length === 1, `Expected 1 numbered values-from-tokens constraint, got ${numberedLines.length}`);
 });
 

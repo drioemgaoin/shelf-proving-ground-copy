@@ -8,7 +8,7 @@ These apply to every project. Project values and names are in `ui-project.md`. S
 
 ## Values
 
-- Every visual value comes from a token. No raw values in component CSS: hex colors, px/rem/em/% literals, border-width keywords (thin/medium/thick), bare numerics (line-height). If no token exists, create one in tokens.css first.
+- Every visual value comes from a token. No raw hex, px/rem/em/%, border-width keywords (thin/medium/thick), or bare numerics in component CSS. Create missing tokens in tokens.css.
 
   CORRECT: `color: var(--shelf-fgColor-default);`
   WRONG: `color: #333;`
@@ -69,7 +69,7 @@ These apply to every project. Project values and names are in `ui-project.md`. S
   instruction: "Check that each design token is used for its intended semantic role. A violation is using a token outside its role — e.g., a spacing token for font-size, a danger color for non-error content, or a shadow token for a non-elevated element. Correct: each token maps to the role described in ui-project.md's token tables."
   ```
 
-- Every project must include a `@layer base` that applies design tokens to bare HTML elements. This is the layer where the design system takes control from the browser UA stylesheet. It must include the universal `box-sizing: border-box` reset (on `*, *::before, *::after`) so that `height` and `width` include padding — without this, any element with `height: 100%` and `padding` overflows its parent and covers grid/flex gaps. At minimum, `body` receives the page-surface background, default text color, base font family, and `margin: 0`. Without a base layer, bare elements render with UA defaults (white background, black text, 8px margin, content-box sizing) and the design system is not in control of the page surface.
+- `@layer base` required: box-sizing: border-box on *, body gets background/color/font/margin: 0 from tokens. Without it, UA defaults leak through.
 
   ```enforcement
   id: "base-layer-exists"
@@ -87,7 +87,7 @@ These apply to every project. Project values and names are in `ui-project.md`. S
     fix: "Add *, *::before, *::after { box-sizing: border-box; } inside @layer base. Without this, elements with height: 100% and padding overflow their containers and cover grid/flex gaps."
   ```
 
-- No margin in component CSS. Element resets (margin: 0, padding: 0, list-style: none) belong in @layer base in tokens.css. Self-centering (margin-inline: auto) is prohibited — the parent layout owns centering via flex/grid. The only exception is flex auto-margin for internal space distribution (e.g., margin-inline-start: auto to push a button to the right inside a flex row).
+- No margin in component CSS. Resets (margin: 0, padding: 0) go in @layer base. Parent owns centering — no margin-inline: auto. Exception: flex auto-margin for distribution.
 
   CORRECT: Container owns centering — all children align:
 
@@ -448,7 +448,7 @@ These apply to every project. Project values and names are in `ui-project.md`. S
 
 ## Comments
 
-- Comments explain WHY, not WHAT. One line maximum. No multi-line `//` blocks, no JSDoc (`/** */`) on internal code. Never describe what the code does not do or what another module handles (e.g., "filtering is wired by consumer", "is not wired").
+- Comments explain WHY, not WHAT. One line max. No multi-line `//` blocks, no JSDoc (`/** */`). Never describe what code doesn't do ("is not wired").
 
   CORRECT: `// null = loading; array = loaded`
   WRONG:
@@ -469,7 +469,7 @@ These apply to every project. Project values and names are in `ui-project.md`. S
     fix: "Condense to one // line. If it takes more than one line, the comment is explaining WHAT not WHY — shorten to the essential reason."
   ```
 
-- Source comments describe what the code does, never what it does not do or what ships later. Do not hedge about scope boundaries (e.g., "is not wired", "not implemented yet", "handled elsewhere"). References to ticket state rot immediately.
+- Comments describe what code does, never what it doesn't or what ships later. No hedging ("is not wired", "not yet implemented"). No ticket references.
 
   ```enforcement
   id: "no-ticket-references"

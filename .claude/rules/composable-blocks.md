@@ -100,7 +100,7 @@ Build software like shopping in a supermarket: each module is one item off the s
 
 ## Configuration injection
 
-- Environment variables are read in one place. Source modules receive configuration through injection (props, hooks, arguments), not by reading `process.env` or `import.meta.env` directly.
+- Environment variables are read in one place. Modules receive config via injection (props, hooks, args), not `process.env` or `import.meta.env`.
 
   CORRECT:
   ```ts
