@@ -7,7 +7,7 @@
     padding: var(--shelf-space-md);
   }
 
-  @media (--viewport-md) {
+  @media (width >= 768px) {
     .shelf {
       padding: var(--shelf-space-lg);
     }
