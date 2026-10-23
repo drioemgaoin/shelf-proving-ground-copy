@@ -1,0 +1,36 @@
+@layer components {
+  .shelf {
+    display: flex;
+    flex-direction: column;
+    gap: var(--shelf-space-lg);
+    width: 100%;
+    max-width: var(--shelf-grid-maxWidth);
+    padding: var(--shelf-space-md);
+  }
+
+  @media (width >= 768px) {
+    .shelf {
+      padding: var(--shelf-space-lg);
+    }
+  }
+
+  .shelf-grid {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(
+      auto-fill,
+      minmax(min(var(--shelf-grid-columnMin), 100%), 1fr)
+    );
+    gap: var(--shelf-space-lg);
+  }
+
+  .shelf-live {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
