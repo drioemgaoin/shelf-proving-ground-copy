@@ -1,0 +1,274 @@
+{
+  "score": 5,
+  "total": 9,
+  "pass_rate": 56,
+  "metrics": {
+    "judgment_accuracy": {
+      "pass": 5,
+      "total": 9,
+      "rate": 56
+    },
+    "rule_citation": {
+      "pass": 2,
+      "total": 2,
+      "rate": 100
+    }
+  },
+  "by_rule": {
+    "visible-container-spacing": {
+      "pass": 2,
+      "total": 6,
+      "rate": 33
+    },
+    "[ctrl]": {
+      "pass": 3,
+      "total": 3,
+      "rate": 100
+    }
+  },
+  "cases": [
+    {
+      "id": "VCS-01",
+      "rule": "visible-container-spacing",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must identify the uneven row height / ragged edge issue"
+        },
+        {
+          "metric": "rule_citation",
+          "pass": true,
+          "detail": null,
+          "description": "Must cite visible-container-spacing rule or report as review finding"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 23601
+    },
+    {
+      "id": "VCS-02",
+      "rule": "visible-container-spacing",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must identify the overflow covering the row gap"
+        },
+        {
+          "metric": "rule_citation",
+          "pass": true,
+          "detail": null,
+          "description": "Must cite visible-container-spacing rule or report as review finding"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 33794
+    },
+    {
+      "id": "VCS-03",
+      "rule": "[ctrl]",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Should output PASS when rows are uniform and gaps visible"
+        },
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must NOT output FAIL verdict or Fix now section"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 23034
+    },
+    {
+      "id": "VCS-04",
+      "rule": "[ctrl]",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Should output PASS — single-column means no row siblings to compare"
+        },
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must NOT output FAIL verdict or Fix now section"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 17032
+    },
+    {
+      "id": "VCS-05",
+      "rule": "visible-container-spacing",
+      "pass": false,
+      "checkResults": [
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must identify the subtle height mismatch as a violation"
+        },
+        {
+          "metric": "judgment_accuracy",
+          "pass": false,
+          "detail": "Found at offset 0: PASS",
+          "description": "Must NOT pass — any height difference is a violation"
+        }
+      ],
+      "detail": "Found at offset 0: PASS",
+      "duration_ms": 26081
+    },
+    {
+      "id": "VCS-06",
+      "rule": "[ctrl]",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Should PASS — rows can differ in height; the rule is about siblings WITHIN a row"
+        },
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must NOT flag different row heights as a violation"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 23194
+    },
+    {
+      "id": "VCS-07",
+      "rule": "visible-container-spacing",
+      "pass": false,
+      "checkResults": [
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must identify skeleton height mismatch as a violation — loading state is not exempt"
+        },
+        {
+          "metric": "judgment_accuracy",
+          "pass": false,
+          "detail": "Found at offset 0: PASS",
+          "description": "Must NOT pass — skeletons are grid items and must also fill cells uniformly"
+        }
+      ],
+      "detail": "Found at offset 0: PASS",
+      "duration_ms": 21201
+    },
+    {
+      "id": "VCS-08",
+      "rule": "visible-container-spacing",
+      "pass": false,
+      "checkResults": [
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must identify the dark mode gap visibility issue"
+        },
+        {
+          "metric": "judgment_accuracy",
+          "pass": false,
+          "detail": "Found at offset 0: PASS",
+          "description": "Must NOT pass — gaps must be visible in BOTH modes"
+        }
+      ],
+      "detail": "Found at offset 0: PASS",
+      "duration_ms": 25715
+    },
+    {
+      "id": "VCS-09",
+      "rule": "visible-container-spacing",
+      "pass": false,
+      "checkResults": [
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must identify the gap asymmetry between axes"
+        },
+        {
+          "metric": "judgment_accuracy",
+          "pass": false,
+          "detail": "Found at offset 0: PASS",
+          "description": "Must NOT pass — gaps must be uniform across both axes"
+        }
+      ],
+      "detail": "Found at offset 0: PASS",
+      "duration_ms": 24257
+    }
+  ],
+  "controls": {
+    "pass": 3,
+    "total": 3
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-23T19:36:37.319Z",
+  "run_id": "run-1792784197320",
+  "artifacts": {
+    "VCS-01": {
+      "prompt_excerpt": "The gate command ran. All programmatic tests passed with status 'expected'. No failures, no regressions. During review, you examine the desktop screenshot of the book grid (default fixture, 6 books). Row 1 has 4 cards. The first card ('The Overstory' — short title) is visibly shorter than the second card ('Tomorrow, and Tomorrow, and Tomorrow' — title wraps to 3 lines). Their bottom edges do not align — there is a ~40px gap between the bottom of the short card and the bottom of the tall card. Th",
+      "output": "Findings written to `.qa/visual-r1.md`. Gate passed with 0 failures; one review finding flagged under `Layout > visible-container-spacing` for unequal card heights within a row.\n\n<promise>COMPLETE</promise>",
+      "code": "PASS\nGate: 0 failures\n\nFlaky: 0\nContract gaps: 0\nReview findings:\n- BookCard grid (desktop, 6-book fixture): cards in the same row do not fill their grid cells vertically. 'The Overstory' (short title, single line) renders ~40 px shorter than 'Tomorrow, and Tomorrow, and Tomorrow' (title wraps to 3 lines), leaving ragged bottom edges across row 1. The card's visible surface does not stretch to the full cell height.\n  Cause: [Layout > visible-container-spacing] grid items in the same row must have identical rendered height — bottom edges must align. The grid item wrapper likely lacks `display: flex` (or equivalent), and the card child lacks `height: 100%`, so the card shrinks to its content height instead of filling the cell.\n  Fix: on the grid item wrapper add `display: flex` (and `flex-direction: column` if not already set), and on the BookCard root element set `height: 100%` (or `align-self: stretch` on the card) so every card's visible surface fills its cell regardless of title length.\n"
+    },
+    "VCS-02": {
+      "prompt_excerpt": "The gate command ran. All programmatic tests passed with status 'expected'. No failures, no regressions. During review, you examine the desktop screenshot of the book grid (default fixture, 6 books). Row 1 has 4 cards, row 2 has 2 cards. Column gaps between cards in the same row are clearly visible (~16px). But there is no visible gap between row 1 and row 2 — the bottom edges of row 1 cards touch the top edges of row 2 cards. The CSS specifies gap: var(--shelf-space-lg) which should apply equal",
+      "output": "`.qa/visual-r1.md` written.\n\n<promise>COMPLETE</promise>",
+      "code": "PASS\nGate: 0 failures\n\nFlaky: 0\nContract gaps: 0\nReview findings:\n- **BookCard grid — missing row gap (desktop, 6-book fixture)**\n  Column gaps between cards in the same row are clearly visible (~16px), but there is no visible gap between row 1 and row 2. The bottom edges of row 1 cards touch the top edges of row 2 cards. The grid container declares `gap: var(--shelf-space-lg)`, which applies to both axes, so the row gap should be identical to the column gap. The absence of a visible row gap while column gaps are present is the signature of a card overflowing its cell vertically — the card's rendered surface extends outside the cell boundary and covers the row gap.\n  Cause: [Layout > visible-container-spacing] A child element overflows its grid cell vertically, hiding the row gap. Common cause: `height: 100%` on the card root without `box-sizing: border-box`, or the card root itself using `height: 100%` on a wrapper that has padding, causing the painted background to bleed into the row-gap track.\n  Fix: In the BookCard component CSS, locate the rule responsible for `height: 100%` on the card or its immediate wrapper. Either add `box-sizing: border-box` to that rule, or replace `height: 100%` with `align-self: stretch` on the grid item so the card fills its cell without overflowing into the gap track.\n"
+    },
+    "VCS-03": {
+      "prompt_excerpt": "The gate command ran. All programmatic tests passed with status 'expected'. No failures, no regressions. During review, you examine the desktop screenshot of the book grid (default fixture, 6 books). Row 1 has 4 cards, row 2 has 2 cards. All cards in row 1 are the same height — their top edges align and their bottom edges align, forming a clean horizontal band. The two cards in row 2 also align with each other (shorter row since titles are shorter, but both cards match). Gaps between columns and",
+      "output": "<promise>COMPLETE</promise>",
+      "code": "PASS\nGate: 0 failures\n\nFlaky: 0\nContract gaps: 0\nReview findings: None. Desktop screenshot shows 6-card grid (4+2 rows). All cards in row 1 share identical height with aligned top and bottom edges. Row 2 cards match each other. Column and row gaps are equal and clearly visible (~24px). Cards fill their grid cells completely. No layout violations against [Layout > visible-container-spacing].\n"
+    },
+    "VCS-04": {
+      "prompt_excerpt": "The gate command ran. All programmatic tests passed with status 'expected'. No failures, no regressions. During review, you examine the mobile screenshot (375px width) of the book grid (default fixture, 6 books). The grid is single-column — each card is on its own row. Cards have different heights because titles vary in length, but since each row has exactly one card, there are no sibling cards to compare against. Gaps between rows are uniform and clearly visible. Write the findings file content",
+      "output": "<promise>COMPLETE</promise>",
+      "code": "PASS\nGate: 0 failures\n\nFlaky: 0\nContract gaps: 0\nReview findings: Mobile screenshot (375px, 6-book grid) is single-column — fill check exempt per visible-container-spacing rule (no same-row siblings to compare). Row gaps are uniform and clearly visible. No violations found.\n"
+    },
+    "VCS-05": {
+      "prompt_excerpt": "The gate command ran. All programmatic tests passed with status 'expected'. No failures, no regressions. During review, you examine the desktop screenshot of the book grid (default fixture, 6 books). Row 1 has 4 cards. At first glance the cards look uniform, but on close inspection, card 3 is ~3px shorter than its siblings — its bottom edge is slightly higher. The difference is subtle but measurable. The card does not fully fill its grid cell. Write the findings file content you would output.",
+      "output": "Written to `.qa/visual-r1.md`. Since all gate tests passed (0 failures), the output is `PASS` with one review finding: Card 3's ~3px height shortfall is a `[Layout > visible-container-spacing]` FILL violation — the card doesn't stretch to fill its grid cell, causing ragged bottom edges in row 1.\n\n<promise>COMPLETE</promise>",
+      "code": "PASS\nGate: 0 failures\n\nFlaky: 0\nContract gaps: 0\nReview findings:\n- BookCard grid (desktop, 6-book fixture): Card 3 in row 1 is ~3px shorter than its three siblings — bottom edge does not align with the row's common baseline.\n  Cause: [Layout > visible-container-spacing] FILL violation — card's visible surface does not stretch to fill its grid cell's full height. Every item in the same row must have identical rendered height with top and bottom edges aligned. Common cause: the card's child element (e.g. the `<li>` wrapper or inner surface div) lacks `height: 100%`, or the grid item is missing `display: flex` / `align-items: stretch` to force the child to fill the cell.\n  Fix: Ensure the grid item wrapper uses `display: flex` (or the card itself uses `height: 100%`) so the visible card surface stretches to the full cell height. Example: add `display: flex; flex-direction: column;` to the `<li>` grid item, and `flex: 1` or `height: 100%` to the inner card element.\n"
+    },
+    "VCS-06": {
+      "prompt_excerpt": "The gate command ran. All programmatic tests passed with status 'expected'. No failures, no regressions. During review, you examine the desktop screenshot of the book grid (default fixture, 5 books, 3-column grid). Row 1 has 3 cards — all the same height, edges aligned. Row 2 has 2 cards — both the same height as each other, edges aligned. Row 2 is shorter than row 1 because its titles are shorter and no card in row 2 has a wrapping title. But within each row, all sibling cards match. Gaps are u",
+      "output": "`.qa/visual-r1.md` written.\n\n<promise>COMPLETE</promise>",
+      "code": "PASS\nGate: 0 failures\n\nFlaky: 0\nContract gaps: 0\nReview findings: None. Desktop screenshot shows 5 cards in a 3-column grid. Row 1 (3 cards) has uniform card heights — top and bottom edges aligned across all siblings. Row 2 (2 cards) has uniform card heights — top and bottom edges aligned between its two siblings. Row 2 renders shorter than row 1 due to shorter title text with no wrapping; this is expected content-driven height variation between rows, not a layout defect (the fill check applies within a row, not across rows). Gaps are visually consistent in both axes. No overflow, ragged heights, clipped text, or spacing violations detected.\n"
+    },
+    "VCS-07": {
+      "prompt_excerpt": "The gate command ran. All programmatic tests passed with status 'expected'. No failures, no regressions. During review, you examine the desktop screenshot of the book grid (?fixture=slow, loading state). 6 skeleton cards are displayed in a 3-column grid. Row 1 has 3 skeleton cards. Two skeletons are the same height, but the third skeleton is ~20px shorter — its shimmer placeholder for the title area has fewer lines than its siblings. The skeleton cards do not fill their grid cells uniformly. Wri",
+      "output": "`.qa/visual-r1.md` written. Gate passed (0 test failures), but one review finding was recorded: a `visible-container-spacing` violation where the third skeleton card in row 1 is ~20px shorter than its siblings, causing unaligned bottom edges in the 3-column grid.\n\n<promise>COMPLETE</promise>",
+      "code": "PASS\nGate: 0 failures\n\nFlaky: 0\nContract gaps: 0\nReview findings:\n- Desktop screenshot (?fixture=slow, loading state): Row 1 of the 3-column skeleton grid contains three skeleton cards. Two cards share the same rendered height; the third is ~20px shorter — its shimmer placeholder for the title area renders fewer lines than its siblings. The bottom edges of the row are not aligned.\n  Cause: [Layout > visible-container-spacing] Skeleton cards in the same grid row must fill their cell to a uniform height so that bottom edges align across the row. The shorter skeleton card is not stretching to match its siblings — either the grid item lacks `display: flex` / `align-items: stretch`, or the card element itself is not set to `height: 100%`. Single-column exemption does not apply (3-column grid, multiple siblings per row).\n"
+    },
+    "VCS-08": {
+      "prompt_excerpt": "The gate command ran. All programmatic tests passed with status 'expected'. No failures, no regressions. During review, you examine screenshots of the book grid in both themes. In light mode: gaps between cards are clearly visible — the light page background shows through between the white cards. In dark mode: the card background (#2a2a2a) is nearly identical to the page background (#1f1f1f). Column and row gaps exist in the DOM, but the contrast between card surface and page surface is so low t",
+      "output": "<promise>COMPLETE</promise>",
+      "code": "PASS\nGate: 0 failures\n\nFlaky: 0\nContract gaps: 0\nReview findings:\n- **Dark mode gap visibility** — `BookCard` grid (dark theme)\n  Rule: [Layout > visible-container-spacing]\n  The card surface (#2a2a2a) and page background (#1f1f1f) differ by only ~7% lightness. Column and row gaps exist in the DOM but produce near-zero contrast at the boundary, causing cards to visually merge into a continuous dark block. The T3 rule requires gaps to be \"visually perceptible\" in both light and dark modes. Light mode is compliant (white cards on light page background). Dark mode is not.\n  Fix: Raise the card surface/page background contrast in dark mode so grid gaps read as distinct spacing — either darken the page background, lighten the card surface, or add a subtle border/shadow on the card edge. No source file change made; flagged for design token update.\n"
+    },
+    "VCS-09": {
+      "prompt_excerpt": "The gate command ran. All programmatic tests passed with status 'expected'. No failures, no regressions. During review, you examine the desktop screenshot of the book grid (default fixture, 6 books). All cards in each row are the same height — they fill their cells. Gaps are visible. But the column gap (~24px) is noticeably wider than the row gap (~8px). The CSS uses a single gap value, so this suggests a child is consuming some vertical space outside its cell (e.g., margin or border extending i",
+      "output": "<promise>COMPLETE</promise>",
+      "code": "PASS\nGate: 0 failures\n\nFlaky: 0\nContract gaps: 0\nReview findings:\n- **Uneven grid gaps** — BookCard grid (desktop, default 6-book fixture)\n  Rule: [Layout > visible-container-spacing]\n  Column gap (~24px) is noticeably wider than row gap (~8px). The CSS declares a single `gap` value, so both axes should be equal. The discrepancy indicates a child element is consuming vertical space outside its grid cell — likely a `margin-bottom` or an unaccounted border on the card component that bleeds into the row gap, reducing its visible size. T3 requires gaps to be uniformly visible between all adjacent items in both directions. Column direction is compliant; row direction is not.\n  Fix: Remove any `margin-bottom` on the card element (or its wrapper), and confirm `box-sizing: border-box` is set so borders do not add height outside the cell. No source file changed; flagged for developer review.\n"
+    }
+  }
+}
