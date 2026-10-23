@@ -14,7 +14,7 @@
   .skeleton-bar {
     height: var(--shelf-size-placeholder-bar);
     border-radius: var(--shelf-radius-sm);
-    background-color: var(--shelf-fgColor-default);
+    background-color: var(--shelf-skeleton-bgColor);
     opacity: var(--shelf-opacity-faint);
     animation: skeleton-pulse var(--shelf-motion-duration-slow) var(--shelf-motion-easing-enter) infinite alternate;
   }
@@ -29,7 +29,7 @@
     width: var(--shelf-size-placeholder-pill-width);
     height: var(--shelf-size-placeholder-pill-height);
     border-radius: var(--shelf-radius-full);
-    background-color: var(--shelf-fgColor-default);
+    background-color: var(--shelf-skeleton-bgColor);
     opacity: var(--shelf-opacity-faint);
     animation: skeleton-pulse var(--shelf-motion-duration-slow) var(--shelf-motion-easing-enter) infinite alternate;
   }

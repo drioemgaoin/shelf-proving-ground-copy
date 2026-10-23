@@ -123,6 +123,8 @@
     /* --- Border --- */
     --shelf-borderColor-default: var(--shelf-base-neutral-3);
     --shelf-borderColor-subtle: var(--shelf-base-neutral-2);
+    --shelf-borderColor-accent: var(--shelf-bgColor-accent);
+    --shelf-borderColor-accent-hover: var(--shelf-bgColor-accent-hover);
 
     /* --- Focus --- */
     --shelf-focusRing-color: var(--shelf-base-accent-5);
@@ -257,6 +259,7 @@
     --shelf-button-primary-bgColor-hover: var(--shelf-bgColor-accent-hover);
     --shelf-button-primary-bgColor-active: var(--shelf-bgColor-accent-active);
     --shelf-button-primary-fgColor: var(--shelf-fgColor-on-accent);
+    --shelf-skeleton-bgColor: var(--shelf-fgColor-default);
   }
 }
 
