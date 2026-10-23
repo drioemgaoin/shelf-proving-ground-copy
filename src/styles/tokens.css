@@ -11,6 +11,15 @@
  * Deviations: none
  */
 
+/* ================================================================
+   VIEWPORT BREAKPOINTS — @custom-media (compiled by postcss-custom-media)
+   Change these values to update every @media query that uses them.
+   ================================================================ */
+@custom-media --viewport-md (width >= 768px);
+@custom-media --viewport-lg (width >= 1024px);
+
+@layer tokens, base, components;
+
 @layer tokens {
 
   /* ================================================================
@@ -53,6 +62,17 @@
     --shelf-base-radius-2: 0.5rem;
     --shelf-base-radius-3: 0.75rem;
     --shelf-base-radius-full: 9999px;
+
+    /* --- Border width --- */
+    --shelf-base-borderWidth-thin: 1px;
+
+    /* --- Layout sizes --- */
+    --shelf-base-size-card: 17.5rem;      /* grid column floor (280px) */
+    --shelf-base-size-container: 80rem;   /* page content ceiling (1280px) */
+
+    /* --- Opacity (shimmer stops) --- */
+    --shelf-base-opacity-dim: 0.1;
+    --shelf-base-opacity-soft: 0.3;
 
     /* --- Font size --- */
     --shelf-base-font-size-xs: 0.75rem;
@@ -107,6 +127,7 @@
     /* --- Border --- */
     --shelf-borderColor-default: var(--shelf-base-neutral-3);
     --shelf-borderColor-subtle: var(--shelf-base-neutral-2);
+    --shelf-borderWidth-default: var(--shelf-base-borderWidth-thin);
 
     /* --- Focus --- */
     --shelf-focusRing-color: var(--shelf-base-accent-5);
@@ -225,6 +246,24 @@
     --shelf-button-primary-bgColor-hover: var(--shelf-bgColor-accent-hover);
     --shelf-button-primary-bgColor-active: var(--shelf-bgColor-accent-active);
     --shelf-button-primary-fgColor: var(--shelf-fgColor-on-accent);
+
+    /* --- Shelf page --- */
+    --shelf-shelf-maxWidth: var(--shelf-base-size-container);
+    --shelf-shelf-grid-minWidth: var(--shelf-base-size-card);
+
+    /* --- Filter chip --- */
+    --shelf-chip-fgColor-rest: var(--shelf-fgColor-default);
+    --shelf-chip-fgColor-selected: var(--shelf-fgColor-on-accent);
+    --shelf-chip-bgColor-selected: var(--shelf-bgColor-accent);
+    --shelf-chip-bgColor-selected-hover: var(--shelf-bgColor-accent-hover);
+    --shelf-chip-borderColor-rest: var(--shelf-borderColor-subtle);
+    --shelf-chip-borderColor-hover: var(--shelf-borderColor-default);
+    --shelf-chip-borderColor-selected: var(--shelf-bgColor-accent);
+
+    /* --- Skeleton placeholder --- */
+    --shelf-skeleton-barColor: var(--shelf-borderColor-default);
+    --shelf-skeleton-opacity-min: var(--shelf-base-opacity-dim);
+    --shelf-skeleton-opacity-max: var(--shelf-base-opacity-soft);
   }
 }
 
@@ -240,5 +279,20 @@
     background-color: var(--shelf-bgColor-default);
     color: var(--shelf-fgColor-default);
     font-family: var(--shelf-font-family-base);
+  }
+
+  ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  p {
+    margin: 0;
+  }
+
+  button {
+    font: inherit;
+    color: inherit;
   }
 }
