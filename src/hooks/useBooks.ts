@@ -2,12 +2,14 @@ import { useEffect, useState } from 'react';
 import { getBooks } from '../api';
 import type { Book } from '../types';
 
-// Discriminated load state so the UI renders skeletons until real books arrive.
+// Discriminated union so the UI renders skeletons, cards, or an error branch
+// without juggling separate boolean flags.
 export type BooksState =
   | { status: 'loading' }
   | { status: 'ready'; books: Book[] }
   | { status: 'error' };
 
+// Loads the shelf once on mount. The active fixture decides timing and outcome.
 export function useBooks(): BooksState {
   const [state, setState] = useState<BooksState>({ status: 'loading' });
 
@@ -20,7 +22,7 @@ export function useBooks(): BooksState {
       .catch(() => {
         if (active) setState({ status: 'error' });
       });
-    // Ignore a resolved fetch after unmount so we never set state on a dead view.
+    // Guards against a late resolve writing to an unmounted component.
     return () => {
       active = false;
     };

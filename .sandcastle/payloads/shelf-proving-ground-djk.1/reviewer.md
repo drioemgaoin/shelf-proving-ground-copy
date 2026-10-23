@@ -2,7 +2,7 @@
 
 ## values-from-tokens
 **Source:** Values
-**Rule:** Every visual value comes from a token. No raw values in component CSS: hex colors, px/rem/em/% literals, border-width keywords (thin/medium/thick), bare numerics (line-height). If no token exists, create one in tokens.css first.
+**Rule:** Every visual value comes from a token. No raw hex, px/rem/em/%, border-width keywords (thin/medium/thick), or bare numerics in component CSS. Create missing tokens in tokens.css.
 
 Check that each design token is used for its intended semantic role. A violation is using a token outside its role — e.g., a spacing token for font-size, a danger color for non-error content, or a shadow token for a non-elevated element. Correct: each token maps to the role described in ui-project.md's token tables.
 
@@ -12,7 +12,7 @@ Check that each design token is used for its intended semantic role. A violation
 
 ## no-outer-margin
 **Source:** Values
-**Rule:** No margin in component CSS. Element resets (margin: 0, padding: 0, list-style: none) belong in @layer base in tokens.css. Self-centering (margin-inline: auto) is prohibited — the parent layout owns centering via flex/grid. The only exception is flex auto-margin for internal space distribution (e.g., margin-inline-start: auto to push a button to the right inside a flex row).
+**Rule:** No margin in component CSS. Resets (margin: 0, padding: 0) go in @layer base. Parent owns centering — no margin-inline: auto. Exception: flex auto-margin for distribution.
 
 Scan all selectors in the diff for margin properties. A violation is any element setting margin to own space outside itself — the parent layout owns spacing and positioning. Two exceptions are NOT violations: (1) flex/grid auto-margin for internal space distribution (e.g., margin-block-start: auto to push a badge to the bottom of a flex column — this is a layout mechanism within the parent's context, not external spacing), (2) margin declarations inside @layer base (element resets). Everything else is a violation: margin for spacing between siblings, margin-inline: auto for self-centering, margin-block: 0 for list resets outside the base layer. Correct: parents use gap and padding for spacing; containers use max-width + centering for width constraints; children set zero margin.
 

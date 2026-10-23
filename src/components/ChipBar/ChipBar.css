@@ -1,0 +1,40 @@
+@layer components {
+  .chip-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--shelf-space-sm);
+  }
+
+  .chip {
+    padding-block: var(--shelf-space-xs);
+    padding-inline: var(--shelf-space-md);
+    border: var(--shelf-borderWidth-default) solid var(--shelf-borderColor-subtle);
+    border-radius: var(--shelf-radius-full);
+    background-color: var(--shelf-bgColor-default);
+    color: var(--shelf-fgColor-default);
+    font-family: var(--shelf-font-family-base);
+    font-size: var(--shelf-font-size-sm);
+    font-weight: var(--shelf-font-weight-medium);
+    cursor: pointer;
+  }
+
+  .chip:hover {
+    border-color: var(--shelf-borderColor-default);
+  }
+
+  .chip:focus-visible {
+    outline: var(--shelf-focusRing);
+    outline-offset: var(--shelf-focusRing-offset);
+  }
+
+  .chip[aria-pressed="true"] {
+    border-color: var(--shelf-borderColor-accent);
+    background-color: var(--shelf-bgColor-accent);
+    color: var(--shelf-fgColor-on-accent);
+  }
+
+  .chip[aria-pressed="true"]:hover {
+    border-color: var(--shelf-borderColor-accent-hover);
+    background-color: var(--shelf-bgColor-accent-hover);
+  }
+}
