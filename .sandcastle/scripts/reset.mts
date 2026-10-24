@@ -92,7 +92,8 @@ for (const label of ESCALATION_LABELS) {
 // independently on main and restore to preLatest. Everything else restores
 // to preTicket.
 
-const hostAllowed = new RegExp(process.env.UI_HOST_ALLOWED ?? '^src/(styles/tokens\\.css|styles/layers\\.css|main\\.tsx)$');
+// Files that evolve on main independently of any ticket — never reverted.
+const hostAllowed = new RegExp(process.env.UI_HOST_ALLOWED ?? '^src/(styles/tokens\\.css|styles/layers\\.css|main\\.tsx|layer-order\\.test\\.ts)$');
 
 const branch = `sandcastle/issue-${issueId}`;
 
@@ -180,20 +181,12 @@ if (mergeCommits) {
             `git ls-tree ${preTicket} -- "${file}" 2>/dev/null`,
             { ignoreError: true },
           );
-          if (existsAtPreTicket) {
-            // File existed before the ticket. If it's host-owned (matches
-            // UI_HOST_ALLOWED — e.g. tokens.css), it evolves independently
-            // on main and should be restored to preLatest to preserve that
-            // work. Everything else goes back to preTicket.
-            let restoreTo = preTicket;
-            if (preLatest && hostAllowed.test(file)) {
-              log(`  ${file}: host-owned — using pre-latest-merge version`);
-              restoreTo = preLatest;
-            }
-            run(`git checkout ${restoreTo} -- "${file}"`);
-          } else if (hostAllowed.test(file)) {
-            // File was added on main (not by the ticket) — skip it
-            log(`  ${file}: host-owned, not at preTicket — keeping current version`);
+          if (hostAllowed.test(file)) {
+            // Host-owned files evolve independently on main — never revert them.
+            log(`  ${file}: host-owned — keeping current version`);
+          } else if (existsAtPreTicket) {
+            // File existed before the ticket — restore to preTicket.
+            run(`git checkout ${preTicket} -- "${file}"`);
           } else {
             // File was added by the ticket — remove it
             run(`git rm -f --cached "${file}"`, { ignoreError: true });
