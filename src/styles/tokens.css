@@ -69,6 +69,7 @@
     --shelf-base-borderWidth-thin: 1px;
 
     /* --- Layout sizes --- */
+    --shelf-base-size-1px: 1px; /* 1px span for visually-hidden live region */
     --shelf-base-size-card: 17.5rem; /* grid column floor (280px) */
     --shelf-base-size-container: 80rem; /* page content ceiling (1280px) */
     --shelf-base-size-cardMinHeight: 9rem; /* shared card/skeleton row floor */
