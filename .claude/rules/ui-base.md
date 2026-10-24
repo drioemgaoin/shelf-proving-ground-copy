@@ -88,7 +88,7 @@ These apply to every project. Project values and names are in `ui-project.md`. S
   instruction: "Check that each design token is used for its intended semantic role. A violation is using a token outside its role — e.g., a spacing token for font-size, a danger color for non-error content, or a shadow token for a non-elevated element. Correct: each token maps to the role described in ui-project.md's token tables."
   ```
 
-- `@layer base` required: box-sizing: border-box on *, body gets background/color/font/margin: 0 from tokens. Without it, UA defaults leak through.
+- `@layer base` required: box-sizing: border-box on \*, body gets background/color/font/margin: 0 from tokens. Without it, UA defaults leak through.
 
   ```enforcement
   id: "base-layer-exists"
@@ -104,6 +104,42 @@ These apply to every project. Project values and names are in `ui-project.md`. S
     strip: comments
     scope: "src/styles/tokens.css"
     fix: "Add *, *::before, *::after { box-sizing: border-box; } inside @layer base. Without this, elements with height: 100% and padding overflow their containers and cover grid/flex gaps."
+  ```
+
+- Layer order declaration lives in `src/styles/layers.css` — a standalone file containing only `@layer base, tokens, components;`, no style blocks. It is the first CSS import in `src/main.tsx`, before `tokens.css` and before the App import.
+
+  CORRECT: `import './styles/layers.css';` as first import in main.tsx
+  WRONG: `@layer base, tokens, components;` inside tokens.css (co-located with styles)
+  WRONG: `import { App } from './App';` before `import './styles/layers.css';`
+
+  ```enforcement
+  id: "layer-order-in-layers-css"
+  tier: T1
+  - pattern: "@layer\\s+base\\s*,\\s*tokens\\s*,\\s*components\\s*;"
+    assert: absent
+    scope: "src/styles/tokens.css"
+    strip: comments
+    fix: "Move @layer base, tokens, components; to src/styles/layers.css. The order declaration must not live in a file with style blocks."
+  - pattern: "@layer\\s+base\\s*,\\s*tokens\\s*,\\s*components\\s*;"
+    assert: present
+    scope: "src/styles/layers.css"
+    strip: comments
+    fix: "src/styles/layers.css must contain @layer base, tokens, components;"
+  - pattern: "@layer\\s+\\w+\\s*\\{"
+    assert: absent
+    scope: "src/styles/layers.css"
+    strip: comments
+    fix: "layers.css must contain only the order declaration, no @layer blocks."
+  ```
+
+  ```enforcement
+  id: "layer-order-in-layers-css"
+  tier: T3
+  agent: reviewer
+  scope: "src/main.tsx"
+  group: architecture
+  triage_hint: "Flag when: import order changes in main.tsx, new CSS import added"
+  instruction: "layers.css must be the first import in main.tsx — before any other CSS and before the App import. A violation is layers.css imported after another CSS file, after App, or missing."
   ```
 
 - No margin in component CSS. Resets (margin: 0, padding: 0) go in @layer base. Parent owns centering — no margin-inline: auto. Exception: flex auto-margin for distribution.

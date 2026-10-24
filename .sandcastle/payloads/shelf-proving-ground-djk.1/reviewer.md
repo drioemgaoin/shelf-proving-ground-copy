@@ -2,7 +2,7 @@
 
 ## values-from-tokens
 **Source:** Values
-**Rule:** Every visual value comes from a token. No raw hex, px/rem/em/%, border-width keywords (thin/medium/thick), or bare numerics in component CSS. Create missing tokens in tokens.css.
+**Rule:** Every visual value uses a role-matched token (bgColor for backgrounds, fgColor for text, borderColor for borders). No raw hex/px/rem/%/keywords. Create tokens in tokens.css.
 
 Check that each design token is used for its intended semantic role. A violation is using a token outside its role — e.g., a spacing token for font-size, a danger color for non-error content, or a shadow token for a non-elevated element. Correct: each token maps to the role described in ui-project.md's token tables.
 
