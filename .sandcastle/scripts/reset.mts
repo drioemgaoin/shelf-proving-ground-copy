@@ -92,7 +92,7 @@ for (const label of ESCALATION_LABELS) {
 // independently on main and restore to preLatest. Everything else restores
 // to preTicket.
 
-const hostAllowed = new RegExp(process.env.UI_HOST_ALLOWED ?? '^src/styles/tokens\\.css$');
+const hostAllowed = new RegExp(process.env.UI_HOST_ALLOWED ?? '^src/(styles/tokens\\.css|styles/layers\\.css|main\\.tsx)$');
 
 const branch = `sandcastle/issue-${issueId}`;
 
@@ -191,6 +191,9 @@ if (mergeCommits) {
               restoreTo = preLatest;
             }
             run(`git checkout ${restoreTo} -- "${file}"`);
+          } else if (hostAllowed.test(file)) {
+            // File was added on main (not by the ticket) — skip it
+            log(`  ${file}: host-owned, not at preTicket — keeping current version`);
           } else {
             // File was added by the ticket — remove it
             run(`git rm -f --cached "${file}"`, { ignoreError: true });

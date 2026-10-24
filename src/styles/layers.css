@@ -1,0 +1,2 @@
+/* Layer order declaration — MUST be the first CSS import in the app entry. */
+@layer base, tokens, components;
