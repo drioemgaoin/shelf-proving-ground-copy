@@ -21,6 +21,10 @@
 @custom-media --viewport-lg (width >= 1024px);
 @custom-media --viewport-xl (width >= 1280px);
 
+@layer base, tokens, components;
+
+@layer tokens, base, components;
+
 @layer tokens {
 
   /* ================================================================
