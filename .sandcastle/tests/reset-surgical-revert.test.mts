@@ -1,9 +1,13 @@
-// Reset must only revert src/ files the ticket branch changed — not the
-// entire src/ tree. Blanket restore clobbers independent changes (e.g.
-// tokens.css updated outside the ticket).
+// Reset must only revert src/ files the ticket branch changed in its LATEST
+// run — and restore them to what main had right before that merge, not to
+// some ancient baseline.
 //
-// Strategy: build a real git repo with a known history, run the reset
-// revert logic, and assert that only ticket-touched files were reverted.
+// The real-world scenario: 11 merges for the same ticket across multiple
+// runs. Between runs, main evolves independently (tokens.css gets @custom-media,
+// @layer order, etc.). The branch also touches tokens.css. On reset, tokens.css
+// appears in the merge diff. Using the oldest merge's parent as baseline
+// restores tokens.css to the initial project state, wiping all independent
+// evolution. The fix: use newestMerge^1 as both diff source and restore target.
 //
 // Run: npx tsx --test .sandcastle/tests/reset-surgical-revert.test.mts
 
@@ -37,55 +41,69 @@ function writeFile(repo: string, relPath: string, content: string): void {
 }
 
 // ---------------------------------------------------------------------------
-// Build a repo that mirrors the real scenario:
+// Build a repo that mirrors the real scenario with MULTIPLE merges:
 //
-// main:  A ─── B ─── M ─── C
-//               \   /
-//  branch:       D
+// main:  A ── M1 ── B ── M2 ── C
+//              \          \
+// branch: D1 ──┘    D2 ───┘
 //
-// A: initial src/styles/tokens.css (foundation) + src/api.ts
-// B: update tokens.css (independent change, NOT part of ticket)
-// D: branch adds src/components/Shelf.tsx + modifies src/api.ts
-// M: merge branch into main
-// C: post-merge WIP commit updating tokens.css again
+// A:  initial tokens.css + api.ts
+// D1: branch run 1 — modifies api.ts (tokens.css unchanged on branch)
+// M1: merge run 1 into main
+// B:  independent tokens.css update on main (NOT part of ticket)
+// D2: branch run 2 — adds Shelf.tsx, also touches tokens.css (stale branch copy)
+// M2: merge run 2 into main (tokens.css shows in diff because branch had old version)
+// C:  post-merge WIP commit improving tokens.css
 //
-// Reset should revert src/components/Shelf.tsx and src/api.ts (ticket files)
-// but NOT src/styles/tokens.css (independent change).
+// Reset should use M2^1 (commit B state) as baseline — NOT M1^1 (commit A state).
+// tokens.css IS in the M2 diff (branch touched it), so it gets reverted — but
+// to B's version (which has @custom-media), not A's version (which doesn't).
 // ---------------------------------------------------------------------------
 
-function buildTestRepo(): string {
+function buildMultiMergeRepo(): string {
   const repo = mkdtempSync(join(tmpdir(), "reset-test-"));
   git(repo, "init -b main");
   git(repo, "config commit.gpgsign false");
 
-  // A: initial state
+  // A: initial state — no @custom-media, no @layer order
   writeFile(repo, "src/styles/tokens.css", "@layer tokens { --color: red; }\n");
   writeFile(repo, "src/api.ts", "export function getBooks() { return []; }\n");
   git(repo, "add -A");
   git(repo, "commit -m 'A: initial'");
 
-  // B: independent tokens.css update (NOT part of ticket)
-  writeFile(repo, "src/styles/tokens.css", "@layer tokens, base, components;\n@layer tokens { --color: red; }\n@layer base { box-sizing: border-box; }\n");
-  git(repo, "add -A");
-  git(repo, "commit -m 'B: add layer order and base layer'");
-
-  // Branch off for the ticket
+  // Branch run 1
   git(repo, "checkout -b sandcastle/issue-test-ticket-1");
-
-  // D: ticket changes — modify api.ts and add a new component
-  writeFile(repo, "src/api.ts", "export function getBooks() { return ['book']; }\nexport function addBook() {}\n");
-  writeFile(repo, "src/components/Shelf.tsx", "export function Shelf() { return <div/>; }\n");
+  writeFile(repo, "src/api.ts", "export function getBooks() { return ['a']; }\n");
   git(repo, "add -A");
-  git(repo, "commit -m 'D: ticket implementation'");
+  git(repo, "commit -m 'D1: run 1'");
 
-  // Back to main for merge
+  // M1: merge run 1
   git(repo, "checkout main");
   git(repo, "merge --no-ff sandcastle/issue-test-ticket-1 -m 'Merge pull request #1 from user/sandcastle/issue-test-ticket-1'");
 
-  // C: post-merge WIP commit updating tokens.css again
-  writeFile(repo, "src/styles/tokens.css", "@layer tokens, base, components;\n@layer tokens { --color: blue; }\n@layer base { box-sizing: border-box; }\n@custom-media --viewport-md (width >= 768px);\n");
+  // B: independent tokens.css update on main between runs
+  writeFile(repo, "src/styles/tokens.css", "@custom-media --viewport-md (width >= 768px);\n@layer tokens, base, components;\n@layer tokens { --color: red; }\n@layer base { box-sizing: border-box; }\n");
   git(repo, "add -A");
-  git(repo, "commit -m 'C: WIP improvements to tokens'");
+  git(repo, "commit -m 'B: add @custom-media and @layer order (independent)'");
+
+  // Branch run 2 — starts from current main but has stale tokens.css
+  git(repo, "checkout sandcastle/issue-test-ticket-1");
+  git(repo, "merge main -m 'sync with main'");
+  // Simulate the branch having a different tokens.css (common in sandcastle:
+  // the builder modifies tokens.css to add component tokens)
+  writeFile(repo, "src/styles/tokens.css", "@layer tokens { --color: red; --new-token: blue; }\n");
+  writeFile(repo, "src/components/Shelf.tsx", "export function Shelf() {}\n");
+  git(repo, "add -A");
+  git(repo, "commit -m 'D2: run 2 — adds Shelf, touches tokens'");
+
+  // M2: merge run 2
+  git(repo, "checkout main");
+  git(repo, "merge --no-ff sandcastle/issue-test-ticket-1 -m 'Merge pull request #2 from user/sandcastle/issue-test-ticket-1'");
+
+  // C: post-merge WIP
+  writeFile(repo, "src/styles/tokens.css", "@custom-media --viewport-md (width >= 768px);\n@layer tokens, base, components;\n@layer tokens { --color: blue; --extra: yes; }\n@layer base { box-sizing: border-box; }\n");
+  git(repo, "add -A");
+  git(repo, "commit -m 'C: post-merge WIP improvements'");
 
   return repo;
 }
@@ -97,20 +115,16 @@ afterEach(() => {
 });
 
 // ---------------------------------------------------------------------------
-// Helpers to extract the revert logic from reset.mts
+// Revert implementations
 // ---------------------------------------------------------------------------
 
-/** Compute files the ticket branch changed (the merge diff). */
-function ticketChangedFiles(repo: string, mergeCommit: string): string[] {
-  // Diff between the merge's first parent (main before merge) and second
-  // parent (branch tip) — exactly the files the ticket introduced.
-  const output = git(repo, `diff --name-only ${mergeCommit}^1 ${mergeCommit}^2 -- src/`);
-  return output ? output.split("\n").filter(Boolean) : [];
-}
+/** Surgical revert using newestMerge^1 as baseline (the fix). */
+function surgicalRevertFixed(repo: string, newestMerge: string): void {
+  const baseline = git(repo, `rev-parse ${newestMerge}^1`);
+  const changedFiles = git(repo, `diff --name-only ${newestMerge}^1 ${newestMerge}^2 -- src/`);
+  const fileList = changedFiles ? changedFiles.split("\n").filter(Boolean) : [];
 
-/** Surgical revert: only restore ticket-changed files from baseline. */
-function surgicalRevert(repo: string, baseline: string, changedFiles: string[]): void {
-  for (const file of changedFiles) {
+  for (const file of fileList) {
     const existsAtBaseline = git(repo, `ls-tree ${baseline} -- "${file}"`);
     if (existsAtBaseline) {
       git(repo, `checkout ${baseline} -- "${file}"`);
@@ -121,149 +135,150 @@ function surgicalRevert(repo: string, baseline: string, changedFiles: string[]):
   }
 
   const staged = git(repo, "diff --cached --name-only");
-  if (staged) {
-    git(repo, `commit -m "Revert ticket files only"`);
-  }
+  if (staged) git(repo, 'commit -m "Revert (fixed)"');
   try { git(repo, "clean -fd src/"); } catch {}
 }
 
-/** Blanket revert (current broken behavior): restores ALL of src/. */
-function blanketRevert(repo: string, baseline: string): void {
-  try { git(repo, "rm -r --cached --quiet src/"); } catch {}
-  git(repo, `checkout ${baseline} -- src/`);
-  try { git(repo, "clean -fd src/"); } catch {}
+/** Broken revert using oldestMerge^1 as baseline (the bug). */
+function surgicalRevertBroken(repo: string, oldestMerge: string, newestMerge: string): void {
+  const baseline = git(repo, `rev-parse ${oldestMerge}^1`);
+  const changedFiles = git(repo, `diff --name-only ${oldestMerge}^1 ${newestMerge}^2 -- src/`);
+  const fileList = changedFiles ? changedFiles.split("\n").filter(Boolean) : [];
+
+  for (const file of fileList) {
+    const existsAtBaseline = git(repo, `ls-tree ${baseline} -- "${file}"`);
+    if (existsAtBaseline) {
+      git(repo, `checkout ${baseline} -- "${file}"`);
+    } else {
+      try { git(repo, `rm -f --cached "${file}"`); } catch {}
+      try { execSync(`rm -f "${join(repo, file)}"`, { cwd: repo }); } catch {}
+    }
+  }
 
   const staged = git(repo, "diff --cached --name-only");
-  if (staged) {
-    git(repo, `commit -m "Revert all src/"`);
-  }
+  if (staged) git(repo, 'commit -m "Revert (broken)"');
+  try { git(repo, "clean -fd src/"); } catch {}
+}
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+function findMerges(repo: string): string[] {
+  const output = git(repo, 'log --first-parent --grep="sandcastle/issue-test-ticket-1" --merges --format=%H main');
+  return output.split("\n").filter(Boolean);
 }
 
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
 
-describe("reset: surgical vs blanket src/ revert", () => {
+describe("reset: multi-merge baseline selection", () => {
 
-  test("blanket revert clobbers independent tokens.css changes (reproduces the bug)", () => {
-    const repo = buildTestRepo();
+  test("BUG: using oldestMerge^1 as baseline clobbers independent changes", () => {
+    const repo = buildMultiMergeRepo();
     repos.push(repo);
 
-    // Find the merge commit
-    const mergeHash = git(repo, 'log --first-parent --merges --grep="sandcastle/issue-test-ticket-1" --format=%H main');
-    assert.ok(mergeHash, "Should find the merge commit");
+    const merges = findMerges(repo);
+    assert.equal(merges.length, 2, "Should find 2 merge commits");
+    const newest = merges[0]!;
+    const oldest = merges[1]!;
 
-    const baseline = git(repo, `rev-parse ${mergeHash}^1`);
+    // Before revert: tokens.css has @custom-media (from post-merge WIP)
+    const before = readFileSync(join(repo, "src/styles/tokens.css"), "utf8");
+    assert.ok(before.includes("@custom-media"), "Pre-revert: tokens.css has @custom-media");
 
-    // Read tokens.css before revert — should have post-merge WIP content
-    const tokensBefore = readFileSync(join(repo, "src/styles/tokens.css"), "utf8");
-    assert.ok(tokensBefore.includes("@custom-media"), "tokens.css should have post-merge WIP changes");
-    assert.ok(tokensBefore.includes("--color: blue"), "tokens.css should have WIP color value");
+    // Run the broken revert (oldestMerge^1 = commit A, before @custom-media existed)
+    surgicalRevertBroken(repo, oldest, newest);
 
-    // Run blanket revert (current broken behavior)
-    blanketRevert(repo, baseline);
-
-    // tokens.css was clobbered back to baseline (commit B) — losing post-merge WIP changes.
-    // The baseline has the layer order (B added it) but NOT @custom-media or --color: blue
-    // (those came from post-merge commit C). This is the bug: independent post-merge
-    // improvements to tokens.css are wiped out.
-    const tokensAfter = readFileSync(join(repo, "src/styles/tokens.css"), "utf8");
+    // tokens.css was clobbered to commit A state — @custom-media is gone
+    const after = readFileSync(join(repo, "src/styles/tokens.css"), "utf8");
     assert.ok(
-      !tokensAfter.includes("@custom-media"),
-      "Blanket revert should have clobbered the post-merge @custom-media (proving the bug exists)",
+      !after.includes("@custom-media"),
+      "BUG: oldestMerge^1 baseline lost @custom-media (added independently between runs)",
     );
     assert.ok(
-      !tokensAfter.includes("--color: blue"),
-      "Blanket revert should have lost the post-merge color change (proving the bug exists)",
+      !after.includes("@layer tokens, base, components"),
+      "BUG: oldestMerge^1 baseline lost @layer order (added independently between runs)",
     );
   });
 
-  test("surgical revert preserves independent tokens.css changes", () => {
-    const repo = buildTestRepo();
+  test("FIX: using newestMerge^1 as baseline preserves independent changes", () => {
+    const repo = buildMultiMergeRepo();
     repos.push(repo);
 
-    // Find the merge commit
-    const mergeHash = git(repo, 'log --first-parent --merges --grep="sandcastle/issue-test-ticket-1" --format=%H main');
-    assert.ok(mergeHash, "Should find the merge commit");
+    const merges = findMerges(repo);
+    const newest = merges[0]!;
 
-    const baseline = git(repo, `rev-parse ${mergeHash}^1`);
-    const changed = ticketChangedFiles(repo, mergeHash);
+    // Before revert: tokens.css has post-merge WIP content
+    const before = readFileSync(join(repo, "src/styles/tokens.css"), "utf8");
+    assert.ok(before.includes("@custom-media"), "Pre-revert: tokens.css has @custom-media");
+    assert.ok(before.includes("--extra: yes"), "Pre-revert: tokens.css has WIP additions");
 
-    // Ticket should have changed api.ts and components/Shelf.tsx — NOT tokens.css
-    assert.ok(changed.includes("src/api.ts"), "Ticket changed api.ts");
-    assert.ok(changed.includes("src/components/Shelf.tsx"), "Ticket added Shelf.tsx");
-    assert.ok(!changed.includes("src/styles/tokens.css"), "Ticket did NOT change tokens.css");
+    // Run the fixed revert (newestMerge^1 = commit B, which has @custom-media)
+    surgicalRevertFixed(repo, newest);
 
-    // Read tokens.css before revert
-    const tokensBefore = readFileSync(join(repo, "src/styles/tokens.css"), "utf8");
-    assert.ok(tokensBefore.includes("@custom-media"), "tokens.css should have post-merge WIP changes");
-
-    // Run surgical revert
-    surgicalRevert(repo, baseline, changed);
-
-    // tokens.css should be PRESERVED
-    const tokensAfter = readFileSync(join(repo, "src/styles/tokens.css"), "utf8");
+    // tokens.css was restored to commit B state — @custom-media is preserved
+    const after = readFileSync(join(repo, "src/styles/tokens.css"), "utf8");
     assert.ok(
-      tokensAfter.includes("@custom-media"),
-      "Surgical revert must preserve independent tokens.css changes",
+      after.includes("@custom-media"),
+      "FIX: newestMerge^1 baseline preserves @custom-media",
     );
     assert.ok(
-      tokensAfter.includes("@layer tokens, base, components"),
-      "Surgical revert must preserve layer order",
+      after.includes("@layer tokens, base, components"),
+      "FIX: newestMerge^1 baseline preserves @layer order",
+    );
+    assert.ok(
+      after.includes("@layer base"),
+      "FIX: newestMerge^1 baseline preserves @layer base block",
     );
 
-    // Ticket files should be reverted to baseline
+    // Post-merge WIP additions (--extra, --color: blue) are lost — that's correct,
+    // they were built on ticket code being reset
+    assert.ok(!after.includes("--extra"), "Post-merge WIP tokens are correctly reverted");
+
+    // Ticket-added file should be removed
+    assert.ok(
+      !existsSync(join(repo, "src/components/Shelf.tsx")),
+      "Shelf.tsx (added by ticket) should be removed",
+    );
+
+    // api.ts should be restored to newestMerge^1 state
     const apiAfter = readFileSync(join(repo, "src/api.ts"), "utf8");
-    assert.equal(
-      apiAfter,
-      "export function getBooks() { return []; }\n",
-      "api.ts should be reverted to baseline (pre-ticket state)",
+    assert.ok(
+      apiAfter.includes("return ['a']"),
+      "api.ts should be at merge^1 state (includes run 1 changes that were already merged)",
     );
-
-    // New file added by ticket should be removed
-    const shelfExists = execSync(`test -f "${join(repo, "src/components/Shelf.tsx")}" && echo yes || echo no`, {
-      encoding: "utf8",
-    }).trim();
-    assert.equal(shelfExists, "no", "Shelf.tsx (added by ticket) should be removed");
   });
 
-  test("surgical revert handles ticket that also modified tokens.css", () => {
-    const repo = buildTestRepo();
+  test("FIX: files not changed by the latest merge are untouched", () => {
+    const repo = buildMultiMergeRepo();
     repos.push(repo);
 
-    // Simulate: ticket ALSO modified tokens.css on its branch
-    git(repo, "checkout sandcastle/issue-test-ticket-1");
-    writeFile(repo, "src/styles/tokens.css", "@layer tokens { --color: red; }\n/* ticket added this */\n");
-    git(repo, "add -A");
-    git(repo, "commit -m 'D2: ticket also touches tokens.css'");
+    const merges = findMerges(repo);
+    const newest = merges[0]!;
 
-    // Back to main, re-merge
-    git(repo, "checkout main");
-    // Reset to before the old merge
-    const mergeHash = git(repo, 'log --first-parent --merges --grep="sandcastle/issue-test-ticket-1" --format=%H main');
-    git(repo, `reset --hard ${mergeHash}^1`);
-    git(repo, "merge --no-ff sandcastle/issue-test-ticket-1 -m 'Merge pull request #2 from user/sandcastle/issue-test-ticket-1'");
+    // Check which files the latest merge changed
+    const changed = git(repo, `diff --name-only ${newest}^1 ${newest}^2 -- src/`);
+    const fileList = changed.split("\n").filter(Boolean);
 
-    // Post-merge WIP
-    writeFile(repo, "src/styles/tokens.css", "@layer tokens, base;\n@layer tokens { --color: blue; }\n");
-    git(repo, "add -A");
-    git(repo, "commit -m 'C2: WIP improvements'");
+    // api.ts was NOT changed in run 2 (only run 1 touched it)
+    // It should NOT appear in the latest merge diff
+    assert.ok(
+      !fileList.includes("src/api.ts"),
+      "api.ts was only changed in run 1, not in run 2 — should not be in latest merge diff",
+    );
 
-    // Now reset
-    const mergeHash2 = git(repo, 'log --first-parent --merges --grep="sandcastle/issue-test-ticket-1" --format=%H main');
-    const baseline = git(repo, `rev-parse ${mergeHash2}^1`);
-    const changed = ticketChangedFiles(repo, mergeHash2);
+    // tokens.css WAS changed in run 2 (branch had stale copy)
+    assert.ok(
+      fileList.includes("src/styles/tokens.css"),
+      "tokens.css was changed in run 2 — should be in latest merge diff",
+    );
 
-    assert.ok(changed.includes("src/styles/tokens.css"), "Ticket DID change tokens.css this time");
-
-    surgicalRevert(repo, baseline, changed);
-
-    // tokens.css should be reverted to baseline (commit B) since the ticket touched it
-    const tokensAfter = readFileSync(join(repo, "src/styles/tokens.css"), "utf8");
-    assert.equal(
-      tokensAfter,
-      "@layer tokens, base, components;\n@layer tokens { --color: red; }\n@layer base { box-sizing: border-box; }\n",
-      "tokens.css should be reverted to baseline when ticket modified it",
+    // Shelf.tsx was added in run 2
+    assert.ok(
+      fileList.includes("src/components/Shelf.tsx"),
+      "Shelf.tsx was added in run 2 — should be in latest merge diff",
     );
   });
 });

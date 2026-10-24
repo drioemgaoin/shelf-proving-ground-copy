@@ -94,9 +94,8 @@ for (const label of ESCALATION_LABELS) {
 const branch = `sandcastle/issue-${issueId}`;
 
 // Find ALL merge commits for this issue on main (there may be multiple runs).
-// The OLDEST merge's first parent gives us the pristine src/ baseline — the
-// state of main before this ticket ever touched it. Using the most recent
-// merge's parent is wrong when WIP commits between runs contaminate src/.
+// The NEWEST merge's first parent gives us the correct baseline — the state
+// of main right before the latest run merged, preserving independent changes.
 const escapedBranch = branch.replace(/\//g, "\\/");
 let mergeCommits = run(
   `git log --first-parent --grep="/${escapedBranch}" --merges --format=%H main`,
@@ -116,15 +115,18 @@ if (mergeCommits) {
   log(`Found ${mergeList.length} merge(s) for this ticket on main.`);
   log(`  Newest: ${newestMerge.slice(0, 7)}, Oldest: ${oldestMerge.slice(0, 7)}`);
 
-  // The pristine baseline: first parent of the OLDEST merge — the state of
-  // main before the very first sandcastle run for this ticket.
-  const parentCount = run(`git cat-file -p ${oldestMerge} | grep -c "^parent"`, { ignoreError: true });
+  // The baseline: first parent of the NEWEST merge — the state of main
+  // right before the latest sandcastle run merged. This preserves any
+  // independent changes that landed on main between runs (e.g. tokens.css
+  // updates). Using the oldest merge's parent would go back to the initial
+  // project state, reverting ALL cumulative changes across every run.
+  const parentCount = run(`git cat-file -p ${newestMerge} | grep -c "^parent"`, { ignoreError: true });
   let baseline = "";
   if (parseInt(parentCount, 10) >= 2) {
-    baseline = run(`git rev-parse ${oldestMerge}^1`, { ignoreError: true });
+    baseline = run(`git rev-parse ${newestMerge}^1`, { ignoreError: true });
   }
   if (!baseline) {
-    // Fallback: branch reflog or main reflog (same strategies as before)
+    // Fallback: branch reflog or main reflog
     const branchReflog = run(
       `git reflog show "${branch}" --format="%H %gs" 2>/dev/null`,
       { ignoreError: true },
@@ -148,8 +150,11 @@ if (mergeCommits) {
       // Surgical revert: only restore files the ticket branch changed.
       // A blanket `git checkout ${baseline} -- src/` would clobber
       // independent changes (e.g. tokens.css updated outside the ticket).
+      // Diff the newest merge's parents: main-before-merge vs branch-tip.
+      // This captures only files the latest run changed, not cumulative
+      // changes across all historical runs.
       const changedFiles = run(
-        `git diff --name-only ${oldestMerge}^1 ${newestMerge}^2 -- src/`,
+        `git diff --name-only ${newestMerge}^1 ${newestMerge}^2 -- src/`,
         { ignoreError: true },
       );
       const fileList = changedFiles ? changedFiles.split("\n").filter(Boolean) : [];
