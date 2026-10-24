@@ -295,6 +295,12 @@ for (const block of allBlocks) {
   }
 
   // ─── Normal content check (no cross-check) ─────────────────────────
+
+  // Multi-line patterns (containing literal \n) must be tested against the
+  // full joined content, not line-by-line. The comment-brevity rule uses this
+  // to detect 3+ consecutive // comment lines.
+  const isMultiLinePattern = block.pattern.includes('\\n');
+
   for (const content of contents) {
     const stripped = stripContent(content, block.strip, rel);
     const lines = stripped.split('\n');
@@ -302,6 +308,54 @@ for (const block of allBlocks) {
     // Gap 1: Track whether pattern was found (for assert: present).
     let foundInContent = false;
 
+    // ── Multi-line path: test against joined content ──────────────────
+    if (isMultiLinePattern) {
+      re.lastIndex = 0;
+      const m = re.exec(stripped);
+      if (m) {
+        foundInContent = true;
+        if (assertMode === 'absent') {
+          // Compute line number from match offset.
+          const lineNum = stripped.slice(0, m.index).split('\n').length;
+          violations.push({
+            blockId: block.id,
+            file: rel,
+            line: lineNum,
+            match: m[0].replace(/\n/g, '\\n').slice(0, 120),
+            rule: block.rule ?? block.ruleText ?? '',
+            fix: block.fix,
+          });
+        }
+      }
+      // Skip line-by-line loop for multi-line patterns.
+      if (assertMode === 'present' && !foundInContent) {
+        let resultHasPattern = false;
+        if (tool === 'Edit') {
+          try {
+            let diskContent = readFileSync(abs, 'utf8');
+            if (ti.old_string) {
+              diskContent = diskContent.replace(ti.old_string, String(ti.new_string ?? ''));
+            }
+            const resultStripped = stripContent(diskContent, block.strip, rel);
+            re.lastIndex = 0;
+            resultHasPattern = re.test(resultStripped);
+          } catch { /* file doesn't exist yet */ }
+        }
+        if (!resultHasPattern) {
+          violations.push({
+            blockId: block.id,
+            file: rel,
+            line: 1,
+            match: '(pattern not found)',
+            rule: block.rule ?? block.ruleText ?? '',
+            fix: block.fix,
+          });
+        }
+      }
+      continue;
+    }
+
+    // ── Single-line path: test each line individually ─────────────────
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
 

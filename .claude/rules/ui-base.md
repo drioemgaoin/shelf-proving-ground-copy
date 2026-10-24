@@ -8,9 +8,10 @@ These apply to every project. Project values and names are in `ui-project.md`. S
 
 ## Values
 
-- Every visual value comes from a token. No raw hex, px/rem/em/%, border-width keywords (thin/medium/thick), or bare numerics in component CSS. Create missing tokens in tokens.css.
+- Every visual value uses a role-matched token (bgColor for backgrounds, fgColor for text, borderColor for borders). No raw hex/px/rem/%/keywords. Create tokens in tokens.css.
 
-  CORRECT: `color: var(--shelf-fgColor-default);`
+  CORRECT: `background-color: var(--shelf-bgColor-raised);`
+  WRONG: `background-color: var(--shelf-fgColor-muted);` — fgColor on a background property
   WRONG: `color: #333;`
 
   ```enforcement
@@ -59,6 +60,24 @@ These apply to every project. Project values and names are in `ui-project.md`. S
     strip: comments
     skip-lines: "flex(-grow|-shrink|-basis)?\\s*:|order\\s*:|column-count\\s*:|orphans\\s*:|widows\\s*:|tab-size\\s*:|counter-|animation-iteration-count\\s*:|will-change"
     fix: "Replace bare numeric value with the appropriate --shelf-* token from src/styles/tokens.css"
+  - pattern: "(?:background-color|background)\s*:.*var\(--shelf-(?!bgColor-)\w*Color-"
+    assert: absent
+    scope: "src/**/*.css"
+    exclude: "src/styles/tokens.css"
+    strip: comments
+    fix: "background properties must use --shelf-bgColor-* tokens, not tokens from another role"
+  - pattern: "(?:(?<![\w-])color|(?:caret|text-decoration)-color|fill)\s*:.*var\(--shelf-(?!fgColor-)\w*Color-"
+    assert: absent
+    scope: "src/**/*.css"
+    exclude: "src/styles/tokens.css"
+    strip: comments
+    fix: "text/foreground properties must use --shelf-fgColor-* tokens, not tokens from another role"
+  - pattern: "(?:border(?:-\w+)?-color|outline-color|column-rule-color|stroke)\s*:.*var\(--shelf-(?!borderColor-)\w*Color-"
+    assert: absent
+    scope: "src/**/*.css"
+    exclude: "src/styles/tokens.css"
+    strip: comments
+    fix: "border/outline properties must use --shelf-borderColor-* tokens, not tokens from another role"
   ---
   id: "values-from-tokens"
   tier: T3
@@ -467,6 +486,11 @@ These apply to every project. Project values and names are in `ui-project.md`. S
     scope: "src/**/*.{ts,tsx}"
     strip: strings
     fix: "Condense to one // line. If it takes more than one line, the comment is explaining WHAT not WHY — shorten to the essential reason."
+  - pattern: "^\\s*/\\*\\*"
+    assert: absent
+    scope: "src/**/*.{ts,tsx}"
+    strip: strings
+    fix: "Use a single // comment, never /** */. One line max."
   ```
 
 - Comments describe what code does, never what it doesn't or what ships later. No hedging ("is not wired", "not yet implemented"). No ticket references.
