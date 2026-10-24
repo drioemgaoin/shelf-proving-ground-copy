@@ -1,0 +1,21 @@
+@layer components {
+  .shelf {
+    display: flex;
+    justify-content: center;
+    padding: var(--shelf-space-md);
+  }
+
+  .shelf-content {
+    display: flex;
+    flex: 1 1 var(--shelf-shelf-maxWidth);
+    flex-direction: column;
+    gap: var(--shelf-space-lg);
+    max-inline-size: var(--shelf-shelf-maxWidth);
+  }
+
+  @media (width >= 768px) {
+    .shelf {
+      padding: var(--shelf-space-lg);
+    }
+  }
+}
