@@ -21,10 +21,29 @@ import { join } from "node:path";
 
 function run(cmd: string, opts?: { ignoreError?: boolean }): string {
   try {
-    return execSync(cmd, { encoding: "utf8" }).trim();
-  } catch (e) {
+    return execSync(cmd, { encoding: "utf8", stdio: ["pipe", "pipe", "pipe"] }).trim();
+  } catch (e: any) {
     if (opts?.ignoreError) return "";
     throw e;
+  }
+}
+
+/**
+ * Resolve all merge/revert conflicts by accepting "ours" (current main) for
+ * non-src files (tracker state, logs) and "theirs" (the reverted content) for
+ * src files. This keeps tracker state intact while still reverting app code.
+ */
+function resolveRevertConflicts(): void {
+  const conflicted = run("git diff --name-only --diff-filter=U", { ignoreError: true });
+  if (!conflicted) return;
+
+  for (const file of conflicted.split("\n").filter(Boolean)) {
+    // src/ files: accept the revert (theirs) — we want the code rolled back.
+    // Everything else (tracker, logs, config): keep ours — post-merge state wins.
+    const strategy = file.startsWith("src/") ? "theirs" : "ours";
+    log(`  Conflict in ${file} — resolving with --${strategy}`);
+    run(`git checkout --${strategy} -- "${file}"`);
+    run(`git add "${file}"`);
   }
 }
 
@@ -183,11 +202,15 @@ if (mergeCommit) {
         // For true merge commits, revert the merge itself (not the range)
         if (parseInt(parentCount, 10) >= 2) {
           log(`Reverting merge commit ${mergeCommit.slice(0, 7)} (PR merge)...`);
-          run(`git revert -m 1 --no-commit ${mergeCommit}`);
+          run(`git revert -m 1 --no-commit ${mergeCommit}`, { ignoreError: true });
+          // If revert produced conflicts (e.g. tracker files modified after merge),
+          // resolve them automatically instead of crashing.
+          resolveRevertConflicts();
         } else {
           const count = run(`git rev-list --count ${forkPoint}..${mergeCommit}`);
           log(`Reverting ${count} commit(s) (${forkPoint.slice(0, 7)}..${mergeCommit.slice(0, 7)})...`);
-          run(`git revert --no-commit ${forkPoint}..${mergeCommit}`);
+          run(`git revert --no-commit ${forkPoint}..${mergeCommit}`, { ignoreError: true });
+          resolveRevertConflicts();
         }
         run(`git commit -m "Revert sandcastle/${issueId}: reset for re-processing"`);
         log("Merge reverted.");
