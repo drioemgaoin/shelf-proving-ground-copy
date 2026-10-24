@@ -11,18 +11,6 @@
  * Deviations: none
  */
 
-/* ================================================================
-   VIEWPORT BREAKPOINTS — @custom-media (compiled by postcss-custom-media)
-   Change these values to update every @media query that uses them.
-   ================================================================ */
-@custom-media --viewport-xs (width >= 480px);
-@custom-media --viewport-sm (width >= 640px);
-@custom-media --viewport-md (width >= 768px);
-@custom-media --viewport-lg (width >= 1024px);
-@custom-media --viewport-xl (width >= 1280px);
-
-@layer tokens, base, components;
-
 @layer tokens {
 
   /* ================================================================
@@ -94,22 +82,6 @@
 
     /* --- Shadow color channel (warm dark, used to compose shadows) --- */
     --shelf-base-shadow-channel: 16 12% 10%;
-
-    /* --- Border width --- */
-    --shelf-base-border-width-1: 1px;
-
-    /* --- Opacity --- */
-    --shelf-base-opacity-faint: 0.1;
-    --shelf-base-opacity-soft: 0.3;
-
-    /* --- Sizes (layout + placeholder dimensions) --- */
-    --shelf-base-size-grid-column: 280px;
-    --shelf-base-size-page-max: 1280px;
-    --shelf-base-size-card-min-height: 10rem;
-    --shelf-base-size-placeholder-bar: 0.75rem;
-    --shelf-base-size-placeholder-bar-narrow: 8rem;
-    --shelf-base-size-placeholder-pill-width: 4rem;
-    --shelf-base-size-placeholder-pill-height: 1.25rem;
   }
 
   /* ================================================================
@@ -135,8 +107,6 @@
     /* --- Border --- */
     --shelf-borderColor-default: var(--shelf-base-neutral-3);
     --shelf-borderColor-subtle: var(--shelf-base-neutral-2);
-    --shelf-borderColor-accent: var(--shelf-bgColor-accent);
-    --shelf-borderColor-accent-hover: var(--shelf-bgColor-accent-hover);
 
     /* --- Focus --- */
     --shelf-focusRing-color: var(--shelf-base-accent-5);
@@ -188,22 +158,6 @@
     --shelf-motion-duration-slow: var(--shelf-base-duration-400);
     --shelf-motion-easing-enter: cubic-bezier(0, 0, 0.2, 1);
     --shelf-motion-easing-exit: cubic-bezier(0.4, 0, 1, 1);
-
-    /* --- Border width --- */
-    --shelf-borderWidth-default: var(--shelf-base-border-width-1);
-
-    /* --- Opacity --- */
-    --shelf-opacity-faint: var(--shelf-base-opacity-faint);
-    --shelf-opacity-soft: var(--shelf-base-opacity-soft);
-
-    /* --- Sizes --- */
-    --shelf-size-grid-column: var(--shelf-base-size-grid-column);
-    --shelf-size-page-max: var(--shelf-base-size-page-max);
-    --shelf-size-card-min-height: var(--shelf-base-size-card-min-height);
-    --shelf-size-placeholder-bar: var(--shelf-base-size-placeholder-bar);
-    --shelf-size-placeholder-bar-narrow: var(--shelf-base-size-placeholder-bar-narrow);
-    --shelf-size-placeholder-pill-width: var(--shelf-base-size-placeholder-pill-width);
-    --shelf-size-placeholder-pill-height: var(--shelf-base-size-placeholder-pill-height);
   }
 
   /* ================================================================
@@ -271,38 +225,5 @@
     --shelf-button-primary-bgColor-hover: var(--shelf-bgColor-accent-hover);
     --shelf-button-primary-bgColor-active: var(--shelf-bgColor-accent-active);
     --shelf-button-primary-fgColor: var(--shelf-fgColor-on-accent);
-    --shelf-skeleton-bgColor: var(--shelf-fgColor-default);
-  }
-}
-
-@layer base {
-  *,
-  *::before,
-  *::after {
-    box-sizing: border-box;
-  }
-
-  body {
-    margin: 0;
-    background-color: var(--shelf-bgColor-default);
-    color: var(--shelf-fgColor-default);
-    font-family: var(--shelf-font-family-base);
-  }
-
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6,
-  p {
-    margin: 0;
-  }
-
-  ul,
-  ol {
-    margin: 0;
-    padding: 0;
-    list-style: none;
   }
 }
