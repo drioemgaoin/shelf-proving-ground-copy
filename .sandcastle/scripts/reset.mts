@@ -82,17 +82,14 @@ for (const label of ESCALATION_LABELS) {
   }
 }
 
-// ── 3. Restore src/ to pre-implementation state ────────────────────────────
+// ── 3. Surgical revert of ticket-changed src/ files ─────────────────────────
 //
-// `git revert -m 1` only inverts the merge diff. If post-merge commits also
-// touched src/, those changes survive and the reset is incomplete.
+// Only revert files the ticket branch actually changed — not the entire src/
+// tree. A blanket restore would clobber independent changes (e.g. tokens.css
+// updated outside the ticket).
 //
-// Reliable approach: find the fork point (the commit main was at before the
-// sandcastle branch was created), then restore the entire src/ tree from
-// that commit. This is conflict-free and handles every edge case:
-//   - Post-merge WIP commits that modified src/
-//   - Files renamed between flat/subdirectory structures
-//   - Tracker/config files that evolved independently (left untouched)
+// Approach: diff the merge's parents to find exactly which src/ files the
+// ticket touched, then restore only those from the baseline.
 
 const branch = `sandcastle/issue-${issueId}`;
 
@@ -148,18 +145,32 @@ if (mergeCommits) {
     if (currentTree && baselineTree && currentTree === baselineTree) {
       log("src/ already matches baseline — nothing to revert.");
     } else {
-      // Restore src/ to the baseline state.
-      // 1. Remove all current src/ from the index
-      // 2. Restore baseline's src/ tree
-      // 3. Clean up working tree leftovers
-      const srcExistsAtBaseline = run(
-        `git ls-tree ${baseline} src/ 2>/dev/null`,
+      // Surgical revert: only restore files the ticket branch changed.
+      // A blanket `git checkout ${baseline} -- src/` would clobber
+      // independent changes (e.g. tokens.css updated outside the ticket).
+      const changedFiles = run(
+        `git diff --name-only ${oldestMerge}^1 ${newestMerge}^2 -- src/`,
         { ignoreError: true },
       );
+      const fileList = changedFiles ? changedFiles.split("\n").filter(Boolean) : [];
 
-      run(`git rm -r --cached --quiet src/`, { ignoreError: true });
-      if (srcExistsAtBaseline) {
-        run(`git checkout ${baseline} -- src/`);
+      if (fileList.length === 0) {
+        log("No src/ files changed by the ticket — nothing to revert.");
+      } else {
+        log(`Reverting ${fileList.length} file(s) changed by the ticket...`);
+        for (const file of fileList) {
+          const existsAtBaseline = run(
+            `git ls-tree ${baseline} -- "${file}" 2>/dev/null`,
+            { ignoreError: true },
+          );
+          if (existsAtBaseline) {
+            run(`git checkout ${baseline} -- "${file}"`);
+          } else {
+            // File was added by the ticket — remove it
+            run(`git rm -f --cached "${file}"`, { ignoreError: true });
+            run(`rm -f "${file}"`, { ignoreError: true });
+          }
+        }
       }
       run(`git clean -fd src/`, { ignoreError: true });
 
