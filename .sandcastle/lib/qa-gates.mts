@@ -382,10 +382,13 @@ export async function runUnifiedGateLoop(
         return true;
       }
 
-      // 7. Verified fixer with shrinking backlog
+      // 7. Pre-fix hooks (e.g. capture branch HEAD for diff narrowing)
+      for (const gate of checkers) gate.beforeFix?.(round, ctx);
+
+      // 8. Verified fixer with shrinking backlog
       await runVerifiedFixer(fixer, mergedContent, round, ctx, verbose);
 
-      // After-fix hooks
+      // 9. After-fix hooks
       for (const gate of checkers) gate.afterFix?.(round, ctx);
     }
     return false;

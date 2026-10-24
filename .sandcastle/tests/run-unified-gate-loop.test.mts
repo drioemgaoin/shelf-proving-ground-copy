@@ -420,4 +420,70 @@ describe("runUnifiedGateLoop", () => {
       "Merged findings file should be written for round 1",
     );
   });
+
+  // ═════════════════════════════════════════════════════════════════════
+  // (g) beforeFix hooks are called before the fixer runs
+  // ═════════════════════════════════════════════════════════════════════
+
+  test("(g) beforeFix hooks are called before the fixer runs", async () => {
+    const ctx = makeCtx(WORK);
+
+    const callOrder: string[] = [];
+    let roundCounter = 0;
+    onSandboxRun = (label) => {
+      if (label.includes("Visual QA") && !label.includes("Fixer")) {
+        roundCounter++;
+        if (roundCounter === 1) {
+          writeFindings(WORK, "Visual QA", 1, [
+            "FINDINGS",
+            "- src/Card.css:12 `.card`",
+            "  Cause: [visual] wrong border",
+            "  Current: border-color: red",
+            "  Fix: border-color: var(--color-border-default)",
+          ].join("\n"));
+        } else {
+          writeFindings(WORK, "Visual QA", 2, "PASS\nGate: 0 failures");
+        }
+      } else if (label.includes("Code review") && !label.includes("Fixer")) {
+        if (roundCounter === 1) {
+          writeFindings(WORK, "Code review", 1, "CLEAN\nGate: 0 failures");
+        } else {
+          writeFindings(WORK, "Code review", 2, "CLEAN\nGate: 0 failures");
+        }
+      } else if (label.includes("Fixer")) {
+        callOrder.push("fixer");
+      }
+    };
+
+    const visualGate = {
+      ...makeCleanGate("Visual QA", "PASS"),
+      beforeFix: () => { callOrder.push("beforeFix:visual"); },
+      afterFix: () => { callOrder.push("afterFix:visual"); },
+    };
+    const reviewGate = {
+      ...makeCleanGate("Code review", "CLEAN"),
+      beforeFix: () => { callOrder.push("beforeFix:review"); },
+      afterFix: () => { callOrder.push("afterFix:review"); },
+    };
+
+    await runUnifiedGateLoop(
+      [visualGate, reviewGate],
+      makeFixer(),
+      ctx,
+      false,
+    );
+
+    // beforeFix hooks must run before the fixer
+    const beforeFixVisIdx = callOrder.indexOf("beforeFix:visual");
+    const beforeFixRevIdx = callOrder.indexOf("beforeFix:review");
+    const fixerIdx = callOrder.indexOf("fixer");
+
+    assert.ok(beforeFixVisIdx >= 0, "beforeFix:visual should be called");
+    assert.ok(beforeFixRevIdx >= 0, "beforeFix:review should be called");
+    assert.ok(fixerIdx >= 0, "fixer should be called");
+    assert.ok(
+      beforeFixVisIdx < fixerIdx && beforeFixRevIdx < fixerIdx,
+      `beforeFix hooks must run before fixer. Order: ${callOrder.join(" → ")}`,
+    );
+  });
 });

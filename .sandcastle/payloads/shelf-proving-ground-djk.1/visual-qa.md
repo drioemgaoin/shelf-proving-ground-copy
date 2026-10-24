@@ -26,6 +26,14 @@ During loading states (use ?fixture=slow), check that every image container, asy
 
 ## visible-container-spacing
 **Source:** Layout
+**Rule:** Grid and list items fill their cells uniformly. Gaps produce visible spacing; child surfaces fill the full cell height. No overflow (hiding gaps) or underflow (ragged card heights within a row).
+
+For each grid or list layout check two things. GAPS: spacing between items is visually perceptible in both light and dark modes. No child overflows its cell to cover a gap. If column gaps show but row gaps do not, a child is overflowing vertically. Uneven gap sizes between axes is a violation. FILL: every item's visible surface fills its grid cell's full height. Items in the same row must have identical rendered height. Single-column layouts (one item per row) are exempt. Violation: gaps absent or uneven between axes, OR same-row items at different heights. Correct: uniform visible gaps in both directions, every surface flush with its cell.
+
+---
+
+## visible-container-spacing
+**Source:** Layout
 **Rule:** Grid and list gaps produce visible spacing between items. Child elements do not overflow their grid/flex cells.
 
 For each grid or list layout, verify that gaps between items are visually perceptible in both light and dark modes. Check that no child element overflows its container cell to cover the gap — look for cards, panels, or list items that appear to touch when the CSS specifies a gap. Compare row spacing to column spacing: if columns have visible gaps but rows do not, a child is likely overflowing vertically (common cause: height: 100% with padding and no box-sizing: border-box). A violation is any layout where declared gaps are visually absent or uneven between axes. Correct: gaps are uniformly visible between all adjacent items in both directions.
