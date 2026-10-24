@@ -11,19 +11,8 @@
  * Deviations: none
  */
 
-/* ================================================================                                                                                                                 
-VIEWPORT BREAKPOINTS — @custom-media (compiled by postcss-custom-media)                                                                                                          
-Change these values to update every @media query that uses them.                                                                                                                 
-================================================================ */
-@custom-media --viewport-xs (width >= 480px);
-@custom-media --viewport-sm (width >= 640px);
-@custom-media --viewport-md (width >= 768px);
-@custom-media --viewport-lg (width >= 1024px);
-@custom-media --viewport-xl (width >= 1280px);
-
-@layer tokens, base, components;
-
 @layer tokens {
+
   /* ================================================================
      PRIMITIVE TIER — raw values, no roles, no mode awareness
      ================================================================ */
@@ -93,22 +82,6 @@ Change these values to update every @media query that uses them.
 
     /* --- Shadow color channel (warm dark, used to compose shadows) --- */
     --shelf-base-shadow-channel: 16 12% 10%;
-
-    /* --- Border width --- */
-    --shelf-base-border-width-1: 1px;
-
-    /* --- Opacity --- */
-    --shelf-base-opacity-faint: 0.1;
-    --shelf-base-opacity-soft: 0.3;
-
-    /* --- Sizes (layout + placeholder dimensions) --- */
-    --shelf-base-size-grid-column: 280px;
-    --shelf-base-size-page-max: 1280px;
-    --shelf-base-size-card-min-height: 10rem;
-    --shelf-base-size-placeholder-bar: 0.75rem;
-    --shelf-base-size-placeholder-bar-narrow: 8rem;
-    --shelf-base-size-placeholder-pill-width: 4rem;
-    --shelf-base-size-placeholder-pill-height: 1.25rem;
   }
 
   /* ================================================================
@@ -117,35 +90,23 @@ Change these values to update every @media query that uses them.
   :root {
     /* --- Foreground --- */
     --shelf-fgColor-default: var(--shelf-base-neutral-9);
-    --shelf-fgColor-muted: var(--shelf-base-neutral-6); /* 5.2:1 on page bg */
-    --shelf-fgColor-accent: var(--shelf-base-accent-5); /* 4.6:1 on page bg */
-    --shelf-fgColor-on-accent: var(
-      --shelf-base-neutral-0
-    ); /* 4.9:1 on accent bg */
-    --shelf-fgColor-danger: var(--shelf-base-danger-5); /* 5.3:1 on page bg */
+    --shelf-fgColor-muted: var(--shelf-base-neutral-6);          /* 5.2:1 on page bg */
+    --shelf-fgColor-accent: var(--shelf-base-accent-5);          /* 4.6:1 on page bg */
+    --shelf-fgColor-on-accent: var(--shelf-base-neutral-0);      /* 4.9:1 on accent bg */
+    --shelf-fgColor-danger: var(--shelf-base-danger-5);          /* 5.3:1 on page bg */
 
     /* --- Background --- */
-    --shelf-bgColor-default: var(
-      --shelf-base-neutral-1
-    ); /* warm off-white page */
-    --shelf-bgColor-raised: var(
-      --shelf-base-neutral-0
-    ); /* white cards / dialogs */
+    --shelf-bgColor-default: var(--shelf-base-neutral-1);        /* warm off-white page */
+    --shelf-bgColor-raised: var(--shelf-base-neutral-0);         /* white cards / dialogs */
     --shelf-bgColor-accent: var(--shelf-base-accent-5);
-    --shelf-bgColor-accent-hover: var(
-      --shelf-base-accent-6
-    ); /* 6.3:1 white text */
-    --shelf-bgColor-accent-active: var(
-      --shelf-base-accent-7
-    ); /* 8.1:1 white text */
+    --shelf-bgColor-accent-hover: var(--shelf-base-accent-6);   /* 6.3:1 white text */
+    --shelf-bgColor-accent-active: var(--shelf-base-accent-7);  /* 8.1:1 white text */
     --shelf-bgColor-danger: var(--shelf-base-danger-5);
     --shelf-bgColor-overlay: hsl(16 12% 10% / 0.5);
 
     /* --- Border --- */
     --shelf-borderColor-default: var(--shelf-base-neutral-3);
     --shelf-borderColor-subtle: var(--shelf-base-neutral-2);
-    --shelf-borderColor-accent: var(--shelf-bgColor-accent);
-    --shelf-borderColor-accent-hover: var(--shelf-bgColor-accent-hover);
 
     /* --- Focus --- */
     --shelf-focusRing-color: var(--shelf-base-accent-5);
@@ -167,8 +128,7 @@ Change these values to update every @media query that uses them.
     --shelf-radius-full: var(--shelf-base-radius-full);
 
     /* --- Typography --- */
-    --shelf-font-family-base:
-      system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    --shelf-font-family-base: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
     --shelf-font-size-xs: var(--shelf-base-font-size-xs);
     --shelf-font-size-sm: var(--shelf-base-font-size-sm);
     --shelf-font-size-base: var(--shelf-base-font-size-base);
@@ -198,28 +158,6 @@ Change these values to update every @media query that uses them.
     --shelf-motion-duration-slow: var(--shelf-base-duration-400);
     --shelf-motion-easing-enter: cubic-bezier(0, 0, 0.2, 1);
     --shelf-motion-easing-exit: cubic-bezier(0.4, 0, 1, 1);
-
-    /* --- Border width --- */
-    --shelf-borderWidth-default: var(--shelf-base-border-width-1);
-
-    /* --- Opacity --- */
-    --shelf-opacity-faint: var(--shelf-base-opacity-faint);
-    --shelf-opacity-soft: var(--shelf-base-opacity-soft);
-
-    /* --- Sizes --- */
-    --shelf-size-grid-column: var(--shelf-base-size-grid-column);
-    --shelf-size-page-max: var(--shelf-base-size-page-max);
-    --shelf-size-card-min-height: var(--shelf-base-size-card-min-height);
-    --shelf-size-placeholder-bar: var(--shelf-base-size-placeholder-bar);
-    --shelf-size-placeholder-bar-narrow: var(
-      --shelf-base-size-placeholder-bar-narrow
-    );
-    --shelf-size-placeholder-pill-width: var(
-      --shelf-base-size-placeholder-pill-width
-    );
-    --shelf-size-placeholder-pill-height: var(
-      --shelf-base-size-placeholder-pill-height
-    );
   }
 
   /* ================================================================
@@ -227,9 +165,9 @@ Change these values to update every @media query that uses them.
      ================================================================ */
   :root[data-theme="dark"] {
     --shelf-fgColor-default: var(--shelf-base-neutral-0);
-    --shelf-fgColor-muted: var(--shelf-base-neutral-4); /* 8.0:1 on dark bg */
-    --shelf-fgColor-accent: var(--shelf-base-accent-3); /* 6.4:1 on dark bg */
-    --shelf-fgColor-danger: var(--shelf-base-danger-4); /* 5.4:1 on dark bg */
+    --shelf-fgColor-muted: var(--shelf-base-neutral-4);          /* 8.0:1 on dark bg */
+    --shelf-fgColor-accent: var(--shelf-base-accent-3);          /* 6.4:1 on dark bg */
+    --shelf-fgColor-danger: var(--shelf-base-danger-4);          /* 5.4:1 on dark bg */
 
     --shelf-bgColor-default: var(--shelf-base-neutral-9);
     --shelf-bgColor-raised: var(--shelf-base-neutral-8);
@@ -287,38 +225,5 @@ Change these values to update every @media query that uses them.
     --shelf-button-primary-bgColor-hover: var(--shelf-bgColor-accent-hover);
     --shelf-button-primary-bgColor-active: var(--shelf-bgColor-accent-active);
     --shelf-button-primary-fgColor: var(--shelf-fgColor-on-accent);
-    --shelf-skeleton-bgColor: var(--shelf-fgColor-default);
-  }
-}
-
-@layer base {
-  *,
-  *::before,
-  *::after {
-    box-sizing: border-box;
-  }
-
-  body {
-    margin: 0;
-    background-color: var(--shelf-bgColor-default);
-    color: var(--shelf-fgColor-default);
-    font-family: var(--shelf-font-family-base);
-  }
-
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6,
-  p {
-    margin: 0;
-  }
-
-  ul,
-  ol {
-    margin: 0;
-    padding: 0;
-    list-style: none;
   }
 }
