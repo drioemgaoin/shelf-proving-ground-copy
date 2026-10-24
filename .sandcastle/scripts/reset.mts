@@ -115,46 +115,55 @@ if (mergeCommits) {
   log(`Found ${mergeList.length} merge(s) for this ticket on main.`);
   log(`  Newest: ${newestMerge.slice(0, 7)}, Oldest: ${oldestMerge.slice(0, 7)}`);
 
-  // The baseline: first parent of the NEWEST merge — the state of main
-  // right before the latest sandcastle run merged. This preserves any
-  // independent changes that landed on main between runs (e.g. tokens.css
-  // updates). Using the oldest merge's parent would go back to the initial
-  // project state, reverting ALL cumulative changes across every run.
-  const parentCount = run(`git cat-file -p ${newestMerge} | grep -c "^parent"`, { ignoreError: true });
-  let baseline = "";
-  if (parseInt(parentCount, 10) >= 2) {
-    baseline = run(`git rev-parse ${newestMerge}^1`, { ignoreError: true });
+  // Two baselines needed for multi-merge tickets:
+  //   preTicket = oldestMerge^1 — true pre-ticket state (before any run)
+  //   preLatest = newestMerge^1 — main before the latest merge (has independent evolution)
+  //
+  // For files the ticket introduced (not at preTicket): remove them.
+  // For files the ticket modified that also exist at preTicket:
+  //   if the file also evolved independently on main → restore to preLatest (preserves independent work)
+  //   otherwise → restore to preTicket
+  const oldestParentCount = run(`git cat-file -p ${oldestMerge} | grep -c "^parent"`, { ignoreError: true });
+  let preTicket = "";
+  if (parseInt(oldestParentCount, 10) >= 2) {
+    preTicket = run(`git rev-parse ${oldestMerge}^1`, { ignoreError: true });
   }
-  if (!baseline) {
-    // Fallback: branch reflog or main reflog
+
+  let preLatest = "";
+  if (newestMerge !== oldestMerge) {
+    const newestParentCount = run(`git cat-file -p ${newestMerge} | grep -c "^parent"`, { ignoreError: true });
+    if (parseInt(newestParentCount, 10) >= 2) {
+      preLatest = run(`git rev-parse ${newestMerge}^1`, { ignoreError: true });
+    }
+  }
+
+  if (!preTicket) {
+    // Fallback: branch reflog
     const branchReflog = run(
       `git reflog show "${branch}" --format="%H %gs" 2>/dev/null`,
       { ignoreError: true },
     );
     if (branchReflog) {
       const creation = branchReflog.split("\n").find((l) => l.includes("branch: Created from"));
-      if (creation) baseline = creation.split(" ")[0]!;
+      if (creation) preTicket = creation.split(" ")[0]!;
     }
   }
 
-  if (baseline) {
-    log(`Baseline (pre-ticket): ${baseline.slice(0, 7)}`);
+  if (preTicket) {
+    log(`Pre-ticket baseline: ${preTicket.slice(0, 7)}`);
+    if (preLatest) log(`Pre-latest-merge baseline: ${preLatest.slice(0, 7)}`);
 
-    // Compare current src/ tree against baseline — skip if already matching.
+    // Compare current src/ tree against pre-ticket — skip if already matching.
     const currentTree = run(`git rev-parse HEAD:src`, { ignoreError: true });
-    const baselineTree = run(`git rev-parse ${baseline}:src`, { ignoreError: true });
+    const preTicketTree = run(`git rev-parse ${preTicket}:src`, { ignoreError: true });
 
-    if (currentTree && baselineTree && currentTree === baselineTree) {
-      log("src/ already matches baseline — nothing to revert.");
+    if (currentTree && preTicketTree && currentTree === preTicketTree) {
+      log("src/ already matches pre-ticket state — nothing to revert.");
     } else {
-      // Surgical revert: only restore files the ticket branch changed.
-      // A blanket `git checkout ${baseline} -- src/` would clobber
-      // independent changes (e.g. tokens.css updated outside the ticket).
-      // Diff the newest merge's parents: main-before-merge vs branch-tip.
-      // This captures only files the latest run changed, not cumulative
-      // changes across all historical runs.
+      // Diff HEAD against the true pre-ticket state to find ALL files the
+      // ticket introduced or modified across every run.
       const changedFiles = run(
-        `git diff --name-only ${newestMerge}^1 ${newestMerge}^2 -- src/`,
+        `git diff --name-only ${preTicket} HEAD -- src/`,
         { ignoreError: true },
       );
       const fileList = changedFiles ? changedFiles.split("\n").filter(Boolean) : [];
@@ -164,12 +173,28 @@ if (mergeCommits) {
       } else {
         log(`Reverting ${fileList.length} file(s) changed by the ticket...`);
         for (const file of fileList) {
-          const existsAtBaseline = run(
-            `git ls-tree ${baseline} -- "${file}" 2>/dev/null`,
+          const existsAtPreTicket = run(
+            `git ls-tree ${preTicket} -- "${file}" 2>/dev/null`,
             { ignoreError: true },
           );
-          if (existsAtBaseline) {
-            run(`git checkout ${baseline} -- "${file}"`);
+          if (existsAtPreTicket) {
+            // File existed before the ticket. Check if it was also modified
+            // by non-merge commits on main (independent evolution like WIP
+            // or foundation work). Merge commits are ticket runs — those
+            // don't count as independent. If independent evolution exists,
+            // restore to preLatest to preserve that work.
+            let restoreTo = preTicket;
+            if (preLatest) {
+              const nonMergeChanges = run(
+                `git log --first-parent --no-merges --format=%H ${preTicket}..${preLatest} -- "${file}"`,
+                { ignoreError: true },
+              );
+              if (nonMergeChanges) {
+                log(`  ${file}: independently evolved on main — using pre-latest-merge version`);
+                restoreTo = preLatest;
+              }
+            }
+            run(`git checkout ${restoreTo} -- "${file}"`);
           } else {
             // File was added by the ticket — remove it
             run(`git rm -f --cached "${file}"`, { ignoreError: true });
@@ -187,7 +212,7 @@ if (mergeCommits) {
         log("Pushing to origin/main...");
         run(`git push origin main`, { ignoreError: true });
       } else {
-        log("src/ already matches baseline — nothing to revert.");
+        log("src/ already matches pre-ticket state — nothing to revert.");
       }
     }
   } else {
