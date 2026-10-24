@@ -69,7 +69,7 @@ These apply to every project. Project values and names are in `ui-project.md`. S
   instruction: "Check that each design token is used for its intended semantic role. A violation is using a token outside its role — e.g., a spacing token for font-size, a danger color for non-error content, or a shadow token for a non-elevated element. Correct: each token maps to the role described in ui-project.md's token tables."
   ```
 
-- `@layer base` required: box-sizing: border-box on \*, body gets background/color/font/margin: 0 from tokens. Without it, UA defaults leak through.
+- `@layer base` required: box-sizing: border-box on *, body gets background/color/font/margin: 0 from tokens. Without it, UA defaults leak through.
 
   ```enforcement
   id: "base-layer-exists"
@@ -218,19 +218,6 @@ These apply to every project. Project values and names are in `ui-project.md`. S
   ```
 
   > **Agent:** `visual-qa` — the violation is visible in screenshots during loading states (content jumping, missing placeholders); code review cannot verify rendered dimensions.
-
-- Grid and list items fill their cells uniformly. Gaps produce visible spacing; child surfaces fill the full cell height. No overflow (hiding gaps) or underflow (ragged card heights within a row).
-
-  ```enforcement
-  id: "visible-container-spacing"
-  tier: T3
-  agent: visual-qa
-  scope: "*"
-  group: layout
-  instruction: "For each grid or list layout check two things. GAPS: spacing between items is visually perceptible in both light and dark modes. No child overflows its cell to cover a gap. If column gaps show but row gaps do not, a child is overflowing vertically. Uneven gap sizes between axes is a violation. FILL: every item's visible surface fills its grid cell's full height. Items in the same row must have identical rendered height. Single-column layouts (one item per row) are exempt. Violation: gaps absent or uneven between axes, OR same-row items at different heights. Correct: uniform visible gaps in both directions, every surface flush with its cell."
-  ```
-
-  > **Agent:** `visual-qa` — gap visibility and cell fill are rendered behaviors; overflow hiding gaps and underflow leaving ragged heights may not be obvious from code review alone.
 
 - Grid and list gaps produce visible spacing between items. Child elements do not overflow their grid/flex cells.
 
