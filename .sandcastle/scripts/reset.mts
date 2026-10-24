@@ -28,24 +28,6 @@ function run(cmd: string, opts?: { ignoreError?: boolean }): string {
   }
 }
 
-/**
- * Resolve all merge/revert conflicts by accepting "ours" (current main) for
- * non-src files (tracker state, logs) and "theirs" (the reverted content) for
- * src files. This keeps tracker state intact while still reverting app code.
- */
-function resolveRevertConflicts(): void {
-  const conflicted = run("git diff --name-only --diff-filter=U", { ignoreError: true });
-  if (!conflicted) return;
-
-  for (const file of conflicted.split("\n").filter(Boolean)) {
-    // src/ files: accept the revert (theirs) — we want the code rolled back.
-    // Everything else (tracker, logs, config): keep ours — post-merge state wins.
-    const strategy = file.startsWith("src/") ? "theirs" : "ours";
-    log(`  Conflict in ${file} — resolving with --${strategy}`);
-    run(`git checkout --${strategy} -- "${file}"`);
-    run(`git add "${file}"`);
-  }
-}
 
 function log(msg: string) {
   console.log(`[reset] ${msg}`);
@@ -100,131 +82,101 @@ for (const label of ESCALATION_LABELS) {
   }
 }
 
-// ── 3. Revert merge from main ───────────────────────────────────────────────
-// If the ticket completed the merge phase, its branch commits were
-// fast-forwarded onto main and a summary commit was added. We revert the
-// entire range (fork-point..merge-commit] so the next run starts clean.
+// ── 3. Restore src/ to pre-implementation state ────────────────────────────
 //
-// Finding the merge commit:
-//   a) GitHub PR merge: "Merge pull request #N from <remote>/<branch>"
-//   b) Local git merge: "Merge <branch>: ..."
-// We search for both patterns.
+// `git revert -m 1` only inverts the merge diff. If post-merge commits also
+// touched src/, those changes survive and the reset is incomplete.
 //
-// Finding the fork point:
-//   a) True merge commit (PR merge): first parent is pre-merge main.
-//   b) Fast-forward (local merge): use branch reflog or main reflog.
+// Reliable approach: find the fork point (the commit main was at before the
+// sandcastle branch was created), then restore the entire src/ tree from
+// that commit. This is conflict-free and handles every edge case:
+//   - Post-merge WIP commits that modified src/
+//   - Files renamed between flat/subdirectory structures
+//   - Tracker/config files that evolved independently (left untouched)
 
 const branch = `sandcastle/issue-${issueId}`;
 
-// Find the most recent merge commit for this issue on main.
-// Match both GitHub PR merge messages and local merge messages.
-let mergeCommit = run(
-  `git log --grep="/${branch.replace(/\//g, "\\/")}" --merges --format=%H -1 main`,
+// Find ALL merge commits for this issue on main (there may be multiple runs).
+// The OLDEST merge's first parent gives us the pristine src/ baseline — the
+// state of main before this ticket ever touched it. Using the most recent
+// merge's parent is wrong when WIP commits between runs contaminate src/.
+const escapedBranch = branch.replace(/\//g, "\\/");
+let mergeCommits = run(
+  `git log --first-parent --grep="/${escapedBranch}" --merges --format=%H main`,
   { ignoreError: true },
 );
-if (!mergeCommit) {
-  mergeCommit = run(
-    `git log --grep="^Merge ${branch.replace(/\//g, "\\/")}:" --format=%H -1 main`,
+if (!mergeCommits) {
+  mergeCommits = run(
+    `git log --first-parent --grep="^Merge ${escapedBranch}:" --format=%H main`,
     { ignoreError: true },
   );
 }
 
-if (mergeCommit) {
-  // Check if this merge was already reverted by a previous reset.
-  const revertExists = run(
-    `git log --grep="^Revert sandcastle/${issueId.replace(/\./g, "\\.")}:" --format=%H -1 main`,
-    { ignoreError: true },
-  );
-  const alreadyReverted = revertExists
-    ? run(`git merge-base --is-ancestor ${mergeCommit} ${revertExists} && echo yes || echo no`) === "yes"
-    : false;
+if (mergeCommits) {
+  const mergeList = mergeCommits.split("\n").filter(Boolean);
+  const newestMerge = mergeList[0]!;
+  const oldestMerge = mergeList[mergeList.length - 1]!;
+  log(`Found ${mergeList.length} merge(s) for this ticket on main.`);
+  log(`  Newest: ${newestMerge.slice(0, 7)}, Oldest: ${oldestMerge.slice(0, 7)}`);
 
-  if (alreadyReverted) {
-    log(`Merge commit ${mergeCommit.slice(0, 7)} was already reverted — skipping.`);
-  } else {
-    log(`Found merge commit on main: ${mergeCommit.slice(0, 7)}`);
-
-    // Find the fork point — the commit main was at before the branch was merged.
-    //
-    // Strategy A: true merge commit (GitHub PR merge) — first parent is
-    //   the pre-merge main tip.
-    //
-    // Strategy B: branch reflog (most reliable when branch still exists).
-    //   The last entry is "branch: Created from HEAD" at the fork SHA.
-    //
-    // Strategy C: main HEAD reflog.
-    //   Find "merge <branch>: Fast-forward"; the next reflog entry is the
-    //   pre-merge HEAD.
-    let forkPoint = "";
-
-    // Strategy A: true merge commit — first parent is the pre-merge main
-    const parentCount = run(`git cat-file -p ${mergeCommit} | grep -c "^parent"`, { ignoreError: true });
-    if (parseInt(parentCount, 10) >= 2) {
-      forkPoint = run(`git rev-parse ${mergeCommit}^1`, { ignoreError: true });
+  // The pristine baseline: first parent of the OLDEST merge — the state of
+  // main before the very first sandcastle run for this ticket.
+  const parentCount = run(`git cat-file -p ${oldestMerge} | grep -c "^parent"`, { ignoreError: true });
+  let baseline = "";
+  if (parseInt(parentCount, 10) >= 2) {
+    baseline = run(`git rev-parse ${oldestMerge}^1`, { ignoreError: true });
+  }
+  if (!baseline) {
+    // Fallback: branch reflog or main reflog (same strategies as before)
+    const branchReflog = run(
+      `git reflog show "${branch}" --format="%H %gs" 2>/dev/null`,
+      { ignoreError: true },
+    );
+    if (branchReflog) {
+      const creation = branchReflog.split("\n").find((l) => l.includes("branch: Created from"));
+      if (creation) baseline = creation.split(" ")[0]!;
     }
+  }
 
-    // Strategy B: branch reflog
-    if (!forkPoint) {
-      const branchReflog = run(
-        `git reflog show "${branch}" --format="%H %gs" 2>/dev/null`,
+  if (baseline) {
+    log(`Baseline (pre-ticket): ${baseline.slice(0, 7)}`);
+
+    // Compare current src/ tree against baseline — skip if already matching.
+    const currentTree = run(`git rev-parse HEAD:src`, { ignoreError: true });
+    const baselineTree = run(`git rev-parse ${baseline}:src`, { ignoreError: true });
+
+    if (currentTree && baselineTree && currentTree === baselineTree) {
+      log("src/ already matches baseline — nothing to revert.");
+    } else {
+      // Restore src/ to the baseline state.
+      // 1. Remove all current src/ from the index
+      // 2. Restore baseline's src/ tree
+      // 3. Clean up working tree leftovers
+      const srcExistsAtBaseline = run(
+        `git ls-tree ${baseline} src/ 2>/dev/null`,
         { ignoreError: true },
       );
-      if (branchReflog) {
-        const lines = branchReflog.split("\n");
-        const creation = lines.find((l) => l.includes("branch: Created from"));
-        if (creation) {
-          forkPoint = creation.split(" ")[0]!;
-        }
+
+      run(`git rm -r --cached --quiet src/`, { ignoreError: true });
+      if (srcExistsAtBaseline) {
+        run(`git checkout ${baseline} -- src/`);
       }
-    }
+      run(`git clean -fd src/`, { ignoreError: true });
 
-    // Strategy C: main HEAD reflog
-    if (!forkPoint) {
-      const mainReflog = run(`git reflog --format="%H %gs"`, { ignoreError: true });
-      if (mainReflog) {
-        const lines = mainReflog.split("\n");
-        for (let i = 0; i < lines.length; i++) {
-          if (lines[i]!.includes(`merge ${branch}:`)) {
-            if (i + 1 < lines.length) {
-              forkPoint = lines[i + 1]!.split(" ")[0]!;
-            }
-            break;
-          }
-        }
-      }
-    }
+      const staged = run(`git diff --cached --name-only`, { ignoreError: true });
+      if (staged) {
+        run(`git commit -m "Revert src/ to pre-sandcastle state for ${issueId} re-processing"`);
+        log("src/ restored to pre-implementation state.");
 
-    if (forkPoint) {
-      const isAncestor = run(
-        `git merge-base --is-ancestor "${forkPoint}" "${mergeCommit}" && echo yes || echo no`,
-      );
-      if (isAncestor === "yes") {
-        // For true merge commits, revert the merge itself (not the range)
-        if (parseInt(parentCount, 10) >= 2) {
-          log(`Reverting merge commit ${mergeCommit.slice(0, 7)} (PR merge)...`);
-          run(`git revert -m 1 --no-commit ${mergeCommit}`, { ignoreError: true });
-          // If revert produced conflicts (e.g. tracker files modified after merge),
-          // resolve them automatically instead of crashing.
-          resolveRevertConflicts();
-        } else {
-          const count = run(`git rev-list --count ${forkPoint}..${mergeCommit}`);
-          log(`Reverting ${count} commit(s) (${forkPoint.slice(0, 7)}..${mergeCommit.slice(0, 7)})...`);
-          run(`git revert --no-commit ${forkPoint}..${mergeCommit}`, { ignoreError: true });
-          resolveRevertConflicts();
-        }
-        run(`git commit -m "Revert sandcastle/${issueId}: reset for re-processing"`);
-        log("Merge reverted.");
-
-        // Push the revert to the remote so origin/main is also clean.
-        log("Pushing revert to origin/main...");
+        log("Pushing to origin/main...");
         run(`git push origin main`, { ignoreError: true });
       } else {
-        log(`WARNING: fork point ${forkPoint.slice(0, 7)} is not an ancestor of merge — skipping revert.`);
+        log("src/ already matches baseline — nothing to revert.");
       }
-    } else {
-      log("WARNING: Could not determine fork point from reflog — merge revert skipped.");
-      log("         You may need to manually revert the merge commits.");
     }
+  } else {
+    log("WARNING: Could not determine baseline — src/ revert skipped.");
+    log("         You may need to manually revert the src/ changes.");
   }
 } else {
   log("No merge commit found on main (ticket was not merged).");
