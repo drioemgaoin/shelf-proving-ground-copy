@@ -2,9 +2,16 @@
 // module-scoped store — no hooks, no classes, no persistence. The active
 // fixture (chosen once from ?fixture= at boot, or via initApi in tests)
 // decides both the seed data and the behavior profile (ok / error / slow).
-import type { Book, Status, Behavior, Fixture } from './types';
+import { getFixture, type Behavior } from './fixtures';
 
-export type { Book, Status } from './types';
+export type Status = 'to-read' | 'reading' | 'finished';
+
+export interface Book {
+  id: string;
+  title: string;
+  author?: string;
+  status: Status;
+}
 
 const SLOW_DELAY_MS = 2000;
 
@@ -12,14 +19,19 @@ const SLOW_DELAY_MS = 2000;
 let books: Book[] = [];
 let behavior: Behavior = 'ok';
 
-// Deep-copies fixture data into the store so mutations never leak back.
-export function initApi(fixture: Fixture): void {
+/**
+ * Reset the store to a fixture profile. Called once at module init from the URL
+ * param, and directly by unit tests to get a known state between cases.
+ * Books are deep-copied so mutations never leak back into the shared seed data.
+ */
+export function initApi(name?: string): void {
+  const fixture = getFixture(name);
   books = fixture.books.map((book) => ({ ...book }));
   behavior = fixture.behavior;
 }
 
 /** Read ?fixture= once from the URL. Returns undefined outside a browser. */
-export function fixtureFromUrl(): string | undefined {
+function fixtureFromUrl(): string | undefined {
   if (typeof window === 'undefined') return undefined;
   return new URLSearchParams(window.location.search).get('fixture') ?? undefined;
 }
@@ -77,3 +89,5 @@ export async function deleteBook(id: string): Promise<void> {
   books.splice(index, 1);
 }
 
+// Seed the store once, at first import, from the URL.
+initApi(fixtureFromUrl());
