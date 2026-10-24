@@ -93,7 +93,7 @@ for (const label of ESCALATION_LABELS) {
 // to preTicket.
 
 // Files that evolve on main independently of any ticket — never reverted.
-const hostAllowed = new RegExp(process.env.UI_HOST_ALLOWED ?? '^src/(styles/tokens\\.css|styles/layers\\.css|main\\.tsx|layer-order\\.test\\.ts)$');
+const hostAllowed = new RegExp(process.env.UI_HOST_ALLOWED ?? '^src/(styles/tokens\\.css|styles/layers\\.css|main\\.tsx)$');
 
 const branch = `sandcastle/issue-${issueId}`;
 

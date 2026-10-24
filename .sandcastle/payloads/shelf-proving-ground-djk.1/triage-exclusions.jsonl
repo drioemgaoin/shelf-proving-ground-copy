@@ -8,6 +8,7 @@
 {"id":"independent-testability","scope":"src/**/*.{ts,tsx}","reason":"no matching files in diff"}
 {"id":"placement-file-in-declared-module","scope":"**/*.{ts,tsx,js,jsx,css}","reason":"no matching files in diff"}
 {"id":"placement-import-direction","scope":"**/*.{ts,tsx,js,jsx}","reason":"no matching files in diff"}
+{"id":"layer-order-in-layers-css","scope":"src/main.tsx","reason":"no matching files in diff"}
 {"id":"state-needs-acceptance-test","scope":"src/components/**/*.{ts,tsx}","reason":"no matching files in diff"}
 {"id":"data-dynamic-on-changing-content","scope":"src/components/**/*.{ts,tsx}","reason":"no matching files in diff"}
 {"id":"comment-style","scope":"src/**/*.{ts,tsx,css}","reason":"no matching files in diff"}

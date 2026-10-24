@@ -28,7 +28,7 @@ const CONTRACT = [
   /^\.claude\//,
 ];
 const APP_CODE = new RegExp(process.env.UI_HOST_LOCKED ?? '^src/');
-const HOST_ALLOWED = new RegExp(process.env.UI_HOST_ALLOWED ?? '^src/(styles/tokens\\.css|styles/layers\\.css|main\\.tsx|layer-order\\.test\\.ts)$');
+const HOST_ALLOWED = new RegExp(process.env.UI_HOST_ALLOWED ?? '^src/(styles/tokens\\.css|styles/layers\\.css|main\\.tsx)$');
 
 function block(msg) {
   process.stderr.write(`${msg}\n`);
