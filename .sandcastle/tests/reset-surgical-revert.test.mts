@@ -126,19 +126,9 @@ function findMerges(repo: string): string[] {
   return output.split("\n").filter(Boolean);
 }
 
-/** Check if a file was modified on main outside of ticket merges. */
-function hasIndependentEvolution(repo: string, file: string, preTicket: string, preLatest: string): boolean {
-  // List non-merge commits on the first-parent chain between preTicket and
-  // preLatest that touched this file. These are independent main commits
-  // (WIP, foundation work, etc.) — not ticket merge commits.
-  const nonMergeChanges = git(repo,
-    `log --first-parent --no-merges --format=%H ${preTicket}..${preLatest} -- "${file}"`
-  );
-  return nonMergeChanges.length > 0;
-}
-
-/** The dual-baseline revert (the fix). */
-function dualBaselineRevert(repo: string): void {
+/** The dual-baseline revert (the fix).
+ *  hostAllowedPattern identifies host-owned files that evolve independently. */
+function dualBaselineRevert(repo: string, hostAllowedPattern = /^src\/styles\/tokens\.css$/): void {
   const merges = findMerges(repo);
   const newest = merges[0]!;
   const oldest = merges[merges.length - 1]!;
@@ -154,11 +144,10 @@ function dualBaselineRevert(repo: string): void {
   for (const file of fileList) {
     const existsAtPreTicket = git(repo, `ls-tree ${preTicket} -- "${file}"`);
     if (existsAtPreTicket) {
-      // File existed before the ticket. Check if it was also modified by
-      // non-merge commits on main (independent evolution). If so, restore
-      // to preLatest to preserve that work. Otherwise restore to preTicket.
+      // Host-owned files restore to preLatest (preserve independent evolution).
+      // Everything else restores to preTicket (undo all ticket work).
       let restoreTo = preTicket;
-      if (preLatest && hasIndependentEvolution(repo, file, preTicket, preLatest)) {
+      if (preLatest && hostAllowedPattern.test(file)) {
         restoreTo = preLatest;
       }
       git(repo, `checkout ${restoreTo} -- "${file}"`);

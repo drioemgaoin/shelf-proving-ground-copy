@@ -84,12 +84,15 @@ for (const label of ESCALATION_LABELS) {
 
 // ── 3. Surgical revert of ticket-changed src/ files ─────────────────────────
 //
-// Only revert files the ticket branch actually changed — not the entire src/
-// tree. A blanket restore would clobber independent changes (e.g. tokens.css
-// updated outside the ticket).
+// Uses two baselines for multi-merge tickets:
+//   preTicket = oldestMerge^1 — true pre-ticket state
+//   preLatest = newestMerge^1 — main before the latest merge
 //
-// Approach: diff the merge's parents to find exactly which src/ files the
-// ticket touched, then restore only those from the baseline.
+// Host-owned files (matching UI_HOST_ALLOWED, e.g. tokens.css) evolve
+// independently on main and restore to preLatest. Everything else restores
+// to preTicket.
+
+const hostAllowed = new RegExp(process.env.UI_HOST_ALLOWED ?? '^src/styles/tokens\\.css$');
 
 const branch = `sandcastle/issue-${issueId}`;
 
@@ -178,21 +181,14 @@ if (mergeCommits) {
             { ignoreError: true },
           );
           if (existsAtPreTicket) {
-            // File existed before the ticket. Check if it was also modified
-            // by non-merge commits on main (independent evolution like WIP
-            // or foundation work). Merge commits are ticket runs — those
-            // don't count as independent. If independent evolution exists,
-            // restore to preLatest to preserve that work.
+            // File existed before the ticket. If it's host-owned (matches
+            // UI_HOST_ALLOWED — e.g. tokens.css), it evolves independently
+            // on main and should be restored to preLatest to preserve that
+            // work. Everything else goes back to preTicket.
             let restoreTo = preTicket;
-            if (preLatest) {
-              const nonMergeChanges = run(
-                `git log --first-parent --no-merges --format=%H ${preTicket}..${preLatest} -- "${file}"`,
-                { ignoreError: true },
-              );
-              if (nonMergeChanges) {
-                log(`  ${file}: independently evolved on main — using pre-latest-merge version`);
-                restoreTo = preLatest;
-              }
+            if (preLatest && hostAllowed.test(file)) {
+              log(`  ${file}: host-owned — using pre-latest-merge version`);
+              restoreTo = preLatest;
             }
             run(`git checkout ${restoreTo} -- "${file}"`);
           } else {
