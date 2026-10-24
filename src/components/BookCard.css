@@ -22,7 +22,7 @@
     padding-block: var(--shelf-space-xs);
     padding-inline: var(--shelf-space-sm);
     border-radius: var(--shelf-radius-full);
-    background-color: var(--shelf-bgColor-default);
+    background-color: var(--shelf-bgColor-raised);
     color: var(--shelf-fgColor-muted);
     font-size: var(--shelf-font-size-xs);
     font-weight: var(--shelf-font-weight-medium);
