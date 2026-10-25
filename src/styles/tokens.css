@@ -312,4 +312,9 @@
     font: inherit;
     color: inherit;
   }
+
+  #root {
+    display: flex;
+    justify-content: center;
+  }
 }

@@ -1,0 +1,45 @@
+@layer components {
+  @keyframes skeleton-pulse {
+    from {
+      opacity: var(--shelf-skeleton-opacity-min);
+    }
+
+    to {
+      opacity: var(--shelf-skeleton-opacity-max);
+    }
+  }
+
+  .skeleton-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--shelf-space-md);
+    block-size: var(--shelf-card-blockSize);
+    padding: var(--shelf-space-md);
+    border: var(--shelf-borderWidth-default) solid var(--shelf-borderColor-subtle);
+    border-radius: var(--shelf-radius-lg);
+    background-color: var(--shelf-bgColor-raised);
+    animation: skeleton-pulse var(--shelf-motion-duration-slow) var(--shelf-motion-easing-enter)
+      infinite alternate;
+  }
+
+  .skeleton-bar {
+    block-size: var(--shelf-skeleton-bar-blockSize);
+    border-radius: var(--shelf-radius-sm);
+    background-color: var(--shelf-skeleton-barColor);
+  }
+
+  .skeleton-pill {
+    align-self: flex-start;
+    inline-size: var(--shelf-skeleton-pill-inlineSize);
+    block-size: var(--shelf-skeleton-pill-blockSize);
+    border-radius: var(--shelf-radius-full);
+    background-color: var(--shelf-skeleton-barColor);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .skeleton-card {
+      animation: none;
+      opacity: var(--shelf-skeleton-opacity-min);
+    }
+  }
+}
