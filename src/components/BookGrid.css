@@ -1,0 +1,14 @@
+@layer components {
+  .book-grid {
+    display: grid;
+    grid-template-columns: repeat(
+      auto-fill,
+      minmax(var(--shelf-shelf-grid-minWidth), 1fr)
+    );
+    gap: var(--shelf-space-lg);
+  }
+
+  .book-grid-item {
+    display: grid;
+  }
+}

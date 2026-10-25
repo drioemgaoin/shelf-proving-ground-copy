@@ -125,6 +125,7 @@
     /* --- Background --- */
     --shelf-bgColor-default: var(--shelf-base-neutral-1);        /* warm off-white page */
     --shelf-bgColor-raised: var(--shelf-base-neutral-0);         /* white cards / dialogs */
+    --shelf-bgColor-inset: var(--shelf-base-neutral-2);
     --shelf-bgColor-accent: var(--shelf-base-accent-5);
     --shelf-bgColor-accent-hover: var(--shelf-base-accent-6);   /* 6.3:1 white text */
     --shelf-bgColor-accent-active: var(--shelf-base-accent-7);  /* 8.1:1 white text */
@@ -199,6 +200,7 @@
 
     --shelf-bgColor-default: var(--shelf-base-neutral-9);
     --shelf-bgColor-raised: var(--shelf-base-neutral-8);
+    --shelf-bgColor-inset: var(--shelf-base-neutral-9);
     --shelf-bgColor-overlay: hsl(0 0% 0% / 0.6);
 
     --shelf-borderColor-default: var(--shelf-base-neutral-7);
@@ -223,6 +225,7 @@
 
       --shelf-bgColor-default: var(--shelf-base-neutral-9);
       --shelf-bgColor-raised: var(--shelf-base-neutral-8);
+      --shelf-bgColor-inset: var(--shelf-base-neutral-9);
       --shelf-bgColor-overlay: hsl(0 0% 0% / 0.6);
 
       --shelf-borderColor-default: var(--shelf-base-neutral-7);
@@ -262,10 +265,18 @@
 
     /* --- Shelf page --- */
     --shelf-shelf-maxWidth: var(--shelf-base-size-container);
+    --shelf-shelf-inlineSize: var(--shelf-base-size-full);
     --shelf-shelf-grid-minWidth: min(var(--shelf-base-size-card), var(--shelf-base-size-full));
 
     /* --- Card box (shared by placeholder and skeleton) --- */
     --shelf-card-blockSize: var(--shelf-base-size-card-height);
+    --shelf-card-bgColor: var(--shelf-bgColor-raised);
+    --shelf-card-borderColor: var(--shelf-borderColor-subtle);
+    --shelf-card-title-fgColor: var(--shelf-fgColor-default);
+    --shelf-card-author-fgColor: var(--shelf-fgColor-muted);
+    --shelf-card-badge-bgColor: var(--shelf-bgColor-inset);
+    --shelf-card-badge-fgColor: var(--shelf-fgColor-muted);
+    --shelf-card-badge-borderColor: var(--shelf-borderColor-subtle);
 
     /* --- Filter chip --- */
     --shelf-chip-fgColor-rest: var(--shelf-fgColor-default);
@@ -276,6 +287,7 @@
     --shelf-chip-borderColor-rest: var(--shelf-borderColor-subtle);
     --shelf-chip-borderColor-hover: var(--shelf-borderColor-default);
     --shelf-chip-borderColor-selected: var(--shelf-bgColor-accent);
+    --shelf-chip-borderColor-selected-hover: var(--shelf-bgColor-accent-hover);
 
     /* --- Skeleton placeholder --- */
     --shelf-skeleton-blockSize: var(--shelf-base-size-card-height);
@@ -283,6 +295,7 @@
     --shelf-skeleton-opacity-min: var(--shelf-base-opacity-dim);
     --shelf-skeleton-opacity-max: var(--shelf-base-opacity-soft);
     --shelf-skeleton-bar-blockSize: var(--shelf-base-size-skeleton-bar);
+    --shelf-skeleton-bar-short-inlineSize: var(--shelf-base-size-skeleton-bar-short);
     --shelf-skeleton-pill-inlineSize: var(--shelf-base-size-pill-inline);
     --shelf-skeleton-pill-blockSize: var(--shelf-base-size-pill-block);
   }

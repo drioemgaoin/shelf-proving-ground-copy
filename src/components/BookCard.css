@@ -1,0 +1,47 @@
+@layer components {
+  .book-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--shelf-space-sm);
+    block-size: var(--shelf-card-blockSize);
+    padding: var(--shelf-space-md);
+    border: var(--shelf-borderWidth-default) solid var(--shelf-card-borderColor);
+    border-radius: var(--shelf-radius-lg);
+    background-color: var(--shelf-card-bgColor);
+    box-shadow: var(--shelf-shadow-sm);
+    overflow: hidden;
+  }
+
+  .card-badge {
+    align-self: flex-start;
+    padding-block: var(--shelf-space-xs);
+    padding-inline: var(--shelf-space-sm);
+    border: var(--shelf-borderWidth-default) solid var(--shelf-card-badge-borderColor);
+    border-radius: var(--shelf-radius-full);
+    background-color: var(--shelf-card-badge-bgColor);
+    color: var(--shelf-card-badge-fgColor);
+    font-size: var(--shelf-font-size-xs);
+    font-weight: var(--shelf-font-weight-medium);
+  }
+
+  .card-title {
+    display: -webkit-box;
+    min-inline-size: 0;
+    overflow: hidden;
+    color: var(--shelf-card-title-fgColor);
+    font-size: var(--shelf-font-size-lg);
+    font-weight: var(--shelf-font-weight-semibold);
+    overflow-wrap: anywhere;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .card-author {
+    min-inline-size: 0;
+    overflow: hidden;
+    color: var(--shelf-card-author-fgColor);
+    font-size: var(--shelf-font-size-sm);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+}
