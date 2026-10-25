@@ -26,7 +26,7 @@ If a path is not in `src/` or the acceptance spec, you do not need it.
 
 # ENVIRONMENT
 
-Pre-commit gate (run as one command): `npm run typecheck && npm run lint && npm test`
+Pre-commit gate (run as one command): `npx stylelint --fix 'src/**/*.css' && npm run typecheck && npm run lint && npm test`
 Playwright runs headless Chromium. No special config needed.
 T1 hooks enforce constraints on every Edit/Write — trust them, don't inspect them.
 Token values live in `src/styles/tokens.css` (read this file to see available tokens).

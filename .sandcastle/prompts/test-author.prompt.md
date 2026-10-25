@@ -12,6 +12,7 @@ Write tests that pin the implementation's behavior for regression protection. Yo
 4. **No mocks unless forced.** Use real dependencies. Mock only at system boundaries: network, filesystem, timers, third-party APIs. If you must mock, mock the boundary, not the collaborator.
 5. **Tests must be deterministic.** No dependence on wall-clock time, random numbers, execution order, network state, or race conditions. If the code under test uses these, mock them at the boundary.
 6. **Tests must pass.** You are pinning current behavior. If a test fails, either your test is wrong or you found a real bug. Investigate before filing — do not write aspirational tests.
+7. **Wrap async effects in `act()`.** When testing hooks with async effects (e.g., `useEffect` that calls an API), `renderHook` auto-wraps the initial render but NOT cleanup or manual trigger calls. Wrap teardown and state-settling operations in `act()` to avoid React warnings and a fix+rerun cycle.
 
 ## Test type selection
 

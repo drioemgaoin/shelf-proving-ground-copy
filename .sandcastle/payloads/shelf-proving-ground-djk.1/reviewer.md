@@ -4,7 +4,7 @@
 **Source:** Values
 **Rule:** Every visual value uses a role-matched token (bgColor for backgrounds, fgColor for text, borderColor for borders). No raw hex/px/rem/%/keywords. Create tokens in tokens.css.
 
-Check that each design token is used for its intended semantic role. A violation is using a token outside its role — e.g., a spacing token for font-size, a danger color for non-error content, or a shadow token for a non-elevated element. Correct: each token maps to the role described in ui-project.md's token tables.
+Check that each design token is used for its intended semantic role. A violation is using a token outside its role — e.g., a spacing token for font-size, a danger color for non-error content, or a shadow token for a non-elevated element. Also check elevation hierarchy: elements inside cards, dialogs, or drawers sit on a raised surface (--*-bgColor-raised), not on the page surface (--*-bgColor-default). A badge or inner element on a card must NOT use bgColor-default — that is page-level only. Correct: each token maps to the role described in ui-project.md's token tables, and elevation tier matches the visual context.
 
 **Triage hint:** Flag when: token variable referenced, color/spacing/size property changed
 

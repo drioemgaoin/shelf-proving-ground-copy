@@ -22,6 +22,10 @@ If the "Branch diff" section in CONTEXT is empty or contains only whitespace, ou
 
 Do NOT read source files, run commands, or produce findings. An empty diff means the branch has no changes relative to the base — there is nothing to review.
 
+## File-read efficiency
+
+Read each file at most once per review. If multiple rules reference the same file (e.g., `tokens.css` for values-from-tokens, motion-tokens, and no-outer-margin), read it once and evaluate all applicable rules together. Do not re-read a file you have already read in this review session.
+
 ## Review checklist
 
 Apply both axes:
