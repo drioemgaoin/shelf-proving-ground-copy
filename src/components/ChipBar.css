@@ -36,6 +36,6 @@
 
   .chip[aria-pressed="true"]:hover {
     background-color: var(--shelf-chip-bgColor-selected-hover);
-    border-color: var(--shelf-chip-bgColor-selected-hover);
+    border-color: var(--shelf-chip-borderColor-selected-hover);
   }
 }

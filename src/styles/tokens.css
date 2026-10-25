@@ -125,6 +125,7 @@
     /* --- Background --- */
     --shelf-bgColor-default: var(--shelf-base-neutral-1);        /* warm off-white page */
     --shelf-bgColor-raised: var(--shelf-base-neutral-0);         /* white cards / dialogs */
+    --shelf-bgColor-inset: var(--shelf-base-neutral-2);
     --shelf-bgColor-accent: var(--shelf-base-accent-5);
     --shelf-bgColor-accent-hover: var(--shelf-base-accent-6);   /* 6.3:1 white text */
     --shelf-bgColor-accent-active: var(--shelf-base-accent-7);  /* 8.1:1 white text */
@@ -199,6 +200,7 @@
 
     --shelf-bgColor-default: var(--shelf-base-neutral-9);
     --shelf-bgColor-raised: var(--shelf-base-neutral-8);
+    --shelf-bgColor-inset: var(--shelf-base-neutral-9);
     --shelf-bgColor-overlay: hsl(0 0% 0% / 0.6);
 
     --shelf-borderColor-default: var(--shelf-base-neutral-7);
@@ -223,6 +225,7 @@
 
       --shelf-bgColor-default: var(--shelf-base-neutral-9);
       --shelf-bgColor-raised: var(--shelf-base-neutral-8);
+      --shelf-bgColor-inset: var(--shelf-base-neutral-9);
       --shelf-bgColor-overlay: hsl(0 0% 0% / 0.6);
 
       --shelf-borderColor-default: var(--shelf-base-neutral-7);
@@ -271,7 +274,7 @@
     --shelf-card-borderColor: var(--shelf-borderColor-subtle);
     --shelf-card-title-fgColor: var(--shelf-fgColor-default);
     --shelf-card-author-fgColor: var(--shelf-fgColor-muted);
-    --shelf-card-badge-bgColor: var(--shelf-bgColor-default);
+    --shelf-card-badge-bgColor: var(--shelf-bgColor-inset);
     --shelf-card-badge-fgColor: var(--shelf-fgColor-muted);
     --shelf-card-badge-borderColor: var(--shelf-borderColor-subtle);
 
@@ -284,6 +287,7 @@
     --shelf-chip-borderColor-rest: var(--shelf-borderColor-subtle);
     --shelf-chip-borderColor-hover: var(--shelf-borderColor-default);
     --shelf-chip-borderColor-selected: var(--shelf-bgColor-accent);
+    --shelf-chip-borderColor-selected-hover: var(--shelf-bgColor-accent-hover);
 
     /* --- Skeleton placeholder --- */
     --shelf-skeleton-blockSize: var(--shelf-base-size-card-height);
