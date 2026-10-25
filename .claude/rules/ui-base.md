@@ -85,7 +85,23 @@ These apply to every project. Project values and names are in `ui-project.md`. S
   scope: "src/**/*.css"
   group: tokens
   triage_hint: "Flag when: token variable referenced, color/spacing/size property changed"
-  instruction: "Check that each design token is used for its intended semantic role. A violation is using a token outside its role — e.g., a spacing token for font-size, a danger color for non-error content, or a shadow token for a non-elevated element. Correct: each token maps to the role described in ui-project.md's token tables."
+  instruction: "Check that each design token is used for its intended semantic role. A violation is using a token outside its role — e.g., a spacing token for font-size, a danger color for non-error content, or a shadow token for a non-elevated element. Also check elevation hierarchy: elements inside cards, dialogs, or drawers sit on a raised surface (--*-bgColor-raised), not on the page surface (--*-bgColor-default). A badge or inner element on a card must NOT use bgColor-default — that is page-level only. Correct: each token maps to the role described in ui-project.md's token tables, and elevation tier matches the visual context."
+  ```
+
+- Media queries use `@custom-media` viewport tokens, not raw breakpoint values. When tokens.css defines `@custom-media --viewport-md (width >= 768px)`, component CSS must use `@media (--viewport-md)`.
+
+  CORRECT: `@media (--viewport-md) { .shelf { padding: var(--shelf-space-lg); } }`
+  WRONG: `@media (width >= 768px) { .shelf { padding: var(--shelf-space-lg); } }`
+
+  ```enforcement
+  id: "media-uses-viewport-tokens"
+  tier: T1
+  - pattern: "@media\\s*\\([^)]*\\d+(px|rem|em|vw|vh)"
+    assert: absent
+    scope: "src/**/*.css"
+    exclude: "src/styles/tokens.css"
+    strip: comments
+    fix: "Use a @custom-media viewport token (e.g., @media (--viewport-md)) instead of a raw breakpoint value. See @custom-media definitions in src/styles/tokens.css."
   ```
 
 - `@layer base` required: box-sizing: border-box on \*, body gets background/color/font/margin: 0 from tokens. Without it, UA defaults leak through.

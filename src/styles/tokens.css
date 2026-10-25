@@ -207,6 +207,9 @@
     --shelf-shadow-sm: 0 1px 2px hsl(0 0% 0% / 0.2);
     --shelf-shadow-md: 0 2px 8px hsl(0 0% 0% / 0.3);
     --shelf-shadow-lg: 0 8px 24px hsl(0 0% 0% / 0.4);
+
+    --shelf-skeleton-opacity-min: 0.15;
+    --shelf-skeleton-opacity-max: 0.4;
   }
 
   @media (prefers-color-scheme: dark) {
@@ -228,6 +231,9 @@
       --shelf-shadow-sm: 0 1px 2px hsl(0 0% 0% / 0.2);
       --shelf-shadow-md: 0 2px 8px hsl(0 0% 0% / 0.3);
       --shelf-shadow-lg: 0 8px 24px hsl(0 0% 0% / 0.4);
+
+      --shelf-skeleton-opacity-min: 0.15;
+      --shelf-skeleton-opacity-max: 0.4;
     }
   }
 
