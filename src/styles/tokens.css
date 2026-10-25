@@ -262,10 +262,18 @@
 
     /* --- Shelf page --- */
     --shelf-shelf-maxWidth: var(--shelf-base-size-container);
+    --shelf-shelf-inlineSize: var(--shelf-base-size-full);
     --shelf-shelf-grid-minWidth: min(var(--shelf-base-size-card), var(--shelf-base-size-full));
 
     /* --- Card box (shared by placeholder and skeleton) --- */
     --shelf-card-blockSize: var(--shelf-base-size-card-height);
+    --shelf-card-bgColor: var(--shelf-bgColor-raised);
+    --shelf-card-borderColor: var(--shelf-borderColor-subtle);
+    --shelf-card-title-fgColor: var(--shelf-fgColor-default);
+    --shelf-card-author-fgColor: var(--shelf-fgColor-muted);
+    --shelf-card-badge-bgColor: var(--shelf-bgColor-default);
+    --shelf-card-badge-fgColor: var(--shelf-fgColor-muted);
+    --shelf-card-badge-borderColor: var(--shelf-borderColor-subtle);
 
     /* --- Filter chip --- */
     --shelf-chip-fgColor-rest: var(--shelf-fgColor-default);
@@ -283,6 +291,7 @@
     --shelf-skeleton-opacity-min: var(--shelf-base-opacity-dim);
     --shelf-skeleton-opacity-max: var(--shelf-base-opacity-soft);
     --shelf-skeleton-bar-blockSize: var(--shelf-base-size-skeleton-bar);
+    --shelf-skeleton-bar-short-inlineSize: var(--shelf-base-size-skeleton-bar-short);
     --shelf-skeleton-pill-inlineSize: var(--shelf-base-size-pill-inline);
     --shelf-skeleton-pill-blockSize: var(--shelf-base-size-pill-block);
   }
