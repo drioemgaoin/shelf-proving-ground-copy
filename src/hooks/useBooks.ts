@@ -6,7 +6,7 @@ interface UseBooksResult {
   loading: boolean;
 }
 
-// Loads the shelf once on mount. Books arrive newest-first from the adapter.
+// Books arrive newest-first from the adapter.
 export function useBooks(): UseBooksResult {
   const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);

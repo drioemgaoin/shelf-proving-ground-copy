@@ -15,7 +15,7 @@ const CHIPS: ChipDef[] = [
   { key: 'finished', label: 'Finished' },
 ];
 
-// State is local; a parent component will lift it to drive grid filtering.
+// Filtering is not wired in this ticket; chips only update their own pressed state.
 export function ChipBar(): React.JSX.Element {
   const [selected, setSelected] = useState<Set<ChipKey>>(() => new Set<ChipKey>(['all']));
 
