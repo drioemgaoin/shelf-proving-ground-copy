@@ -76,6 +76,8 @@
     --shelf-base-size-skeleton-bar-short: 60%;
     --shelf-base-size-pill-inline: 4rem;
     --shelf-base-size-pill-block: 1.25rem;
+    --shelf-base-size-hairline: 1px;      /* visually-hidden collapse */
+    --shelf-base-clip-inset-half: inset(50%); /* sr-only clip */
 
     /* --- Opacity (shimmer stops) --- */
     --shelf-base-opacity-dim: 0.1;
@@ -267,6 +269,8 @@
     --shelf-shelf-maxWidth: var(--shelf-base-size-container);
     --shelf-shelf-inlineSize: var(--shelf-base-size-full);
     --shelf-shelf-grid-minWidth: min(var(--shelf-base-size-card), var(--shelf-base-size-full));
+    --shelf-shelf-live-size: var(--shelf-base-size-hairline);
+    --shelf-shelf-live-clip: var(--shelf-base-clip-inset-half);
 
     /* --- Card box (shared by placeholder and skeleton) --- */
     --shelf-card-blockSize: var(--shelf-base-size-card-height);
