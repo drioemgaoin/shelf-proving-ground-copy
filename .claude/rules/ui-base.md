@@ -583,7 +583,7 @@ These apply to every project. Project values and names are in `ui-project.md`. S
 
 ## Comments
 
-- Comments explain WHY, not WHAT. One line max. No multi-line `//` blocks, no JSDoc (`/** */`). Never describe what code doesn't do ("is not wired").
+- Comments explain WHY, not WHAT. One line max. No multi-line `//` blocks, no JSDoc (`/** */`). Never promise future architecture ("a parent will lift it").
 
   CORRECT: `// null = loading; array = loaded`
   WRONG:
@@ -609,7 +609,7 @@ These apply to every project. Project values and names are in `ui-project.md`. S
     fix: "Use a single // comment, never /** */. One line max."
   ```
 
-- Comments describe what code does, never what it doesn't or what ships later. No hedging ("is not wired", "not yet implemented"). No ticket references.
+- Comments describe what code does, never what it doesn't or what ships later. No hedging ("not yet implemented"). No forward references to callers or future architecture ("a parent will lift it"). No ticket references.
 
   ```enforcement
   id: "no-ticket-references"
@@ -618,6 +618,11 @@ These apply to every project. Project values and names are in `ui-project.md`. S
     assert: absent
     scope: "src/**/*.{ts,tsx,css}"
     fix: "Describe current behavior and its boundary, not the delivery plan. e.g. 'Grid filtering is wired by its consumer' not 'ships in a later ticket'."
+  - pattern: "\\bwill\\s+(lift|wire|consume|connect|drive|provide|inject|dispatch|pass|hook|mount|integrate)"
+    assert: absent
+    scope: "src/**/*.{ts,tsx}"
+    strip: strings
+    fix: "Do not promise future architecture. Describe this code's current boundary. e.g. 'Owns only visual pressed state; grid filtering is not wired.' not 'a parent will lift this state'."
   - pattern: "shelf-proving-ground-[a-z0-9]+"
     assert: absent
     scope: "src/**/*.{ts,tsx,css}"

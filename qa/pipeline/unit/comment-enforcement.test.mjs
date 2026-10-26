@@ -52,15 +52,15 @@ test('BLOCKS three consecutive // comment lines', () => {
     '// null while the first load is in flight; an array once data (or an empty',
     '// shelf) has arrived. Skeletons render during the null phase.',
     '// The loading state is tracked by a null sentinel.',
-    'function App() { return null; }',
+    'const x = 1;',
   ].join('\n');
-  const r = runT1('src/components/test.tsx', content);
+  const r = runT1('src/hooks/test.ts', content);
   assert(r.exitCode === 2, `Expected blocked (2), got ${r.exitCode}. Multi-line // block was not caught.`);
 });
 
 test('ALLOWS one // comment line', () => {
-  const content = '// null = loading; array = loaded\nfunction App() { return null; }';
-  const r = runT1('src/components/test.tsx', content);
+  const content = '// null = loading; array = loaded\nconst x = 1;\n';
+  const r = runT1('src/hooks/test.ts', content);
   assert(r.exitCode === 0, `Expected allowed (0), got ${r.exitCode}. Single comment was incorrectly blocked.`);
 });
 
@@ -68,9 +68,9 @@ test('ALLOWS two // comment lines', () => {
   const content = [
     '// null = loading; array = loaded',
     '// See: state machine diagram',
-    'function App() { return null; }',
+    'const x = 1;',
   ].join('\n');
-  const r = runT1('src/components/test.tsx', content);
+  const r = runT1('src/hooks/test.ts', content);
   assert(r.exitCode === 0, `Expected allowed (0), got ${r.exitCode}. Two-line comment was incorrectly blocked.`);
 });
 
@@ -86,22 +86,22 @@ test('BLOCKS multi-line JSDoc block', () => {
     ' * Multi-select filter chip bar.',
     ' * All is the default selection.',
     ' */',
-    'function ChipBar() { return null; }',
+    'const x = 1;',
   ].join('\n');
-  const r = runT1('src/components/test.tsx', content);
+  const r = runT1('src/components/ChipBar/ChipBar.tsx', content);
   assert(r.exitCode === 2, `Expected blocked (2), got ${r.exitCode}. Multi-line JSDoc was not caught.`);
 });
 
 test('BLOCKS single-line JSDoc block', () => {
   const content = '/** Fixed number of skeleton placeholders. */\nconst SKELETON_COUNT = 6;';
-  const r = runT1('src/components/test.tsx', content);
+  const r = runT1('src/components/ChipBar/ChipBar.tsx', content);
   assert(r.exitCode === 2, `Expected blocked (2), got ${r.exitCode}. Single-line JSDoc was not caught.`);
 });
 
 test('ALLOWS JSDoc in CSS (only TS/TSX is scoped)', () => {
   // CSS uses /* */ for all comments — JSDoc pattern should not apply
   const content = '/** Component styles */\n.card { display: flex; }';
-  const r = runT1('src/components/test.css', content);
+  const r = runT1('src/components/ChipBar/ChipBar.css', content);
   // Should not be blocked by comment-brevity (CSS is not in scope for this pattern)
   // May be blocked by other rules — check it's not blocked by comment-brevity specifically
   if (r.exitCode === 2) {
@@ -111,15 +111,84 @@ test('ALLOWS JSDoc in CSS (only TS/TSX is scoped)', () => {
 });
 
 test('ALLOWS // comment in TSX (not JSDoc)', () => {
-  const content = '// null = loading; array = loaded\nfunction App() { return null; }';
-  const r = runT1('src/components/test.tsx', content);
+  const content = '// null = loading; array = loaded\nconst x = 1;\n';
+  const r = runT1('src/components/ChipBar/ChipBar.tsx', content);
   assert(r.exitCode === 0, `Expected allowed (0), got ${r.exitCode}. Regular // comment incorrectly blocked.`);
 });
 
 test('ALLOWS JSDoc-like pattern inside string literal', () => {
-  const content = 'const pattern = "/** not a real JSDoc */";\nfunction App() { return null; }';
-  const r = runT1('src/components/test.tsx', content);
+  const content = 'const pattern = "/** not a real JSDoc */";\nconst x = 1;\n';
+  const r = runT1('src/components/ChipBar/ChipBar.tsx', content);
   assert(r.exitCode === 0, `Expected allowed (0), got ${r.exitCode}. String literal incorrectly blocked.`);
+});
+
+// ══════════════════════════════════════════════════════════════════════
+// Gap: Forward-looking architecture references not caught by T1
+// Real-world violation from sandcastle djk.1 review-r1:
+//   src/components/ChipBar/ChipBar.tsx:19
+//   "// State is local; a parent component will lift it to drive grid filtering."
+// ══════════════════════════════════════════════════════════════════════
+
+console.log('\n--- Forward-looking architecture references ---');
+
+test('BLOCKS comment referencing caller with future tense ("a parent component will lift it")', () => {
+  const content = '// State is local; a parent component will lift it to drive grid filtering.\nconst x = 1;\n';
+  const r = runT1('src/components/ChipBar/ChipBar.tsx', content);
+  assert(r.exitCode === 2, `Expected blocked (2), got ${r.exitCode}. Forward-reference to caller was not caught.`);
+});
+
+test('BLOCKS comment with "will wire" future promise', () => {
+  const content = '// The consumer will wire this to the grid filter state.\nconst x = 1;\n';
+  const r = runT1('src/components/ChipBar/ChipBar.tsx', content);
+  assert(r.exitCode === 2, `Expected blocked (2), got ${r.exitCode}. "will wire" future promise was not caught.`);
+});
+
+test('BLOCKS comment with "will provide" future promise', () => {
+  const content = '// A wrapper will provide the filter context.\nconst x = 1;\n';
+  const r = runT1('src/components/ChipBar/ChipBar.tsx', content);
+  assert(r.exitCode === 2, `Expected blocked (2), got ${r.exitCode}. "will provide" future promise was not caught.`);
+});
+
+test('BLOCKS comment with "will consume" future promise', () => {
+  const content = '// The parent will consume this callback via props.\nconst x = 1;\n';
+  const r = runT1('src/components/ChipBar/ChipBar.tsx', content);
+  assert(r.exitCode === 2, `Expected blocked (2), got ${r.exitCode}. "will consume" future promise was not caught.`);
+});
+
+test('BLOCKS comment with "will connect" future promise', () => {
+  const content = '// A container will connect this to the store.\nconst x = 1;\n';
+  const r = runT1('src/components/ChipBar/ChipBar.tsx', content);
+  assert(r.exitCode === 2, `Expected blocked (2), got ${r.exitCode}. "will connect" future promise was not caught.`);
+});
+
+test('BLOCKS comment with "will drive" future promise', () => {
+  const content = '// The host will drive the animation externally.\nconst x = 1;\n';
+  const r = runT1('src/components/ChipBar/ChipBar.tsx', content);
+  assert(r.exitCode === 2, `Expected blocked (2), got ${r.exitCode}. "will drive" future promise was not caught.`);
+});
+
+test('ALLOWS comment describing current boundary (no forward reference)', () => {
+  const content = '// Owns only visual pressed state; grid filtering is not wired.\nconst x = 1;\n';
+  const r = runT1('src/components/ChipBar/ChipBar.tsx', content);
+  assert(r.exitCode === 0, `Expected allowed (0), got ${r.exitCode}. Boundary description was incorrectly blocked.`);
+});
+
+test('ALLOWS comment with "will" describing current code behavior ("will throw")', () => {
+  const content = '// getBooks will throw if the network is down.\nconst x = 1;\n';
+  const r = runT1('src/hooks/test.ts', content);
+  assert(r.exitCode === 0, `Expected allowed (0), got ${r.exitCode}. Current behavior "will throw" was incorrectly blocked.`);
+});
+
+test('ALLOWS comment with "will" describing current code behavior ("will return")', () => {
+  const content = '// Returns null while loading; will resolve to an array.\nconst x = 1;\n';
+  const r = runT1('src/hooks/test.ts', content);
+  assert(r.exitCode === 0, `Expected allowed (0), got ${r.exitCode}. Current behavior "will resolve" was incorrectly blocked.`);
+});
+
+test('ALLOWS comment with "will" in non-architecture context ("will retry")', () => {
+  const content = '// Fetch will retry up to 3 times on transient failure.\nconst x = 1;\n';
+  const r = runT1('src/hooks/test.ts', content);
+  assert(r.exitCode === 0, `Expected allowed (0), got ${r.exitCode}. Legitimate "will retry" was incorrectly blocked.`);
 });
 
 // ══════════════════════════════════════════════════════════════════════
