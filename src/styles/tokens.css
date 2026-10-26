@@ -288,9 +288,13 @@
     --shelf-chip-borderColor-hover: var(--shelf-borderColor-default);
     --shelf-chip-borderColor-selected: var(--shelf-bgColor-accent);
     --shelf-chip-borderColor-selected-hover: var(--shelf-bgColor-accent-hover);
+    --shelf-chip-focusRing: var(--shelf-focusRing);
+    --shelf-chip-focusRing-offset: var(--shelf-focusRing-offset);
 
     /* --- Skeleton placeholder --- */
     --shelf-skeleton-blockSize: var(--shelf-base-size-card-height);
+    --shelf-skeleton-bgColor: var(--shelf-bgColor-raised);
+    --shelf-skeleton-borderColor: var(--shelf-borderColor-subtle);
     --shelf-skeleton-barColor: var(--shelf-borderColor-default);
     --shelf-skeleton-opacity-min: var(--shelf-base-opacity-dim);
     --shelf-skeleton-opacity-max: var(--shelf-base-opacity-soft);
