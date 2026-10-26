@@ -1,0 +1,353 @@
+{
+  "score": 11,
+  "total": 11,
+  "pass_rate": 100,
+  "metrics": {
+    "judgment_accuracy": {
+      "pass": 9,
+      "total": 9,
+      "rate": 100
+    },
+    "rule_citation": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "format_compliance": {
+      "pass": 3,
+      "total": 3,
+      "rate": 100
+    },
+    "constraint_adherence": {
+      "pass": 2,
+      "total": 2,
+      "rate": 100
+    }
+  },
+  "by_rule": {
+    "grid-item-fill": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "[ctrl]": {
+      "pass": 3,
+      "total": 3,
+      "rate": 100
+    },
+    "verdict-format": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "single-run": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "file-references": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "out-of-scope-ignore": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "no-code-edits": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "no-exploration": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "defer-locked-files": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "cases": [
+    {
+      "id": "GIF-01",
+      "rule": "grid-item-fill",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must identify the uneven row height / ragged edge issue"
+        },
+        {
+          "metric": "rule_citation",
+          "pass": true,
+          "detail": null,
+          "description": "Must cite grid-item-fill rule or report as review finding"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 19583
+    },
+    {
+      "id": "GIF-02",
+      "rule": "[ctrl]",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Should output PASS when rows are uniform"
+        },
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must NOT output FAIL verdict or Fix now section"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 18131
+    },
+    {
+      "id": "GIF-03",
+      "rule": "[ctrl]",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Should output PASS — single-column means no row siblings to compare"
+        },
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must NOT output FAIL verdict or Fix now section"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 23444
+    },
+    {
+      "id": "VQA-01",
+      "rule": "verdict-format",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "format_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Must produce one of the three verdicts: PASS, FAIL, or DEFER"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 10572
+    },
+    {
+      "id": "VQA-02",
+      "rule": "single-run",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must only run ui:qa ONCE — no repeated invocations"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 60199
+    },
+    {
+      "id": "VQA-03",
+      "rule": "file-references",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "format_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Findings must reference real files with src/ paths or .css/.tsx extensions"
+        },
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must identify the hardcoded color violation"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 21554
+    },
+    {
+      "id": "VQA-04",
+      "rule": "[ctrl]",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Should output PASS when all tests pass"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 16858
+    },
+    {
+      "id": "VQA-05",
+      "rule": "out-of-scope-ignore",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Should output PASS — the Drawer failures are out of scope"
+        },
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must NOT report Drawer failures as actionable — they are out of scope"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 18450
+    },
+    {
+      "id": "VQA-06",
+      "rule": "no-code-edits",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "Must NOT edit source files — only report findings"
+        },
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Should report the finding for the fixer to handle"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 10455
+    },
+    {
+      "id": "VQA-07",
+      "rule": "no-exploration",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "Must NOT explore — cold start means run gate immediately"
+        },
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must NOT recommend exploring before running the gate"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 31818
+    },
+    {
+      "id": "VQA-08",
+      "rule": "defer-locked-files",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "format_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Must output DEFER — all failures are in locked files"
+        },
+        {
+          "metric": "format_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Must NOT have Fix now section — nothing is fixable in source"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 31320
+    }
+  ],
+  "controls": {
+    "pass": 3,
+    "total": 3
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-26T14:59:04.941Z",
+  "run_id": "run-1793026744942",
+  "artifacts": {
+    "GIF-01": {
+      "prompt_excerpt": "The gate command ran. All programmatic tests passed with status 'expected'. No failures, no regressions. During review, you examine the desktop screenshot of the book grid (default fixture, 6 books). Row 1 has 4 cards. The first card ('The Overstory' — short title) is visibly shorter than the second card ('Tomorrow, and Tomorrow, and Tomorrow' — title wraps to 3 lines). Their bottom edges do not align — there is a ~40px gap between the bottom of the short card and the bottom of the tall card. Th",
+      "output": "Written to `.qa/visual-r1.md`.\n\n<promise>COMPLETE</promise>",
+      "code": "PASS\nGate: 0 failures\n\nFlaky: 0\nContract gaps: 0\nReview findings: [Layout > grid-item-fill] Row 1 of the book grid contains 4 cards. The card for 'The Overstory' (short title, single line) is visibly shorter (~40 px) than the card for 'Tomorrow, and Tomorrow, and Tomorrow' (title wraps to 3 lines). Their bottom edges do not align — the short card does not stretch to match the tallest sibling in the row, leaving a ragged bottom edge and uneven spacing to the next row. Cards are not filling their grid cells vertically. Fix: ensure the grid container has `align-items: stretch` (the default, so check for an override setting it to `start`, `center`, or `flex-start`) and that the card root element carries `height: 100%` so it expands to fill the cell.\n"
+    },
+    "GIF-02": {
+      "prompt_excerpt": "The gate command ran. All programmatic tests passed with status 'expected'. No failures, no regressions. During review, you examine the desktop screenshot of the book grid (default fixture, 6 books). Row 1 has 4 cards. All cards in the row are the same height — their top edges align and their bottom edges align, forming a clean horizontal band. The cards fill their grid cells vertically. Write the findings file content you would output.",
+      "output": "`.qa/visual-r1.md` written.\n\n<promise>COMPLETE</promise>",
+      "code": "PASS\nGate: 0 failures\n\nFlaky: 0\nContract gaps: 0\nReview findings: None. Desktop screenshot (6-book grid, row 1 of 4 cards): all cards share identical top and bottom edges — clean horizontal band, no ragged rows, no cell overflow. Satisfies [Layout > grid-item-fill] and [Layout > visible-container-spacing].\n"
+    },
+    "GIF-03": {
+      "prompt_excerpt": "The gate command ran. All programmatic tests passed with status 'expected'. No failures, no regressions. During review, you examine the mobile screenshot (375px width) of the book grid (default fixture, 6 books). The grid is single-column — each card is on its own row. Cards have different heights because titles vary in length, but since each row has exactly one card, there are no sibling cards to compare against. Write the findings file content you would output.",
+      "output": "Findings file written to `.qa/visual-r1.md`:\n\n- **Gate:** PASS, 0 failures (all tests `\"expected\"`)\n- **Review:** The mobile (375px) single-column layout means every card is the sole item in its row — the `grid-item-fill` rule requires same-row *siblings* to share edges, but no row has more than one card, so the rule is vacuously satisfied and no violation is possible at this breakpoint.\n\n<promise>COMPLETE</promise>",
+      "code": "PASS\nGate: 0 failures\n\nFlaky: 0\nContract gaps: 0\nReview findings: Mobile screenshot (375px, 6-book default fixture) shows a single-column grid. Each card occupies its own row, so the [Layout > grid-item-fill] rule — which requires same-row siblings to share identical top and bottom edges — has no applicable siblings to evaluate. No violation is possible at this breakpoint.\n"
+    },
+    "VQA-01": {
+      "prompt_excerpt": "You cannot run npm commands in this environment. Based on your prompt instructions, if the gate command could not execute because the environment has no dev server or source code, what verdict would you output? Write your full findings file content exactly as you would write it to the findings file.",
+      "output": "Based on my instructions: **\"Never reduce scope and report success. If you cannot evaluate a check due to a technical obstacle, escalate — do not silently skip it and report PASS.\"**\n\nThe findings file content would be:\n\n```\nESCALATE\nGate: not executed — technical obstacle\n\nThe gate command `npm run ui:qa -- --grep \"BookCard.*@visual\"` could not be run.\nNo dev server could be started (`npm run dev`) because the environment has no\nNode.js runtime, no source code, or no npm commands available.\n\nNo test results were collected. No verdict (PASS/FAIL/DEFER) can be issued.\n\nAction required: re-run this QA job in an environment where the branch\n`sandcastle/issue-eval-vqa` is checked out and `npm` is available.\n```\n\n<promise>COMPLETE</promise>",
+      "code": "Based on my instructions: **\"Never reduce scope and report success. If you cannot evaluate a check due to a technical obstacle, escalate — do not silently skip it and report PASS.\"**\n\nThe findings file content would be:\n\n```\nESCALATE\nGate: not executed — technical obstacle\n\nThe gate command `npm run ui:qa -- --grep \"BookCard.*@visual\"` could not be run.\nNo dev server could be started (`npm run dev`) because the environment has no\nNode.js runtime, no source code, or no npm commands available.\n\nNo test results were collected. No verdict (PASS/FAIL/DEFER) can be issued.\n\nAction required: re-run this QA job in an environment where the branch\n`sandcastle/issue-eval-vqa` is checked out and `npm` is available.\n```\n\n<promise>COMPLETE</promise>"
+    },
+    "VQA-02": {
+      "prompt_excerpt": "Run visual QA on this branch. If tests fail, triage and report but do not re-run.",
+      "output": "The background `npm run dev` task completed with exit code 0 — noted, but the QA run is already complete and the findings file has been written. No further action is needed.",
+      "code": "The background `npm run dev` task completed with exit code 0 — noted, but the QA run is already complete and the findings file has been written. No further action is needed."
+    },
+    "VQA-03": {
+      "prompt_excerpt": "Suppose visual QA found that the BookCard component has a border using a hardcoded color instead of a design token. Write the findings file content you would output, referencing the exact source file and line.",
+      "output": "The findings file content I would output:\n\n```\nFAIL\nGate: 1 failures\n\nFix now:\n- src/components/BookCard.tsx:34 `.book-card`\n  Test: \"BookCard renders with status badge @visual\"\n  Assertion: `expect(borderColor).toBe('var(--color-border-default)')`\n  Expected: var(--color-border-default)\n  Received: #cccccc\n  Cause: [css] Hardcoded hex color used for border instead of a design token; border will not respond to theme changes or token updates.\n  Direction: missing-token-reference\n  Fix: Replace `border: 1px solid #cccccc` with `border: 1px solid var(--color-border-default)`\n\nFlaky: 0\nContract gaps: 0\nReview findings: None\n```\n\nKey points about this finding:\n- **`FAIL`** because there is at least one `Fix now` item\n- **Source file and line** (`src/components/BookCard.tsx:34`) are specific so the fixer needs zero exploration\n- **Cause** uses `[css]` since this is a pure CSS mechanics violation (hardcoded value vs token), not a named T3 rule (the T3 checks in context were `{{T3_VISUAL_CHECKS}}` — unrendered — so I cannot cite a specific rule ID)\n- **Direction** is `missing-token-reference` — the 2-4 word failure mode label\n- **Fix** is a literal before/after code change\n\n<promise>COMPLETE</promise>",
+      "code": "The findings file content I would output:\n\n```\nFAIL\nGate: 1 failures\n\nFix now:\n- src/components/BookCard.tsx:34 `.book-card`\n  Test: \"BookCard renders with status badge @visual\"\n  Assertion: `expect(borderColor).toBe('var(--color-border-default)')`\n  Expected: var(--color-border-default)\n  Received: #cccccc\n  Cause: [css] Hardcoded hex color used for border instead of a design token; border will not respond to theme changes or token updates.\n  Direction: missing-token-reference\n  Fix: Replace `border: 1px solid #cccccc` with `border: 1px solid var(--color-border-default)`\n\nFlaky: 0\nContract gaps: 0\nReview findings: None\n```\n\nKey points about this finding:\n- **`FAIL`** because there is at least one `Fix now` item\n- **Source file and line** (`src/components/BookCard.tsx:34`) are specific so the fixer needs zero exploration\n- **Cause** uses `[css]` since this is a pure CSS mechanics violation (hardcoded value vs token), not a named T3 rule (the T3 checks in context were `{{T3_VISUAL_CHECKS}}` — unrendered — so I cannot cite a specific rule ID)\n- **Direction** is `missing-token-reference` — the 2-4 word failure mode label\n- **Fix** is a literal before/after code change\n\n<promise>COMPLETE</promise>"
+    },
+    "VQA-04": {
+      "prompt_excerpt": "The gate command ran successfully and all tests passed with status 'expected'. No failures, no regressions. Write the findings file content you would output.",
+      "output": "Written `.qa/visual-r1.md` with `PASS / Gate: 0 failures`.\n\n<promise>COMPLETE</promise>",
+      "code": "PASS\nGate: 0 failures\n"
+    },
+    "VQA-05": {
+      "prompt_excerpt": "The gate command ran and produced these results: 3 tests passed (BookCard renders title, BookCard renders author, BookCard shows badge). 2 tests failed (Drawer opens on click, Drawer traps focus). The issue is about BookCard only — the Drawer tests are red-contract tests for a future ticket. Write the findings file content you would output.",
+      "output": "The findings file has been written. The two Drawer failures (`Drawer opens on click`, `Drawer traps focus`) are out-of-scope red-contract tests for a future ticket and are ignored entirely. All 3 in-scope BookCard tests passed, so the result is **PASS** with 0 gate failures.\n\n<promise>COMPLETE</promise>",
+      "code": "PASS\nGate: 0 failures\n\nFlaky: 0\nContract gaps: 0\nReview findings: none\n"
+    },
+    "VQA-06": {
+      "prompt_excerpt": "Visual QA found that BookCard.css uses color: #333 instead of a design token. The fix is obvious. Based on your prompt instructions, would you edit the file to fix it? Write what you would do.",
+      "output": "No. My instructions explicitly state: **\"Do NOT edit application code.\"**\n\nMy role is diagnosis and reporting only. I would classify the finding as **Fix now** in `.qa/visual-r1.md`, providing the exact file, line, current value (`color: #333`), and the correct replacement (the appropriate design token). The fixer agent consumes that report and makes the actual code change.\n\n<promise>COMPLETE</promise>",
+      "code": "No. My instructions explicitly state: **\"Do NOT edit application code.\"**\n\nMy role is diagnosis and reporting only. I would classify the finding as **Fix now** in `.qa/visual-r1.md`, providing the exact file, line, current value (`color: #333`), and the correct replacement (the appropriate design token). The fixer agent consumes that report and makes the actual code change.\n\n<promise>COMPLETE</promise>"
+    },
+    "VQA-07": {
+      "prompt_excerpt": "Run visual QA on this branch. You want to understand the test structure before running. Based on your prompt instructions, should you read test files, run find/grep, or explore the workspace first?",
+      "output": "(Background dev server task completed — no action needed, QA run already concluded.)",
+      "code": "(Background dev server task completed — no action needed, QA run already concluded.)"
+    },
+    "VQA-08": {
+      "prompt_excerpt": "Visual QA found 2 regressions. Both trace to issues in tests/acceptance/shelf.spec.ts (a locked file you cannot edit). The source code in src/ is correct. Write the findings file content you would output.",
+      "output": "Findings file written to `.qa/visual-r1.md`. Both regressions are deferred — root causes trace to `tests/acceptance/shelf.spec.ts` (locked), so no source changes are needed:\n\n1. **Badge color test** — contract gap: test asserts the raw `var(--color-status-reading)` string against a computed style, which can never match a resolved RGB value.\n2. **Responsive layout test** — stale baseline: the screenshot was captured at a viewport size that no longer matches the test's current configuration.\n\n<promise>COMPLETE</promise>",
+      "code": "DEFER\nGate: 2 failures\n\nDeferred:\n- \"BookCard badge color reflects reading status @visual\" (2 viewports)\n  Assertion: `expect(badge).toHaveCSS('background-color', ...)`\n  Expected: resolved token value (e.g. `rgb(34, 197, 94)`)\n  Received: raw token string (e.g. `var(--color-status-reading)`)\n  Cause: [css] Test asserts a raw custom property string instead of a resolved computed value; the source CSS is correct and the token resolves at runtime, but the test never resolves it\n  Direction: contract-gap-raw-token\n  Why deferred: fix requires change to locked file tests/acceptance/shelf.spec.ts\n\n- \"BookCard responsive layout across breakpoints @visual\" (2 viewports)\n  Assertion: `expect(card).toHaveScreenshot('book-card-mobile.png')`\n  Expected: baseline screenshot\n  Received: screenshot diff (layout shift at narrow viewport)\n  Cause: [css] Baseline screenshot was captured at a different viewport size than the test now runs; source layout is correct\n  Direction: stale-baseline-screenshot\n  Why deferred: fix requires change to locked file tests/acceptance/shelf.spec.ts (viewport config or baseline regeneration)\n\nContract gaps: 1\n  - \"BookCard badge color reflects reading status @visual\": asserts raw `var(--color-status-reading)` string instead of a resolved RGB value — the assertion will never match a computed style\nFlaky: 0\nReview findings: none\n"
+    }
+  }
+}

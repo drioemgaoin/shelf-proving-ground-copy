@@ -1,0 +1,72 @@
+{
+  "score": 1,
+  "total": 1,
+  "pass_rate": 100,
+  "metrics": {
+    "output_compliance": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "constraint_adherence": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "task_accuracy": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "by_rule": {
+    "comment-style": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "cases": [
+    {
+      "id": "SR-03",
+      "rule": "comment-style",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Model produced component code with exports/imports"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No multi-line // comment blocks (max 1 consecutive // line)"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must use nullable Book array state type"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 23651
+    }
+  ],
+  "controls": {
+    "pass": 0,
+    "total": 0
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-26T18:57:22.433Z",
+  "run_id": "run-1793041042435",
+  "artifacts": {
+    "SR-03": {
+      "prompt_excerpt": "Write an App component with a books state that is null during loading and an array once loaded. Use useState<Book[] | null>(null). Add a comment explaining the null-vs-array invariant.",
+      "output": "`src/App.tsx` is written with:\n- `useState<Book[] | null>(null)` — `null` means loading, `Book[]` means data is ready.\n- A single comment on the invariant (per the \"comments explain WHY, one line max\" rule).\n- No I/O in the component body; the `useEffect` stub is a placeholder noting it should delegate to an adapter.\n\n<promise>COMPLETE</promise>",
+      "code": "import { useState, useEffect } from 'react';\nimport type { Book } from './types';\n\n// null = loading in progress; Book[] = data is ready (empty array means no books)\nexport function App(): JSX.Element {\n  const [books, setBooks] = useState<Book[] | null>(null);\n\n  useEffect(() => {\n    // Placeholder: replace with real fetch via an adapter module\n    setBooks([]);\n  }, []);\n\n  if (books === null) {\n    return <main aria-busy=\"true\" />;\n  }\n\n  return (\n    <main>\n      {books.map((book) => (\n        <div key={book.id}>{book.title}</div>\n      ))}\n    </main>\n  );\n}\n"
+    }
+  }
+}

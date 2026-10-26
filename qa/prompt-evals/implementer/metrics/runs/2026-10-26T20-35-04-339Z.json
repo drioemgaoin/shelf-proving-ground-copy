@@ -1,0 +1,78 @@
+{
+  "score": 1,
+  "total": 1,
+  "pass_rate": 100,
+  "metrics": {
+    "output_compliance": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "constraint_adherence": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "task_accuracy": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "by_rule": {
+    "role-query-diagnostic": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "cases": [
+    {
+      "id": "RQD-03",
+      "rule": "role-query-diagnostic",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Model produced component code with exports/imports"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No aria-hidden on ghost cards — they must participate in the accessible tree for role-based locators"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "Named exports only — no default exports"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must render a list container with role=list"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 45981
+    }
+  ],
+  "controls": {
+    "pass": 0,
+    "total": 0
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-26T20:35:04.339Z",
+  "run_id": "run-1793046904340",
+  "artifacts": {
+    "RQD-03": {
+      "prompt_excerpt": "Write a ProductGrid component. It receives `products: Product[]` and `status: 'loading' | 'loaded'`. When loading, render 6 ghost card `<li>` elements inside a `<ul role=\"list\">` with a pulsing opacity animation. When loaded, render the real product cards. Use tokens for all styling. Include the CSS file.",
+      "output": "The `ProductGrid` component is written at `src/components/ProductGrid/ProductGrid.tsx`. Here's what was created:\n\n**`ProductGrid.tsx`** — exports `Product` type and `ProductGrid` component:\n- `status === 'loading'`: renders 6 `<li>` ghost cards inside `<ul role=\"list\">` with pulsing opacity animation — no `aria-hidden`, so they remain in the accessible tree\n- `status === 'loaded'`: renders real product `<li>` cards with name and category\n\n**`ProductGrid.css`** — all values use component-tier tokens (`--shelf-productgrid-*`), `@keyframes product-card-pulse` is inside `@layer components`, animates only `opacity`\n\n**`src/styles/tokens.css`** — defines `--shelf-productgrid-*` tokens in `:root`, `[data-theme=\"dark\"]`, and `@media (prefers-color-scheme: dark)` blocks (all three required to avoid axe contrast failures)\n\n**`src/styles/layers.css`** — `@layer base, tokens, components;` declaration",
+      "code": "import './ProductGrid.css';\n\nexport type Product = {\n  id: string;\n  name: string;\n  category: string;\n};\n\ntype ProductGridProps = {\n  products: Product[];\n  status: 'loading' | 'loaded';\n};\n\nconst GHOST_COUNT = 6;\n\nexport function ProductGrid({ products, status }: ProductGridProps): JSX.Element {\n  if (status === 'loading') {\n    return (\n      <ul role=\"list\" className=\"product-grid\">\n        {Array.from({ length: GHOST_COUNT }, (_, i) => (\n          <li key={i} className=\"product-card product-card--ghost\">\n            <div className=\"ghost-line ghost-line--title\" />\n            <div className=\"ghost-line ghost-line--meta\" />\n          </li>\n        ))}\n      </ul>\n    );\n  }\n\n  return (\n    <ul role=\"list\" className=\"product-grid\">\n      {products.map((product) => (\n        <li key={product.id} className=\"product-card\">\n          <p className=\"product-card-title\">{product.name}</p>\n          <p className=\"product-card-meta\">{product.category}</p>\n        </li>\n      ))}\n    </ul>\n  );\n}\n"
+    }
+  }
+}

@@ -1,0 +1,84 @@
+{
+  "score": 1,
+  "total": 1,
+  "pass_rate": 100,
+  "metrics": {
+    "constraint_adherence": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "output_compliance": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "task_accuracy": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "by_rule": {
+    "no-outer-margin": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "cases": [
+    {
+      "id": "NOM-01",
+      "rule": "no-outer-margin",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No margin-inline: auto — centering is the parent's job, not the child's"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No margin: 0 resets in component CSS — element resets belong in @layer base"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No padding: 0 list resets in component CSS — element resets belong in @layer base"
+        },
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "CSS must be wrapped in @layer components"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must set a max-width on the content wrapper"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 15039
+    }
+  ],
+  "controls": {
+    "pass": 0,
+    "total": 0
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-26T18:37:25.999Z",
+  "run_id": "run-1793039846000",
+  "artifacts": {
+    "NOM-01": {
+      "prompt_excerpt": "Write a FeedPage component and its CSS. It renders a content wrapper (max-width 960px) containing a heading, a <ul role=\"list\"> of <li> FeedItem cards, and each card has a <p> for title and a <p> for description. The parent layout handles centering — the wrapper only sets its own max-width. Element resets (margin: 0, padding: 0, list-style: none) belong in @layer base, not in component CSS. Use @layer components for the CSS. Use tokens for all styling (assume --shelf-* tokens exist). Include the",
+      "output": "`src/components/FeedPage/FeedPage.css` written. Key decisions:\n\n- `max-width` only on the wrapper — no centering (per constraint: parent owns centering)\n- All values reference `--shelf-feedPage-*` and `--shelf-feedItem-*` component-tier tokens\n- Resets (`margin: 0`, `padding: 0`, `list-style: none`) are intentionally absent — they belong in `@layer base`\n- Everything is inside `@layer components`\n\nYou'll need to define the referenced `--shelf-feedPage-*` and `--shelf-feedItem-*` tokens in `src/styles/tokens.css` (both `:root` and dark-mode blocks).\n\n<promise>COMPLETE</promise>",
+      "code": "@layer components {\n  .feed-page {\n    max-width: var(--shelf-feedPage-maxWidth);\n    background-color: var(--shelf-feedPage-bgColor-surface);\n    color: var(--shelf-feedPage-fgColor-default);\n    padding: var(--shelf-feedPage-spacing-block) var(--shelf-feedPage-spacing-inline);\n  }\n\n  .feed-page-heading {\n    font-size: var(--shelf-feedPage-fgColor-heading-size);\n    color: var(--shelf-feedPage-fgColor-heading);\n    font-weight: var(--shelf-feedPage-fontWeight-heading);\n  }\n\n  .feed-page-list {\n    display: flex;\n    flex-direction: column;\n    gap: var(--shelf-feedPage-gap);\n  }\n\n  .feed-item {\n    background-color: var(--shelf-feedItem-bgColor-surface);\n    border: var(--shelf-feedItem-borderWidth) solid var(--shelf-feedItem-borderColor-default);\n    border-radius: var(--shelf-feedItem-borderRadius);\n    padding: var(--shelf-feedItem-spacing-block) var(--shelf-feedItem-spacing-inline);\n  }\n\n  .feed-item-title {\n    color: var(--shelf-feedItem-fgColor-title);\n    font-size: var(--shelf-feedItem-fontSize-title);\n    font-weight: var(--shelf-feedItem-fontWeight-title);\n  }\n\n  .feed-item-description {\n    color: var(--shelf-feedItem-fgColor-description);\n    font-size: var(--shelf-feedItem-fontSize-description);\n  }\n}\n"
+    }
+  }
+}

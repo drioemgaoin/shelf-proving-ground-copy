@@ -1,0 +1,79 @@
+{
+  "score": 1,
+  "total": 1,
+  "pass_rate": 100,
+  "metrics": {
+    "constraint_adherence": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "output_compliance": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "by_rule": {
+    "comment-clarity": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "cases": [
+    {
+      "id": "CC-02",
+      "rule": "comment-clarity",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No ticket references or delivery plan language in code"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No JSDoc blocks on internal code"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No multi-line // comment blocks"
+        },
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Must use aria-pressed on chips"
+        },
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Must export the component"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 245131
+    }
+  ],
+  "controls": {
+    "pass": 0,
+    "total": 0
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-26T17:43:48.213Z",
+  "run_id": "run-1793036628214",
+  "artifacts": {
+    "CC-02": {
+      "prompt_excerpt": "Write a ChipFilter component and its CSS in a single TSX file. It renders four filter chip buttons ('All', 'Active', 'Archived', 'Starred'). Each chip is a button with aria-pressed. On load 'All' is pressed.\n\nThe spec says: In this ticket, clicking a chip updates ONLY the chip bar's visual pressed state. The actual list filtering is wired by the consumer and ships in ticket djk.2. Keyboard navigation (arrow keys between chips) ships in a later ticket.\n\nInclude both component code and a @layer co",
+      "output": "The component is correct. Files written:\n\n- `src/styles/layers.css` — layer order declaration (`@layer base, tokens, components;`)\n- `src/styles/tokens.css` — full primitive → semantic → component token hierarchy with light/dark/system-dark support\n- `src/components/ChipFilter/ChipFilter.tsx` — 4 chip buttons with `aria-pressed`, `useState('All')` default, embedded `@layer components` CSS using only component-tier tokens\n\n<promise>COMPLETE</promise>",
+      "code": "import { useState } from 'react';\n\ntype FilterLabel = 'All' | 'Active' | 'Archived' | 'Starred';\n\nconst FILTERS: FilterLabel[] = ['All', 'Active', 'Archived', 'Starred'];\n\n// Owns only visual pressed state; grid filtering is not wired.\nconst chipStyles = `\n@layer components {\n  .chip-bar {\n    display: flex;\n    gap: var(--shelf-space-sm);\n    flex-wrap: wrap;\n  }\n\n  .chip {\n    appearance: none;\n    display: inline-flex;\n    align-items: center;\n    padding: var(--shelf-space-xs) var(--shelf-space-md);\n    border-radius: var(--shelf-radius-full);\n    border: var(--shelf-borderWidth-thin) solid var(--shelf-chip-borderColor-rest);\n    background-color: var(--shelf-chip-bgColor-rest);\n    color: var(--shelf-chip-fgColor-rest);\n    font-family: var(--shelf-font-family-base);\n    font-size: var(--shelf-font-size-sm);\n    font-weight: var(--shelf-font-weight-medium);\n    cursor: pointer;\n  }\n\n  .chip[aria-pressed=\"true\"] {\n    background-color: var(--shelf-chip-bgColor-pressed);\n    color: var(--shelf-chip-fgColor-pressed);\n    border-color: var(--shelf-chip-borderColor-pressed);\n  }\n\n  .chip:focus-visible {\n    outline: var(--shelf-focusRing);\n    outline-offset: var(--shelf-focusRing-offset);\n  }\n}\n`;\n\nexport function ChipFilter(): JSX.Element {\n  const [pressed, setPressed] = useState<FilterLabel>('All');\n\n  return (\n    <>\n      <style>{chipStyles}</style>\n      <div className=\"chip-bar\" role=\"group\" aria-label=\"Filter\">\n        {FILTERS.map((label) => (\n          <button\n            key={label}\n            type=\"button\"\n            className=\"chip\"\n            aria-pressed={pressed === label}\n            onClick={() => setPressed(label)}\n          >\n            {label}\n          </button>\n        ))}\n      </div>\n    </>\n  );\n}\n"
+    }
+  }
+}

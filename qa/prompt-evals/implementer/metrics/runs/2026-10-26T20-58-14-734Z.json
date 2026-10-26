@@ -1,0 +1,61 @@
+{
+  "score": 1,
+  "total": 1,
+  "pass_rate": 100,
+  "metrics": {
+    "output_compliance": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "task_accuracy": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "by_rule": {
+    "[ctrl]": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "cases": [
+    {
+      "id": "VFT-C1",
+      "rule": "[ctrl]",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "CSS must be wrapped in @layer components"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must use --shelf-* tokens"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 62758
+    }
+  ],
+  "controls": {
+    "pass": 1,
+    "total": 1
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-26T20:58:14.734Z",
+  "run_id": "run-1793048294735",
+  "artifacts": {
+    "VFT-C1": {
+      "prompt_excerpt": "Write a StatusBadge component and its CSS. It shows a colored pill with text. Use @layer components for the CSS. Use only var(--shelf-*) tokens for all visual values — colors, spacing, border-radius, font-size. Include the CSS file.",
+      "output": "No `package.json` or test infrastructure exists in this directory — it's a source-only workspace. The task asked specifically to **write the file `src/components/StatusBadge/StatusBadge.css`**, which is now created along with all supporting source files.\n\nFiles written:\n- `src/styles/tokens.css` — all `--shelf-*` tokens with `:root`, `[data-theme=\"dark\"]`, and `@media (prefers-color-scheme: dark)` blocks\n- `src/styles/layers.css` — layer order declaration\n- `src/components/StatusBadge/StatusBadge.css` — `@layer components` pill badge using only `var(--shelf-status-badge-*)` tokens\n- `src/components/StatusBadge/StatusBadge.tsx` — `StatusBadge` component\n- `src/components/BookCard/BookCard.css` — `@layer components` card layout using only `var(--shelf-book-card-*)` tokens\n- `src/components/BookCard/BookCard.tsx` — `BookCard` renders title (`<h2>`), author (`<p>`), and `<StatusBadge>`\n\n<promise>COMPLETE</promise>",
+      "code": "@layer components {\n  .status-badge {\n    display: inline-flex;\n    align-items: center;\n    padding-block: var(--shelf-status-badge-padding-block);\n    padding-inline: var(--shelf-status-badge-padding-inline);\n    border-radius: var(--shelf-status-badge-radius);\n    font-size: var(--shelf-status-badge-font-size);\n    font-weight: 500;\n    background-color: var(--shelf-status-badge-bgColor-default);\n    color: var(--shelf-status-badge-fgColor-default);\n  }\n\n  .status-badge[data-status=\"reading\"] {\n    background-color: var(--shelf-status-badge-bgColor-reading);\n    color: var(--shelf-status-badge-fgColor-reading);\n  }\n\n  .status-badge[data-status=\"read\"] {\n    background-color: var(--shelf-status-badge-bgColor-read);\n    color: var(--shelf-status-badge-fgColor-read);\n  }\n\n  .status-badge[data-status=\"to-read\"] {\n    background-color: var(--shelf-status-badge-bgColor-to-read);\n    color: var(--shelf-status-badge-fgColor-to-read);\n  }\n}\n"
+    }
+  }
+}

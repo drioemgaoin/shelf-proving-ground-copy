@@ -60,6 +60,16 @@ For each component with enter and exit animations (e.g., drawer slide-in/out, di
 
 ---
 
+## a11y-css-pattern-completeness
+**Source:** Accessibility floor (WCAG 2.2 AA)
+**Rule:** Accessibility CSS patterns have well-known complete forms. A partial implementation creates a silent failure — the element looks correct in code but breaks the accessibility contract at runtime. Always implement the full pattern; when tokens exist for the pattern, use them.
+
+Check every CSS rule block that implements an accessibility pattern (sr-only, visually-hidden, skip-link). The selector name or component context identifies these — look for class names containing live, sr-only, visually-hidden. For sr-only: all six properties are required — position: absolute, overflow: hidden, width/inline-size: 1px, height/block-size: 1px, clip-path: inset(50%), white-space: nowrap. A violation is any a11y CSS pattern missing required properties — incomplete patterns compile and pass tests but silently break the accessibility contract. Correct: every property the pattern requires is present, using tokens where they exist.
+
+**Triage hint:** Flag when: position: absolute paired with overflow: hidden, class name contains live or sr-only or visually-hidden, element serves aria-live
+
+---
+
 ### Monitoring Report (REQUIRED)
 
 After evaluating all rules above, you MUST emit a structured report block at the end of your output. This block is parsed by the monitoring system to track rule effectiveness.

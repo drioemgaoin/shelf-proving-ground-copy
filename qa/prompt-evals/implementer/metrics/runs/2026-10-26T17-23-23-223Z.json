@@ -1,0 +1,79 @@
+{
+  "score": 0,
+  "total": 1,
+  "pass_rate": 0,
+  "metrics": {
+    "constraint_adherence": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "output_compliance": {
+      "pass": 0,
+      "total": 1,
+      "rate": 0
+    }
+  },
+  "by_rule": {
+    "comment-clarity": {
+      "pass": 0,
+      "total": 1,
+      "rate": 0
+    }
+  },
+  "cases": [
+    {
+      "id": "CC-03",
+      "rule": "comment-clarity",
+      "pass": false,
+      "checkResults": [
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No multi-line // comment blocks — one line maximum"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No JSDoc blocks on internal code"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No verbose null-state explanation — if any comment, max: // null = loading; array = loaded"
+        },
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Must use useState"
+        },
+        {
+          "metric": "output_compliance",
+          "pass": false,
+          "detail": "Pattern not found: export",
+          "description": "Must export the component"
+        }
+      ],
+      "detail": "Pattern not found: export",
+      "duration_ms": 316870
+    }
+  ],
+  "controls": {
+    "pass": 0,
+    "total": 0
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-26T17:23:23.223Z",
+  "run_id": "run-1793035403224",
+  "artifacts": {
+    "CC-03": {
+      "prompt_excerpt": "Write a TaskBoard component in a single file. It uses useState<Task[] | null>(null) where null = loading. It fetches tasks via an async getTasks() call in useEffect, handles errors by setting an empty array, and shows: skeletons when null, an empty state when array is empty, the task list when populated.\n\nThe component is complex: it has a header with a count badge, a filter bar (stub — just the container div), and the main list area with three states. Export the component. Do NOT use tools — ou",
+      "output": "All files are in place. Summary of what was built:\n\n- **`src/types.ts`** — `Task` interface with `id`, `title`, `status`\n- **`src/api.ts`** — `getTasks()` adapter isolating all I/O from components\n- **`src/styles/layers.css`** — layer order declaration (`@layer base, tokens, components`)\n- **`src/styles/tokens.css`** — full primitive/semantic/component token definitions in light + dark (explicit `[data-theme=\"dark\"]` + `@media prefers-color-scheme: dark`)\n- **`src/components/TaskBoard/TaskBoard.css`** — component-tier token aliases only; `@keyframes` inside `@layer components`; no margin; `@media (prefers-reduced-motion)` inside the layer\n- **`src/components/TaskBoard/TaskBoard.tsx`** — `useState<Task[] | null>(null)` with `useEffect` fetch; loading renders 3 `<li>` skeletons (same element as real cards, no `aria-hidden`); empty renders a status paragraph; populated renders task list; header with count badge (hidden during loading); filter bar stub\n\n<promise>COMPLETE</promise>",
+      "code": "All files are in place. Summary of what was built:\n\n- **`src/types.ts`** — `Task` interface with `id`, `title`, `status`\n- **`src/api.ts`** — `getTasks()` adapter isolating all I/O from components\n- **`src/styles/layers.css`** — layer order declaration (`@layer base, tokens, components`)\n- **`src/styles/tokens.css`** — full primitive/semantic/component token definitions in light + dark (explicit `[data-theme=\"dark\"]` + `@media prefers-color-scheme: dark`)\n- **`src/components/TaskBoard/TaskBoard.css`** — component-tier token aliases only; `@keyframes` inside `@layer components`; no margin; `@media (prefers-reduced-motion)` inside the layer\n- **`src/components/TaskBoard/TaskBoard.tsx`** — `useState<Task[] | null>(null)` with `useEffect` fetch; loading renders 3 `<li>` skeletons (same element as real cards, no `aria-hidden`); empty renders a status paragraph; populated renders task list; header with count badge (hidden during loading); filter bar stub\n\n<promise>COMPLETE</promise>"
+    }
+  }
+}

@@ -1,0 +1,79 @@
+{
+  "score": 1,
+  "total": 1,
+  "pass_rate": 100,
+  "metrics": {
+    "constraint_adherence": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "output_compliance": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "by_rule": {
+    "comment-clarity": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "cases": [
+    {
+      "id": "CC-02",
+      "rule": "comment-clarity",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No ticket references or delivery plan language in code"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No JSDoc blocks on internal code"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No multi-line // comment blocks"
+        },
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Must use aria-pressed on chips"
+        },
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Must export the component"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 71730
+    }
+  ],
+  "controls": {
+    "pass": 0,
+    "total": 0
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-26T17:26:08.572Z",
+  "run_id": "run-1793035568573",
+  "artifacts": {
+    "CC-02": {
+      "prompt_excerpt": "Write a ChipFilter component and its CSS in a single TSX file. It renders four filter chip buttons ('All', 'Active', 'Archived', 'Starred'). Each chip is a button with aria-pressed. On load 'All' is pressed.\n\nThe spec says: In this ticket, clicking a chip updates ONLY the chip bar's visual pressed state. The actual list filtering is wired by the consumer and ships in ticket djk.2. Keyboard navigation (arrow keys between chips) ships in a later ticket.\n\nInclude both component code and a @layer co",
+      "output": "The workspace is empty — no `src/`, no `package.json`, no test infrastructure exists. The final instruction in the task says to output code in a single code fence without tools. Here is the implementation:\n\n```tsx\n// src/components/ChipFilter/ChipFilter.tsx\nimport { useState } from 'react';\n\ntype ChipLabel = 'All' | 'Active' | 'Archived' | 'Starred';\n\nconst CHIPS: readonly ChipLabel[] = ['All', 'Active', 'Archived', 'Starred'];\n\nconst CHIP_STYLES = `\n  @layer components {\n    :root {\n      --shelf-chip-bgColor-bar: transparent;\n      --shelf-chip-bgColor-idle: var(--shelf-bgColor-surface, #f3f4f6);\n      --shelf-chip-bgColor-hover: var(--shelf-bgColor-surface-hover, #e5e7eb);\n      --shelf-chip-bgColor-pressed: var(--shelf-bgColor-accent, #1d4ed8);\n      --shelf-chip-fgColor-idle: var(--shelf-fgColor-default, #111827);\n      --shelf-chip-fgColor-hover: var(--shelf-fgColor-default, #111827);\n      --shelf-chip-fgColor-pressed: var(--shelf-fgColor-onAccent, #ffffff);\n      --shelf-chip-borderColor-idle: var(--shelf-borderColor-default, #d1d5db);\n      --shelf-chip-borderColor-hover: var(--shelf-borderColor-strong, #9ca3af);\n      --shelf-chip-borderColor-pressed: var(--shelf-borderColor-accent, #1d4ed8);\n      --shelf-chip-gap: 0.5rem;\n      --shelf-chip-bar-padding: 0;\n      --shelf-chip-border-radius: 9999px;\n      --shelf-chip-padding-block: 0.375rem;\n      --shelf-chip-padding-inline: 0.875rem;\n      --shelf-motion-duration-fast: 120ms;\n      --shelf-motion-easing-standard: ease;\n    }\n\n    [data-theme=\"dark\"],\n    @media (prefers-color-scheme: dark) {\n      :root {\n        --shelf-chip-bgColor-bar: transparent;\n        --shelf-chip-bgColor-idle: var(--shelf-bgColor-surface, #1f2937);\n        --shelf-chip-bgColor-hover: var(--shelf-bgColor-surface-hover, #374151);\n        --shelf-chip-bgColor-pressed: var(--shelf-bgColor-accent, #2563eb);\n        --shelf-chip-fgColor-idle: var(--shelf-fgColor-default, #f9fafb);\n        --shelf-chip-fgColor-hover: var(--shelf-fgColor-default, #f9fafb);\n        --shelf-chip-fgColor-pressed: var(--shelf-fgColor-onAccent, #ffffff);\n        --shelf-chip-borderColor-idle: var(--shelf-borderColor-default, #4b5563);\n        --shelf-chip-borderColor-hover: var(--shelf-borderColor-strong, #6b7280);\n        --shelf-chip-borderColor-pressed: var(--shelf-borderColor-accent, #2563eb);\n      }\n    }\n\n    .chip-filter {\n      display: flex;\n      gap: var(--shelf-chip-gap);\n      padding: var(--shelf-chip-bar-padding);\n      background-color: var(--shelf-chip-bgColor-bar);\n    }\n\n    .chip-button {\n      appearance: none;\n      background-color: var(--shelf-chip-bgColor-idle);\n      color: var(--shelf-chip-fgColor-idle);\n      border: 1px solid var(--shelf-chip-borderColor-idle);\n      border-radius: var(--shelf-chip-border-radius);\n      padding: var(--shelf-chip-padding-block) var(--shelf-chip-padding-inline);\n      cursor: pointer;\n      font: inherit;\n      transition-property: background-color, color, border-color;\n      transition-duration: var(--shelf-motion-duration-fast);\n      transition-timing-function: var(--shelf-motion-easing-standard);\n    }\n\n    .chip-button[aria-pressed=\"true\"] {\n      background-color: var(--shelf-chip-bgColor-pressed);\n      color: var(--shelf-chip-fgColor-pressed);\n      border-color: var(--shelf-chip-borderColor-pressed);\n    }\n\n    .chip-button:hover:not([aria-pressed=\"true\"]) {\n      background-color: var(--shelf-chip-bgColor-hover);\n      color: var(--shelf-chip-fgColor-hover);\n      border-color: var(--shelf-chip-borderColor-hover);\n    }\n  }\n`;\n\nexport function ChipFilter(): JSX.Element {\n  const [active, setActive] = useState<ChipLabel>('All');\n\n  return (\n    <>\n      <style>{CHIP_STYLES}</style>\n      <div className=\"chip-filter\" role=\"group\" aria-label=\"Filter chips\">\n        {CHIPS.map((label) => (\n          <button\n            key={label}\n            type=\"button\"\n            className=\"chip-button\"\n            aria-pressed={active === label}\n            onClick={() => setActive(label)}\n          >\n            {label}\n          </button>\n        ))}\n      </div>\n    </>\n  );\n}\n```\n\n<promise>COMPLETE</promise>",
+      "code": "The workspace is empty — no `src/`, no `package.json`, no test infrastructure exists. The final instruction in the task says to output code in a single code fence without tools. Here is the implementation:\n\n```tsx\n// src/components/ChipFilter/ChipFilter.tsx\nimport { useState } from 'react';\n\ntype ChipLabel = 'All' | 'Active' | 'Archived' | 'Starred';\n\nconst CHIPS: readonly ChipLabel[] = ['All', 'Active', 'Archived', 'Starred'];\n\nconst CHIP_STYLES = `\n  @layer components {\n    :root {\n      --shelf-chip-bgColor-bar: transparent;\n      --shelf-chip-bgColor-idle: var(--shelf-bgColor-surface, #f3f4f6);\n      --shelf-chip-bgColor-hover: var(--shelf-bgColor-surface-hover, #e5e7eb);\n      --shelf-chip-bgColor-pressed: var(--shelf-bgColor-accent, #1d4ed8);\n      --shelf-chip-fgColor-idle: var(--shelf-fgColor-default, #111827);\n      --shelf-chip-fgColor-hover: var(--shelf-fgColor-default, #111827);\n      --shelf-chip-fgColor-pressed: var(--shelf-fgColor-onAccent, #ffffff);\n      --shelf-chip-borderColor-idle: var(--shelf-borderColor-default, #d1d5db);\n      --shelf-chip-borderColor-hover: var(--shelf-borderColor-strong, #9ca3af);\n      --shelf-chip-borderColor-pressed: var(--shelf-borderColor-accent, #1d4ed8);\n      --shelf-chip-gap: 0.5rem;\n      --shelf-chip-bar-padding: 0;\n      --shelf-chip-border-radius: 9999px;\n      --shelf-chip-padding-block: 0.375rem;\n      --shelf-chip-padding-inline: 0.875rem;\n      --shelf-motion-duration-fast: 120ms;\n      --shelf-motion-easing-standard: ease;\n    }\n\n    [data-theme=\"dark\"],\n    @media (prefers-color-scheme: dark) {\n      :root {\n        --shelf-chip-bgColor-bar: transparent;\n        --shelf-chip-bgColor-idle: var(--shelf-bgColor-surface, #1f2937);\n        --shelf-chip-bgColor-hover: var(--shelf-bgColor-surface-hover, #374151);\n        --shelf-chip-bgColor-pressed: var(--shelf-bgColor-accent, #2563eb);\n        --shelf-chip-fgColor-idle: var(--shelf-fgColor-default, #f9fafb);\n        --shelf-chip-fgColor-hover: var(--shelf-fgColor-default, #f9fafb);\n        --shelf-chip-fgColor-pressed: var(--shelf-fgColor-onAccent, #ffffff);\n        --shelf-chip-borderColor-idle: var(--shelf-borderColor-default, #4b5563);\n        --shelf-chip-borderColor-hover: var(--shelf-borderColor-strong, #6b7280);\n        --shelf-chip-borderColor-pressed: var(--shelf-borderColor-accent, #2563eb);\n      }\n    }\n\n    .chip-filter {\n      display: flex;\n      gap: var(--shelf-chip-gap);\n      padding: var(--shelf-chip-bar-padding);\n      background-color: var(--shelf-chip-bgColor-bar);\n    }\n\n    .chip-button {\n      appearance: none;\n      background-color: var(--shelf-chip-bgColor-idle);\n      color: var(--shelf-chip-fgColor-idle);\n      border: 1px solid var(--shelf-chip-borderColor-idle);\n      border-radius: var(--shelf-chip-border-radius);\n      padding: var(--shelf-chip-padding-block) var(--shelf-chip-padding-inline);\n      cursor: pointer;\n      font: inherit;\n      transition-property: background-color, color, border-color;\n      transition-duration: var(--shelf-motion-duration-fast);\n      transition-timing-function: var(--shelf-motion-easing-standard);\n    }\n\n    .chip-button[aria-pressed=\"true\"] {\n      background-color: var(--shelf-chip-bgColor-pressed);\n      color: var(--shelf-chip-fgColor-pressed);\n      border-color: var(--shelf-chip-borderColor-pressed);\n    }\n\n    .chip-button:hover:not([aria-pressed=\"true\"]) {\n      background-color: var(--shelf-chip-bgColor-hover);\n      color: var(--shelf-chip-fgColor-hover);\n      border-color: var(--shelf-chip-borderColor-hover);\n    }\n  }\n`;\n\nexport function ChipFilter(): JSX.Element {\n  const [active, setActive] = useState<ChipLabel>('All');\n\n  return (\n    <>\n      <style>{CHIP_STYLES}</style>\n      <div className=\"chip-filter\" role=\"group\" aria-label=\"Filter chips\">\n        {CHIPS.map((label) => (\n          <button\n            key={label}\n            type=\"button\"\n            className=\"chip-button\"\n            aria-pressed={active === label}\n            onClick={() => setActive(label)}\n          >\n            {label}\n          </button>\n        ))}\n      </div>\n    </>\n  );\n}\n```\n\n<promise>COMPLETE</promise>"
+    }
+  }
+}

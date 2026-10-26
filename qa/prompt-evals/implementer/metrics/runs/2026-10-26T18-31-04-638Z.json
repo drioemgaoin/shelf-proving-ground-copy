@@ -1,0 +1,84 @@
+{
+  "score": 0,
+  "total": 1,
+  "pass_rate": 0,
+  "metrics": {
+    "constraint_adherence": {
+      "pass": 0,
+      "total": 1,
+      "rate": 0
+    },
+    "output_compliance": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "task_accuracy": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "by_rule": {
+    "no-outer-margin": {
+      "pass": 0,
+      "total": 1,
+      "rate": 0
+    }
+  },
+  "cases": [
+    {
+      "id": "NOM-01",
+      "rule": "no-outer-margin",
+      "pass": false,
+      "checkResults": [
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No margin-inline: auto — centering is the parent's job, not the child's"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No margin: 0 resets in component CSS — element resets belong in @layer base"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": false,
+          "detail": "Found at offset 1774: padding: 0",
+          "description": "No padding: 0 list resets in component CSS — element resets belong in @layer base"
+        },
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "CSS must be wrapped in @layer components"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must set a max-width on the content wrapper"
+        }
+      ],
+      "detail": "Found at offset 1774: padding: 0",
+      "duration_ms": 58213
+    }
+  ],
+  "controls": {
+    "pass": 0,
+    "total": 0
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-26T18:31:04.638Z",
+  "run_id": "run-1793039464639",
+  "artifacts": {
+    "NOM-01": {
+      "prompt_excerpt": "Write a FeedPage component and its CSS. It renders a content wrapper (max-width 960px) containing a heading, a <ul role=\"list\"> of <li> FeedItem cards, and each card has a <p> for title and a <p> for description. The parent layout handles centering — the wrapper only sets its own max-width. Use @layer components for the CSS. Use tokens for all styling (assume --shelf-* tokens exist). Include the CSS file.",
+      "output": "`src/components/FeedPage/FeedPage.css` is written. Key decisions:\n\n- `@layer components` wraps all rules per constraint\n- Component-tier token aliases (`--shelf-feed-page-*`) defined in `:root`, `[data-theme=\"dark\"]`, and `@media (prefers-color-scheme: dark)` — all three dark-mode blocks as required\n- All visual values reference `--shelf-*` tokens — no raw hex/px/rem\n- No `margin` on any component rule; `gap` handles spacing between list items\n- `.feed-page` sets only `max-width` (parent owns centering per constraint)\n- `list-style: none; padding: 0` on the list resets UA defaults inline since there's no `@layer base` defined here\n- All class names use kebab-case\n\n<promise>COMPLETE</promise>",
+      "code": "@layer components {\n  /* Component-tier color token aliases */\n  :root {\n    --shelf-feed-page-bgColor-surface: var(--shelf-bgColor-surface);\n    --shelf-feed-page-fgColor-heading: var(--shelf-fgColor-default);\n    --shelf-feed-page-fgColor-title: var(--shelf-fgColor-default);\n    --shelf-feed-page-fgColor-description: var(--shelf-fgColor-muted);\n    --shelf-feed-page-bgColor-card: var(--shelf-bgColor-elevated);\n    --shelf-feed-page-borderColor-card: var(--shelf-borderColor-default);\n  }\n\n  [data-theme=\"dark\"] {\n    --shelf-feed-page-bgColor-surface: var(--shelf-bgColor-surface);\n    --shelf-feed-page-fgColor-heading: var(--shelf-fgColor-default);\n    --shelf-feed-page-fgColor-title: var(--shelf-fgColor-default);\n    --shelf-feed-page-fgColor-description: var(--shelf-fgColor-muted);\n    --shelf-feed-page-bgColor-card: var(--shelf-bgColor-elevated);\n    --shelf-feed-page-borderColor-card: var(--shelf-borderColor-default);\n  }\n\n  @media (prefers-color-scheme: dark) {\n    :root {\n      --shelf-feed-page-bgColor-surface: var(--shelf-bgColor-surface);\n      --shelf-feed-page-fgColor-heading: var(--shelf-fgColor-default);\n      --shelf-feed-page-fgColor-title: var(--shelf-fgColor-default);\n      --shelf-feed-page-fgColor-description: var(--shelf-fgColor-muted);\n      --shelf-feed-page-bgColor-card: var(--shelf-bgColor-elevated);\n      --shelf-feed-page-borderColor-card: var(--shelf-borderColor-default);\n    }\n  }\n\n  .feed-page {\n    max-width: var(--shelf-size-content-max);\n    background-color: var(--shelf-feed-page-bgColor-surface);\n  }\n\n  .feed-page-heading {\n    color: var(--shelf-feed-page-fgColor-heading);\n    font-size: var(--shelf-fontSize-xl);\n    font-weight: var(--shelf-fontWeight-bold);\n  }\n\n  .feed-item-list {\n    list-style: none;\n    padding: 0;\n    display: flex;\n    flex-direction: column;\n    gap: var(--shelf-space-md);\n  }\n\n  .feed-item {\n    background-color: var(--shelf-feed-page-bgColor-card);\n    border: var(--shelf-borderWidth-default) solid var(--shelf-feed-page-borderColor-card);\n    border-radius: var(--shelf-borderRadius-md);\n    padding: var(--shelf-space-md);\n  }\n\n  .feed-item-title {\n    color: var(--shelf-feed-page-fgColor-title);\n    font-size: var(--shelf-fontSize-md);\n    font-weight: var(--shelf-fontWeight-semibold);\n  }\n\n  .feed-item-description {\n    color: var(--shelf-feed-page-fgColor-description);\n    font-size: var(--shelf-fontSize-sm);\n  }\n}\n"
+    }
+  }
+}

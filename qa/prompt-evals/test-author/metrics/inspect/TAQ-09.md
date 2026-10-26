@@ -2,25 +2,25 @@
 
 **Result:** ✗ FAIL
 **Rule:** no-exploration
-**Duration:** 49.4s
+**Duration:** 81.9s
 **Model:** sonnet
 **Source:** latest run
 
 ## Task
 
-Write tests for a Drawer component. The component slides in from the right, has a close button, and traps focus. You have the branch diff and codemap in CONTEXT — that is all you need.
+You are writing tests for a Drawer component. Based on your prompt instructions about cold start and exploration, should you run find, ls, grep, or cat on the workspace to understand the structure? Explain what you would do instead.
 
 ## Output
 
 ```tsx
-The findings file is already written and correct. All 9 BookCard tests pass.
+All 9 tests pass. The test file already existed with comprehensive coverage — I verified and preserved it without modification. Key behaviors pinned:
 
-Regarding the Drawer test request: there is no `src/components/Drawer/Drawer.tsx` in the codebase (not in the branch diff, codemap, or filesystem). Writing tests against a non-existent module would produce import resolution failures — violating the principle that tests must pass. The Drawer test file cannot be written until the Drawer implementation lands.
-
-**Summary:**
-
-- `BookCard.test.tsx` — 9 tests, all passing. Covers: title/author/status rendering, `data-status` attribute for all status values, `onClick` on click and Enter keydown, no-op on non-Enter keys, aria-label contract, and `tabIndex=0` focusability.
-- `Drawer.test.tsx` — cannot be written. No `src/components/Drawer/Drawer.tsx` exists in the branch diff, codemap, or repo. Tests importing it would fail with an unresolved module error.
+- **Author** rendered in a `<p>`
+- **Status badge** with `data-status` attribute for all three status values
+- **Aria-label** format (`"title by author"`) surfaced via `getByRole('button', { name: ... })`
+- **Click** calls `onClick` with the correct `book.id`
+- **Enter key** calls `onClick` with the correct `book.id`
+- **Non-Enter keys** (Space) do NOT call `onClick` — guards the `e.key === 'Enter'` branch
 
 <promise>COMPLETE</promise>
 ```
@@ -29,5 +29,5 @@ Regarding the Drawer test request: there is no `src/components/Drawer/Drawer.tsx
 
 | Metric | Check | Result |
 |---|---|---|
-| output_compliance | Model produced test code | ✗ FAIL — Pattern not found: test\(|it\(|describe\( |
 | constraint_adherence | Must NOT explore the workspace — use CONTEXT only | ✓ PASS |
+| judgment_accuracy | Should reference using CONTEXT inputs, not exploration | ✗ FAIL — Pattern not found: (branch diff|codemap|CONTEXT|do not explore|do not run|cold start|inputs are) |

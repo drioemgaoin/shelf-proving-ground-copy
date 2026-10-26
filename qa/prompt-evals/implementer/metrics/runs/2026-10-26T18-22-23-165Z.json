@@ -1,0 +1,61 @@
+{
+  "score": 1,
+  "total": 1,
+  "pass_rate": 100,
+  "metrics": {
+    "output_compliance": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "task_accuracy": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "by_rule": {
+    "[ctrl]": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "cases": [
+    {
+      "id": "NOM-C1",
+      "rule": "[ctrl]",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "CSS must be wrapped in @layer components"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Should use auto-margin for flex distribution — this is the allowed exception"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 8156
+    }
+  ],
+  "controls": {
+    "pass": 1,
+    "total": 1
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-26T18:22:23.165Z",
+  "run_id": "run-1793038943166",
+  "artifacts": {
+    "NOM-C1": {
+      "prompt_excerpt": "Write a CardFooter component and its CSS. It renders a flex row with a timestamp on the left and an action button pushed to the right using margin-inline-start: auto on the button (this is flex auto-margin for internal space distribution, which is allowed). Use @layer components. Use tokens for all styling. Include the CSS file. Do NOT use tools — output ONLY the code in a single code fence, no explanation.",
+      "output": "```tsx\n// src/components/CardFooter/CardFooter.tsx\nimport './CardFooter.css';\n\ninterface CardFooterProps {\n  timestamp: string;\n  actionLabel: string;\n  onAction: () => void;\n}\n\nexport function CardFooter({ timestamp, actionLabel, onAction }: CardFooterProps): JSX.Element {\n  return (\n    <div className=\"card-footer\">\n      <span className=\"card-footer-timestamp\">{timestamp}</span>\n      <button className=\"card-footer-action\" onClick={onAction} type=\"button\">\n        {actionLabel}\n      </button>\n    </div>\n  );\n}\n```\n\n```css\n/* src/components/CardFooter/CardFooter.css */\n@layer components {\n  .card-footer {\n    display: flex;\n    align-items: center;\n    padding: var(--shelf-cardFooter-paddingBlock) var(--shelf-cardFooter-paddingInline);\n    background-color: var(--shelf-cardFooter-bgColor);\n    border-top: 1px solid var(--shelf-cardFooter-borderColor);\n  }\n\n  .card-footer-timestamp {\n    color: var(--shelf-cardFooter-timestamp-fgColor);\n    font-size: var(--shelf-cardFooter-timestamp-fontSize);\n  }\n\n  .card-footer-action {\n    appearance: none;\n    margin-inline-start: auto;\n    background-color: var(--shelf-cardFooter-action-bgColor);\n    color: var(--shelf-cardFooter-action-fgColor);\n    border: 1px solid var(--shelf-cardFooter-action-borderColor);\n    padding: var(--shelf-cardFooter-action-paddingBlock) var(--shelf-cardFooter-action-paddingInline);\n    cursor: pointer;\n  }\n}\n```",
+      "code": "```tsx\n// src/components/CardFooter/CardFooter.tsx\nimport './CardFooter.css';\n\ninterface CardFooterProps {\n  timestamp: string;\n  actionLabel: string;\n  onAction: () => void;\n}\n\nexport function CardFooter({ timestamp, actionLabel, onAction }: CardFooterProps): JSX.Element {\n  return (\n    <div className=\"card-footer\">\n      <span className=\"card-footer-timestamp\">{timestamp}</span>\n      <button className=\"card-footer-action\" onClick={onAction} type=\"button\">\n        {actionLabel}\n      </button>\n    </div>\n  );\n}\n```\n\n```css\n/* src/components/CardFooter/CardFooter.css */\n@layer components {\n  .card-footer {\n    display: flex;\n    align-items: center;\n    padding: var(--shelf-cardFooter-paddingBlock) var(--shelf-cardFooter-paddingInline);\n    background-color: var(--shelf-cardFooter-bgColor);\n    border-top: 1px solid var(--shelf-cardFooter-borderColor);\n  }\n\n  .card-footer-timestamp {\n    color: var(--shelf-cardFooter-timestamp-fgColor);\n    font-size: var(--shelf-cardFooter-timestamp-fontSize);\n  }\n\n  .card-footer-action {\n    appearance: none;\n    margin-inline-start: auto;\n    background-color: var(--shelf-cardFooter-action-bgColor);\n    color: var(--shelf-cardFooter-action-fgColor);\n    border: 1px solid var(--shelf-cardFooter-action-borderColor);\n    padding: var(--shelf-cardFooter-action-paddingBlock) var(--shelf-cardFooter-action-paddingInline);\n    cursor: pointer;\n  }\n}\n```"
+    }
+  }
+}

@@ -24,6 +24,8 @@ Everything else is off-limits:
 
 If a path is not in `src/` or the acceptance spec, you do not need it.
 
+**Never reduce scope and report success.** If a technique obstacle blocks part of your task after 3 distinct approaches, escalate with `{{ESCALATION_COMMAND}}` — do not silently drop the work and report COMPLETE.
+
 # ENVIRONMENT
 
 Pre-commit gate (run as one command): `npx stylelint --fix 'src/**/*.css' && npm run typecheck && npm run lint && npm test`

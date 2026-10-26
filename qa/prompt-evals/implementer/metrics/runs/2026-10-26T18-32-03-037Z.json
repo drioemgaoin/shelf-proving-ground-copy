@@ -1,0 +1,84 @@
+{
+  "score": 1,
+  "total": 1,
+  "pass_rate": 100,
+  "metrics": {
+    "constraint_adherence": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "output_compliance": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "task_accuracy": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "by_rule": {
+    "no-outer-margin": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "cases": [
+    {
+      "id": "NOM-01",
+      "rule": "no-outer-margin",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No margin-inline: auto — centering is the parent's job, not the child's"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No margin: 0 resets in component CSS — element resets belong in @layer base"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No padding: 0 list resets in component CSS — element resets belong in @layer base"
+        },
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "CSS must be wrapped in @layer components"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must set a max-width on the content wrapper"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 58187
+    }
+  ],
+  "controls": {
+    "pass": 0,
+    "total": 0
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-26T18:32:03.037Z",
+  "run_id": "run-1793039523038",
+  "artifacts": {
+    "NOM-01": {
+      "prompt_excerpt": "Write a FeedPage component and its CSS. It renders a content wrapper (max-width 960px) containing a heading, a <ul role=\"list\"> of <li> FeedItem cards, and each card has a <p> for title and a <p> for description. The parent layout handles centering — the wrapper only sets its own max-width. Use @layer components for the CSS. Use tokens for all styling (assume --shelf-* tokens exist). Include the CSS file.",
+      "output": "`src/components/FeedPage/FeedPage.css` written with `@layer components`, all values referencing `--shelf-feedpage-*` component tokens (no raw sizes, hex, or color keywords).\n\n<promise>COMPLETE</promise>",
+      "code": "@layer components {\n  .feed-page {\n    max-width: var(--shelf-feedpage-maxWidth);\n  }\n\n  .feed-page-heading {\n    color: var(--shelf-feedpage-fgColor-heading);\n    font-size: var(--shelf-feedpage-fontSize-heading);\n  }\n\n  .feed-page-list {\n    display: flex;\n    flex-direction: column;\n    gap: var(--shelf-feedpage-space-gap);\n    list-style: none;\n  }\n\n  .feed-item {\n    background-color: var(--shelf-feedpage-bgColor-card);\n    border-color: var(--shelf-feedpage-borderColor-card);\n    border-style: solid;\n    border-width: var(--shelf-feedpage-borderWidth-card);\n    border-radius: var(--shelf-feedpage-radius-card);\n    padding: var(--shelf-feedpage-space-padding);\n  }\n\n  .feed-item-title {\n    color: var(--shelf-feedpage-fgColor-title);\n    font-size: var(--shelf-feedpage-fontSize-title);\n  }\n\n  .feed-item-description {\n    color: var(--shelf-feedpage-fgColor-description);\n    font-size: var(--shelf-feedpage-fontSize-description);\n  }\n}\n"
+    }
+  }
+}

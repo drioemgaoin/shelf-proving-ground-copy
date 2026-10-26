@@ -16,7 +16,23 @@ import {
   setPhase,
   findingsOverlap,
 } from "./qa-gates.mjs";
-import { recordViolation } from "./violations-memory.mjs";
+import { recordViolation, loadViolationsMemory } from "./violations-memory.mjs";
+
+// ---------------------------------------------------------------------------
+// Helpers — extract ruleIds from a findings file for filtered violations memory
+// ---------------------------------------------------------------------------
+
+function extractRuleIdsFromFindings(findingsContent: string): string[] {
+  const ruleIds = new Set<string>();
+  // Match Cause: [path > section > rule-id] or [rule-id]
+  const causeRe = /Cause:\s*\[([^\]]+)\]/g;
+  let m;
+  while ((m = causeRe.exec(findingsContent)) !== null) {
+    const ruleId = m[1].split(">").pop()?.trim() ?? m[1].trim();
+    ruleIds.add(ruleId);
+  }
+  return [...ruleIds];
+}
 
 // ---------------------------------------------------------------------------
 // Visual QA gate
@@ -51,12 +67,22 @@ export function createVisualGate(
 
     buildFixerArgs: (round, ctx) => {
       const { constraints } = buildConstraints(process.cwd());
+      // Filter violations memory to ruleIds in current findings
+      let violationsMemory = "";
+      try {
+        const findingsPath = `${ctx.worktree}/.qa/visual-r${round}.md`;
+        if (existsSync(findingsPath)) {
+          const ruleIds = extractRuleIdsFromFindings(readFileSync(findingsPath, "utf8"));
+          violationsMemory = ruleIds.length > 0 ? loadViolationsMemory(ruleIds) : "";
+        }
+      } catch { /* best-effort */ }
       return {
         BRANCH: branch,
         TASK_ID: issueId,
         FINDINGS_FILE: `.qa/visual-r${round}.md`,
         VERIFY_COMMAND: `npm run ui:qa -- --grep "@visual.*@${escapedId}"`,
         CONSTRAINTS: constraints,
+        VIOLATIONS_MEMORY: violationsMemory,
       };
     },
 
@@ -68,6 +94,35 @@ export function createVisualGate(
     beforeFix: (round, ctx) => {
       archiveTestResults(ctx.worktree, `visual-fixer-r${round}`);
       setPhase(ctx.worktree, "fix");
+    },
+
+    afterFix: (round, ctx) => {
+      // Persist visual-qa violations to rolling memory.
+      try {
+        const findingsPath = `${ctx.worktree}/.qa/visual-r${round}.md`;
+        if (existsSync(findingsPath)) {
+          const findings = readFileSync(findingsPath, "utf8");
+          // Parse "Fix now:" entries with Direction field
+          const entryRe = /^- (\S+?):(\d+)\s+`([^`]*)`\n\s+.*\n\s+.*\n\s+.*\n\s+.*\n\s+Cause:\s+\[([^\]]+)\]\s+(.*)\n\s+Direction:\s+(.*)\n\s+Fix:\s+(.*)/gm;
+          let m;
+          while ((m = entryRe.exec(findings)) !== null) {
+            const [, file, , , ruleRef, , direction, fix] = m;
+            const ruleId = ruleRef.split(">").pop()?.trim() ?? ruleRef;
+            recordViolation({
+              ts: new Date().toISOString(),
+              issueId,
+              ruleId,
+              file,
+              wrote: "",
+              fix: fix.trim().slice(0, 120),
+              gate: "visual-qa",
+              direction: direction.trim(),
+            });
+          }
+        }
+      } catch {
+        // Violations memory is best-effort — never breaks the gate.
+      }
     },
   };
 }
@@ -136,6 +191,15 @@ export function createReviewGate(
 
     buildFixerArgs: (round, ctx) => {
       const { constraints } = buildConstraints(process.cwd());
+      // Filter violations memory to ruleIds in current findings
+      let violationsMemory = "";
+      try {
+        const findingsPath = `${ctx.worktree}/.qa/review-r${round}.md`;
+        if (existsSync(findingsPath)) {
+          const ruleIds = extractRuleIdsFromFindings(readFileSync(findingsPath, "utf8"));
+          violationsMemory = ruleIds.length > 0 ? loadViolationsMemory(ruleIds) : "";
+        }
+      } catch { /* best-effort */ }
       return {
         BRANCH: branch,
         TASK_ID: issueId,
@@ -144,6 +208,7 @@ export function createReviewGate(
           `npm run typecheck && npm run lint && npm run test && ` +
           `npx playwright test --grep "@${escapedId}" --grep-invert "@visual"`,
         CONSTRAINTS: constraints,
+        VIOLATIONS_MEMORY: violationsMemory,
       };
     },
 
@@ -178,12 +243,35 @@ export function createReviewGate(
         const findingsPath = `${ctx.worktree}/.qa/review-r${round}.md`;
         if (existsSync(findingsPath)) {
           const findings = readFileSync(findingsPath, "utf8");
-          // Parse FINDINGS entries: "- src/file.ext:line `selector`\n  Cause: [rule] ...\n  Current: ...\n  Fix: ..."
-          const entryRe = /^- (\S+?):(\d+)\s+`([^`]*)`\n\s+Cause:\s+\[([^\]]+)\]\s+(.*)\n\s+Current:\s+(.*)\n\s+Fix:\s+(.*)/gm;
+          // Parse FINDINGS entries — with optional Direction: field
+          // Format: "- src/file.ext:line `selector`\n  Cause: [rule] ...\n  Direction: ...\n  Current: ...\n  Fix: ..."
+          const entryWithDirRe = /^- (\S+?):(\d+)\s+`([^`]*)`\n\s+Cause:\s+\[([^\]]+)\]\s+(.*)\n\s+Direction:\s+(.*)\n\s+Current:\s+(.*)\n\s+Fix:\s+(.*)/gm;
+          const entryNoDirRe = /^- (\S+?):(\d+)\s+`([^`]*)`\n\s+Cause:\s+\[([^\]]+)\]\s+(.*)\n\s+Current:\s+(.*)\n\s+Fix:\s+(.*)/gm;
+
           let m;
-          while ((m = entryRe.exec(findings)) !== null) {
+          const matched = new Set<number>();
+
+          // First pass: entries with Direction field
+          while ((m = entryWithDirRe.exec(findings)) !== null) {
+            matched.add(m.index);
+            const [, file, , , ruleRef, , direction, current, fix] = m;
+            const ruleId = ruleRef.split(">").pop()?.trim() ?? ruleRef;
+            recordViolation({
+              ts: new Date().toISOString(),
+              issueId,
+              ruleId,
+              file,
+              wrote: current.trim().slice(0, 80),
+              fix: fix.trim().slice(0, 120),
+              gate: "review",
+              direction: direction.trim(),
+            });
+          }
+
+          // Second pass: entries without Direction (backward compat)
+          while ((m = entryNoDirRe.exec(findings)) !== null) {
+            if (matched.has(m.index)) continue;
             const [, file, , , ruleRef, , current, fix] = m;
-            // Extract ruleId from "[.claude/rules/ui-base.md > Values > values-from-tokens]"
             const ruleId = ruleRef.split(">").pop()?.trim() ?? ruleRef;
             recordViolation({
               ts: new Date().toISOString(),

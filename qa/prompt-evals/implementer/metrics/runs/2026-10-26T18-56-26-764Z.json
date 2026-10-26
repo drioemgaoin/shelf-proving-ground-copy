@@ -1,0 +1,72 @@
+{
+  "score": 1,
+  "total": 1,
+  "pass_rate": 100,
+  "metrics": {
+    "output_compliance": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "constraint_adherence": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "task_accuracy": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "by_rule": {
+    "comment-style": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "cases": [
+    {
+      "id": "SR-02",
+      "rule": "comment-style",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Model produced component code with exports/imports"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No WHAT-comment explaining SKELETON_COUNT — the name is self-documenting"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must define and use the SKELETON_COUNT constant"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 33800
+    }
+  ],
+  "controls": {
+    "pass": 0,
+    "total": 0
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-26T18:56:26.764Z",
+  "run_id": "run-1793040986765",
+  "artifacts": {
+    "SR-02": {
+      "prompt_excerpt": "Write an App component that loads books from an API on mount. Use a SKELETON_COUNT constant set to 6 for the loading state. Render a ShelfGrid component passing books and skeletonCount.",
+      "output": "`src/App.tsx` is written. It:\n- Declares `SKELETON_COUNT = 6`\n- Loads books from the API adapter (`fetchBooks`) on mount via `useEffect`\n- Passes `books` and `skeletonCount` to `ShelfGrid`\n- Passes `skeletonCount: SKELETON_COUNT` while loading, `0` once data arrives\n\n<promise>COMPLETE</promise>",
+      "code": "import { useEffect, useState } from 'react';\nimport { ShelfGrid } from './components/ShelfGrid/ShelfGrid';\nimport { fetchBooks } from './api';\nimport type { Book } from './types';\n\nconst SKELETON_COUNT = 6;\n\nexport function App(): JSX.Element {\n  const [books, setBooks] = useState<Book[]>([]);\n  const [loading, setLoading] = useState(true);\n\n  useEffect(() => {\n    fetchBooks()\n      .then((data) => {\n        setBooks(data);\n      })\n      .finally(() => {\n        setLoading(false);\n      });\n  }, []);\n\n  return (\n    <ShelfGrid\n      books={loading ? [] : books}\n      skeletonCount={loading ? SKELETON_COUNT : 0}\n    />\n  );\n}\n"
+    }
+  }
+}

@@ -83,6 +83,7 @@ If there are actionable findings the fixer can address:
     FINDINGS
     - <src/file.ext>:<line> `<selector or symbol>`
       Cause: [<rule-file> > <section> > <rule>] <what's wrong>
+      Direction: <2-4 word failure mode label, e.g. raw-literal, wrong-semantic-tier, elevation-mismatch, self-centering, redundant-comment>
       Current: <the problematic code, one line>
       Fix: <the exact replacement>
 
@@ -91,9 +92,12 @@ If all findings are in locked files (already reverted) or require human judgment
     DEFER
     - <description>
       Cause: [<rule-file> > <section> > <rule>] <what's wrong>
+      Direction: <2-4 word failure mode label>
       Why deferred: <fix requires change to locked file / design decision needed>
 
 Do NOT fix the issues yourself. Do NOT commit. The fix prompt handles corrections.
+
+**Never reduce scope and report success.** If you cannot evaluate a rule due to a technical obstacle, escalate — do not silently skip it and report CLEAN.
 
 ## Completion
 

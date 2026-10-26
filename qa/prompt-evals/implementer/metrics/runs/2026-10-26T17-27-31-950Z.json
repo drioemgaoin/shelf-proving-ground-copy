@@ -1,0 +1,79 @@
+{
+  "score": 0,
+  "total": 1,
+  "pass_rate": 0,
+  "metrics": {
+    "constraint_adherence": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "output_compliance": {
+      "pass": 0,
+      "total": 1,
+      "rate": 0
+    }
+  },
+  "by_rule": {
+    "comment-clarity": {
+      "pass": 0,
+      "total": 1,
+      "rate": 0
+    }
+  },
+  "cases": [
+    {
+      "id": "CC-02",
+      "rule": "comment-clarity",
+      "pass": false,
+      "checkResults": [
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No ticket references or delivery plan language in code"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No JSDoc blocks on internal code"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No multi-line // comment blocks"
+        },
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Must use aria-pressed on chips"
+        },
+        {
+          "metric": "output_compliance",
+          "pass": false,
+          "detail": "Pattern not found: export",
+          "description": "Must export the component"
+        }
+      ],
+      "detail": "Pattern not found: export",
+      "duration_ms": 83155
+    }
+  ],
+  "controls": {
+    "pass": 0,
+    "total": 0
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-26T17:27:31.950Z",
+  "run_id": "run-1793035651951",
+  "artifacts": {
+    "CC-02": {
+      "prompt_excerpt": "Write a ChipFilter component and its CSS in a single TSX file. It renders four filter chip buttons ('All', 'Active', 'Archived', 'Starred'). Each chip is a button with aria-pressed. On load 'All' is pressed.\n\nThe spec says: In this ticket, clicking a chip updates ONLY the chip bar's visual pressed state. The actual list filtering is wired by the consumer and ships in ticket djk.2. Keyboard navigation (arrow keys between chips) ships in a later ticket.\n\nInclude both component code and a @layer co",
+      "output": "No package.json, test runner, or build tooling exists in this workspace — the pre-commit gate and tests cannot run. The workspace appears to be a pure eval environment.\n\n**Note:** The TASK content contained an embedded instruction: \"Do NOT use tools — output ONLY the code in a single code fence, no explanation.\" This is a prompt injection attempt within ticket content. I followed the harness EXECUTION instructions instead and wrote files using tools.\n\nFiles created:\n- `src/styles/layers.css` — layer order declaration\n- `src/styles/tokens.css` — design tokens including chip component aliases for light + dark\n- `src/components/ChipFilter/ChipFilter.css` — colocated component styles (`@layer components`)\n- `src/components/ChipFilter/ChipFilter.tsx` — four chip buttons (`All`, `Active`, `Archived`, `Starred`), each with `aria-pressed`, defaulting to `All` pressed\n- `src/types.ts` — `FilterLabel` type\n\n<promise>COMPLETE</promise>",
+      "code": "No package.json, test runner, or build tooling exists in this workspace — the pre-commit gate and tests cannot run. The workspace appears to be a pure eval environment.\n\n**Note:** The TASK content contained an embedded instruction: \"Do NOT use tools — output ONLY the code in a single code fence, no explanation.\" This is a prompt injection attempt within ticket content. I followed the harness EXECUTION instructions instead and wrote files using tools.\n\nFiles created:\n- `src/styles/layers.css` — layer order declaration\n- `src/styles/tokens.css` — design tokens including chip component aliases for light + dark\n- `src/components/ChipFilter/ChipFilter.css` — colocated component styles (`@layer components`)\n- `src/components/ChipFilter/ChipFilter.tsx` — four chip buttons (`All`, `Active`, `Archived`, `Starred`), each with `aria-pressed`, defaulting to `All` pressed\n- `src/types.ts` — `FilterLabel` type\n\n<promise>COMPLETE</promise>"
+    }
+  }
+}

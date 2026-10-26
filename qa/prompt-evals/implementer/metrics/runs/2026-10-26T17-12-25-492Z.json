@@ -1,0 +1,79 @@
+{
+  "score": 0,
+  "total": 1,
+  "pass_rate": 0,
+  "metrics": {
+    "constraint_adherence": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "output_compliance": {
+      "pass": 0,
+      "total": 1,
+      "rate": 0
+    }
+  },
+  "by_rule": {
+    "comment-clarity": {
+      "pass": 0,
+      "total": 1,
+      "rate": 0
+    }
+  },
+  "cases": [
+    {
+      "id": "CC-02",
+      "rule": "comment-clarity",
+      "pass": false,
+      "checkResults": [
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No ticket references, delivery plan language, or future-scope hedging in comments"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No JSDoc blocks on internal code"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No multi-line // comment blocks"
+        },
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Must use aria-pressed on chips"
+        },
+        {
+          "metric": "output_compliance",
+          "pass": false,
+          "detail": "Pattern not found: export",
+          "description": "Must export the component"
+        }
+      ],
+      "detail": "Pattern not found: export",
+      "duration_ms": 271032
+    }
+  ],
+  "controls": {
+    "pass": 0,
+    "total": 0
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-26T17:12:25.492Z",
+  "run_id": "run-1793034745493",
+  "artifacts": {
+    "CC-02": {
+      "prompt_excerpt": "Write a ChipFilter component and its CSS in a single TSX file. It renders four filter chip buttons ('All', 'Active', 'Archived', 'Starred'). Each chip is a button with aria-pressed. On load 'All' is pressed.\n\nThe spec says: In this ticket, clicking a chip updates ONLY the chip bar's visual pressed state. The actual list filtering is wired by the consumer and ships in ticket djk.2. Keyboard navigation (arrow keys between chips) ships in a later ticket.\n\nInclude both component code and a @layer co",
+      "output": "All source files are written. The pre-commit gate requires `npm run typecheck` etc., but there's no package.json or test infrastructure in this eval environment — the mock-bin intercepts `git` and the project has no node_modules. The deliverables are complete:\n\n- `src/styles/layers.css` — `@layer base, tokens, components`\n- `src/styles/tokens.css` — three-tier token system (primitive → semantic → component), all custom props mirrored in `[data-theme=\"dark\"]` and `@media (prefers-color-scheme: dark)`\n- `src/styles/base.css` — `@layer base` with box-sizing, list, and body resets\n- `src/components/ChipFilter/ChipFilter.css` — `@layer components` using only component-tier color tokens; transitions only on `transform`/`opacity`; focus-visible and reduced-motion handled\n- `src/components/ChipFilter/ChipFilter.tsx` — four chips (`All`, `Active`, `Archived`, `Starred`), each `<button aria-pressed>`, `All` pressed on load, click updates local state only\n\n<promise>COMPLETE</promise>",
+      "code": "All source files are written. The pre-commit gate requires `npm run typecheck` etc., but there's no package.json or test infrastructure in this eval environment — the mock-bin intercepts `git` and the project has no node_modules. The deliverables are complete:\n\n- `src/styles/layers.css` — `@layer base, tokens, components`\n- `src/styles/tokens.css` — three-tier token system (primitive → semantic → component), all custom props mirrored in `[data-theme=\"dark\"]` and `@media (prefers-color-scheme: dark)`\n- `src/styles/base.css` — `@layer base` with box-sizing, list, and body resets\n- `src/components/ChipFilter/ChipFilter.css` — `@layer components` using only component-tier color tokens; transitions only on `transform`/`opacity`; focus-visible and reduced-motion handled\n- `src/components/ChipFilter/ChipFilter.tsx` — four chips (`All`, `Active`, `Archived`, `Starred`), each `<button aria-pressed>`, `All` pressed on load, click updates local state only\n\n<promise>COMPLETE</promise>"
+    }
+  }
+}

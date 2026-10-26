@@ -1,0 +1,67 @@
+{
+  "score": 1,
+  "total": 1,
+  "pass_rate": 100,
+  "metrics": {
+    "output_compliance": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "constraint_adherence": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "by_rule": {
+    "[ctrl]": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "cases": [
+    {
+      "id": "SR-C1",
+      "rule": "[ctrl]",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Model produced component code with exports/imports"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "Control: should remain clean of multi-line JSDoc"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "Named exports only — no default exports"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 74035
+    }
+  ],
+  "controls": {
+    "pass": 1,
+    "total": 1
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-26T20:51:45.238Z",
+  "run_id": "run-1793047905239",
+  "artifacts": {
+    "SR-C1": {
+      "prompt_excerpt": "Write a BookCard component that displays a book title and author. Use tokens for all styling. The code should be self-documenting.",
+      "output": "<promise>COMPLETE</promise>",
+      "code": "import './BookCard.css';\nimport type { Book, ReadingStatus } from '../../types';\n\ninterface BookCardProps {\n  book: Book;\n}\n\nconst STATUS_LABELS: Record<ReadingStatus, string> = {\n  read: 'Read',\n  reading: 'Reading',\n  unread: 'Unread',\n};\n\nexport function BookCard({ book }: BookCardProps): JSX.Element {\n  const { title, author, status } = book;\n\n  return (\n    <article className=\"book-card\">\n      <div className=\"book-card-header\">\n        <h2 className=\"book-card-title\">{title}</h2>\n        <span\n          className=\"book-card-status-badge\"\n          data-status={status}\n          role=\"status\"\n        >\n          {STATUS_LABELS[status]}\n        </span>\n      </div>\n      <p className=\"book-card-author\">{author}</p>\n    </article>\n  );\n}\n"
+    }
+  }
+}

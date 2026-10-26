@@ -1,0 +1,78 @@
+{
+  "score": 1,
+  "total": 1,
+  "pass_rate": 100,
+  "metrics": {
+    "output_compliance": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "constraint_adherence": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "task_accuracy": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "by_rule": {
+    "no-ticket-references": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "cases": [
+    {
+      "id": "SR-04",
+      "rule": "no-ticket-references",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Model produced component code with exports/imports"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No ticket ID references in comments"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "Named exports only — no default exports"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Component must handle pressed state"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 24115
+    }
+  ],
+  "controls": {
+    "pass": 0,
+    "total": 0
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-26T20:48:56.365Z",
+  "run_id": "run-1793047736366",
+  "artifacts": {
+    "SR-04": {
+      "prompt_excerpt": "Write a ChipBar component that only handles visual pressed state. Grid filtering will be connected by a different part of the codebase. Add a comment explaining the current boundary.",
+      "output": "`ChipBar.tsx` is written. The component:\n- Manages its own `pressed` set via `useState` — visual state only\n- Exposes `aria-pressed` on each chip button so screen readers and tests can query state\n- Has a boundary comment explaining that grid filtering is wired externally\n- Uses no raw I/O, no nested ternaries, named export, fully typed props and return\n\n<promise>COMPLETE</promise>",
+      "code": "import { useState } from 'react';\nimport './ChipBar.css';\n\ninterface ChipBarProps {\n  labels: string[];\n}\n\n// ChipBar owns only visual pressed state. Connecting pressed chips to grid\n// filtering is handled externally — a parent will wire onFilterChange when ready.\nexport function ChipBar({ labels }: ChipBarProps): JSX.Element {\n  const [pressed, setPressed] = useState<Set<string>>(new Set());\n\n  function toggle(label: string): void {\n    setPressed((prev) => {\n      const next = new Set(prev);\n      if (next.has(label)) {\n        next.delete(label);\n      } else {\n        next.add(label);\n      }\n      return next;\n    });\n  }\n\n  return (\n    <div className=\"chip-bar\" role=\"group\" aria-label=\"Filter chips\">\n      {labels.map((label) => (\n        <button\n          key={label}\n          type=\"button\"\n          className=\"chip-bar__chip\"\n          aria-pressed={pressed.has(label)}\n          onClick={() => toggle(label)}\n        >\n          {label}\n        </button>\n      ))}\n    </div>\n  );\n}\n"
+    }
+  }
+}

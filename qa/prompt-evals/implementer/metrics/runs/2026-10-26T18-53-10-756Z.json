@@ -1,0 +1,78 @@
+{
+  "score": 1,
+  "total": 1,
+  "pass_rate": 100,
+  "metrics": {
+    "output_compliance": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "constraint_adherence": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "task_accuracy": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "by_rule": {
+    "role-query-diagnostic": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "cases": [
+    {
+      "id": "RQD-02",
+      "rule": "role-query-diagnostic",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Model produced component code with exports/imports"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No aria-hidden on placeholder rows — they must participate in the accessible tree for role-based locators"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "Named exports only — no default exports"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must render a tbody element for placeholder rows"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 30313
+    }
+  ],
+  "controls": {
+    "pass": 0,
+    "total": 0
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-26T18:53:10.756Z",
+  "run_id": "run-1793040790757",
+  "artifacts": {
+    "RQD-02": {
+      "prompt_excerpt": "Write a DataTable component. It receives `rows: Row[]` and `loading: boolean`. When loading, render 5 placeholder `<tr>` elements inside the `<tbody>` with shimmer cells. When loaded, render the real rows. The table has role=\"table\" with proper semantic markup. Use tokens for all styling. Include the CSS file.",
+      "output": "`DataTable.tsx` and `DataTable.css` are written. Key decisions:\n\n- Loading state uses real `<tr>`/`<td>` elements (not `aria-hidden`) so `getByRole` queries work correctly against the accessible tree.\n- Shimmer animation uses only `opacity` (allowed by constraints; `transform` not needed here).\n- `@keyframes` is declared inside `@layer components`.\n- All visual values reference `--shelf-datatable-*` component-tier tokens; these would need corresponding definitions added to `tokens.css` for the full token chain to resolve.",
+      "code": "import './DataTable.css';\n\nexport type Row = {\n  id: string;\n  cells: string[];\n};\n\ntype DataTableProps = {\n  rows: Row[];\n  loading: boolean;\n};\n\nconst PLACEHOLDER_COUNT = 5;\nconst placeholderRows = Array.from({ length: PLACEHOLDER_COUNT }, (_, i) => i);\n\nexport function DataTable({ rows, loading }: DataTableProps): JSX.Element {\n  return (\n    <table className=\"data-table\" role=\"table\">\n      <thead>\n        <tr>\n          <th scope=\"col\">Name</th>\n          <th scope=\"col\">Value</th>\n        </tr>\n      </thead>\n      <tbody>\n        {loading\n          ? placeholderRows.map((i) => (\n              <tr key={i} className=\"data-table-row data-table-row--placeholder\">\n                <td className=\"data-table-cell\">\n                  <span className=\"data-table-shimmer\" />\n                </td>\n                <td className=\"data-table-cell\">\n                  <span className=\"data-table-shimmer\" />\n                </td>\n              </tr>\n            ))\n          : rows.map((row) => (\n              <tr key={row.id} className=\"data-table-row\">\n                {row.cells.map((cell, idx) => (\n                  <td key={idx} className=\"data-table-cell\">\n                    {cell}\n                  </td>\n                ))}\n              </tr>\n            ))}\n      </tbody>\n    </table>\n  );\n}\n"
+    }
+  }
+}

@@ -1,0 +1,78 @@
+{
+  "score": 1,
+  "total": 1,
+  "pass_rate": 100,
+  "metrics": {
+    "output_compliance": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "constraint_adherence": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "task_accuracy": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "by_rule": {
+    "[ctrl]": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "cases": [
+    {
+      "id": "RQD-C1",
+      "rule": "[ctrl]",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Model produced component code with exports/imports"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "Control: static list should have no aria-hidden"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "Named exports only — no default exports"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must render a list container with role=list"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 22904
+    }
+  ],
+  "controls": {
+    "pass": 1,
+    "total": 1
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-26T18:54:46.917Z",
+  "run_id": "run-1793040886918",
+  "artifacts": {
+    "RQD-C1": {
+      "prompt_excerpt": "Write a TagList component. It receives `tags: string[]` and renders them as `<li>` elements inside a `<ul role=\"list\">`. Each tag shows the text inside a styled pill. No loading state needed. Use tokens for all styling. Include the CSS file.",
+      "output": "The `TagList` component is written at `src/components/TagList/TagList.tsx` with its colocated stylesheet.\n\n**What was built:**\n- `<ul role=\"list\">` container with `.tag-list` class\n- Each tag rendered as `<li>` with a `<span className=\"tag-pill\">` inside\n- Named export `TagList` accepting `tags: string[]`\n- CSS uses only component-tier tokens (`--shelf-tagList-*`) in `@layer components`\n- No `aria-hidden`, no raw values, kebab-case class names throughout\n\n**Note:** The tokens referenced (`--shelf-tagList-*`) need to be defined in `tokens.css` (including dark-mode blocks) for the styles to resolve — since `tokens.css` doesn't exist yet in this repo, those definitions would need to be added there alongside any other token definitions.\n\n<promise>COMPLETE</promise>",
+      "code": "import './TagList.css';\n\ninterface TagListProps {\n  tags: string[];\n}\n\nexport function TagList({ tags }: TagListProps): JSX.Element {\n  return (\n    <ul role=\"list\" className=\"tag-list\">\n      {tags.map((tag) => (\n        <li key={tag} className=\"tag-list-item\">\n          <span className=\"tag-pill\">{tag}</span>\n        </li>\n      ))}\n    </ul>\n  );\n}\n"
+    }
+  }
+}

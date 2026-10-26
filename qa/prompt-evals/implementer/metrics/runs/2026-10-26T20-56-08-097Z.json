@@ -1,0 +1,61 @@
+{
+  "score": 1,
+  "total": 1,
+  "pass_rate": 100,
+  "metrics": {
+    "output_compliance": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "task_accuracy": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "by_rule": {
+    "[ctrl]": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "cases": [
+    {
+      "id": "VFT-C1",
+      "rule": "[ctrl]",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "CSS must be wrapped in @layer components"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must use --shelf-* tokens"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 61893
+    }
+  ],
+  "controls": {
+    "pass": 1,
+    "total": 1
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-26T20:56:08.097Z",
+  "run_id": "run-1793048168098",
+  "artifacts": {
+    "VFT-C1": {
+      "prompt_excerpt": "Write a StatusBadge component and its CSS. It shows a colored pill with text. Use @layer components for the CSS. Use only var(--shelf-*) tokens for all visual values — colors, spacing, border-radius, font-size. Include the CSS file.",
+      "output": "All files are written. Since there's no test runner, `package.json`, or `tests/` directory in this scaffold, the pre-commit gate and test run commands are not available. The task requested writing `src/components/StatusBadge/StatusBadge.css` — that file is created along with all supporting files.\n\n<promise>COMPLETE</promise>",
+      "code": "@layer components {\n  .status-badge {\n    display: inline-flex;\n    align-items: center;\n    padding-block: var(--shelf-badge-paddingBlock);\n    padding-inline: var(--shelf-badge-paddingInline);\n    border-radius: var(--shelf-badge-radius);\n    border: 1px solid var(--shelf-badge-borderColor);\n    font-size: var(--shelf-badge-fontSize);\n    font-weight: 600;\n    line-height: 1;\n    white-space: nowrap;\n  }\n\n  .status-badge[data-status=\"reading\"] {\n    background-color: var(--shelf-badge-bgColor-reading);\n    color: var(--shelf-badge-fgColor-reading);\n  }\n\n  .status-badge[data-status=\"finished\"] {\n    background-color: var(--shelf-badge-bgColor-finished);\n    color: var(--shelf-badge-fgColor-finished);\n  }\n\n  .status-badge[data-status=\"want-to-read\"] {\n    background-color: var(--shelf-badge-bgColor-want-to-read);\n    color: var(--shelf-badge-fgColor-want-to-read);\n  }\n}\n"
+    }
+  }
+}

@@ -1,0 +1,79 @@
+{
+  "score": 1,
+  "total": 1,
+  "pass_rate": 100,
+  "metrics": {
+    "constraint_adherence": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "output_compliance": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "by_rule": {
+    "comment-clarity": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "cases": [
+    {
+      "id": "CC-03",
+      "rule": "comment-clarity",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No multi-line // comment blocks — one line maximum"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No JSDoc blocks on internal code"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No verbose null-state explanation — if any comment, max: // null = loading; array = loaded"
+        },
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Must use useState"
+        },
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Must export the component"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 110641
+    }
+  ],
+  "controls": {
+    "pass": 0,
+    "total": 0
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-26T19:53:08.654Z",
+  "run_id": "run-1793044388655",
+  "artifacts": {
+    "CC-03": {
+      "prompt_excerpt": "Write a TaskBoard component in a single file. It uses useState<Task[] | null>(null) where null = loading. It fetches tasks via an async getTasks() call in useEffect, handles errors by setting an empty array, and shows: skeletons when null, an empty state when array is empty, the task list when populated.\n\nThe component is complex: it has a header with a count badge, a filter bar (stub — just the container div), and the main list area with three states. Export the component.",
+      "output": "<promise>COMPLETE</promise>",
+      "code": "import { useState, useEffect } from 'react';\nimport { getTasks } from '../../api';\nimport type { Task } from '../../types';\nimport './TaskBoard.css';\n\nconst SKELETON_COUNT = 3;\n\nexport function TaskBoard(): JSX.Element {\n  const [tasks, setTasks] = useState<Task[] | null>(null);\n\n  useEffect(() => {\n    getTasks()\n      .then((data) => setTasks(data))\n      .catch(() => setTasks([]));\n  }, []);\n\n  const isLoading = tasks === null;\n  const isEmpty = tasks !== null && tasks.length === 0;\n\n  return (\n    <div className=\"task-board\">\n      <header className=\"task-board-header\">\n        <h1 className=\"task-board-title\">Tasks</h1>\n        {!isLoading && (\n          <span className=\"task-board-count-badge\">{tasks.length}</span>\n        )}\n      </header>\n      <div className=\"task-board-filter-bar\" />\n      <ul className=\"task-board-list\">\n        {isLoading &&\n          Array.from({ length: SKELETON_COUNT }, (_, i) => (\n            <li key={i} className=\"task-board-skeleton\" />\n          ))}\n        {isEmpty && (\n          <li className=\"task-board-empty\">No tasks found.</li>\n        )}\n        {!isLoading && !isEmpty && tasks.map((task) => (\n          <li key={task.id} className=\"task-board-item\">\n            {task.title}\n          </li>\n        ))}\n      </ul>\n    </div>\n  );\n}\n"
+    }
+  }
+}

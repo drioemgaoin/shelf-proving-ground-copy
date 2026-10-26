@@ -1,0 +1,337 @@
+{
+  "score": 9,
+  "total": 9,
+  "pass_rate": 100,
+  "metrics": {
+    "output_compliance": {
+      "pass": 5,
+      "total": 5,
+      "rate": 100
+    },
+    "task_accuracy": {
+      "pass": 5,
+      "total": 5,
+      "rate": 100
+    },
+    "constraint_adherence": {
+      "pass": 6,
+      "total": 6,
+      "rate": 100
+    },
+    "judgment_accuracy": {
+      "pass": 3,
+      "total": 3,
+      "rate": 100
+    }
+  },
+  "by_rule": {
+    "test-behavior": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "test-a11y-queries": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "test-determinism": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "[ctrl]": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "test-toggle-state": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "no-app-code-edits": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "no-unnecessary-mocks": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "no-tautological-tests": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "no-exploration": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "cases": [
+    {
+      "id": "TAQ-01",
+      "rule": "test-behavior",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Model produced test code"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Should test real mapped output values"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Tests must call the function under test"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 5733
+    },
+    {
+      "id": "TAQ-02",
+      "rule": "test-a11y-queries",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Model produced test code"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "Should use getByRole/getByText, not querySelector or data-testid"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must use accessible queries to locate elements"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 102299
+    },
+    {
+      "id": "TAQ-03",
+      "rule": "test-determinism",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Model produced test code"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "Tests should be deterministic — no timer or clock dependencies"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Tests must verify pressed state of chips"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 19011
+    },
+    {
+      "id": "TAQ-04",
+      "rule": "[ctrl]",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Should decide no tests needed for purely presentational component"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 40638
+    },
+    {
+      "id": "TAQ-05",
+      "rule": "test-toggle-state",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Model produced test code"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Should test toggle/pressed state behavior"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Should test the All chip behavior"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 15871
+    },
+    {
+      "id": "TAQ-06",
+      "rule": "no-app-code-edits",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "Must NOT use Edit/Write tools on the application source file"
+        },
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Should fix the test, not the application code"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 6839
+    },
+    {
+      "id": "TAQ-07",
+      "rule": "no-unnecessary-mocks",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "Should NOT mock the api module — getBooks is in-memory with no system boundary"
+        },
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Model produced test code"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 21594
+    },
+    {
+      "id": "TAQ-08",
+      "rule": "no-tautological-tests",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No trivially-passing tautologies like expect(true).toBe(true)"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Should test actual rendered content with meaningful queries"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 27874
+    },
+    {
+      "id": "TAQ-09",
+      "rule": "no-exploration",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "Must NOT explore the workspace — use CONTEXT only"
+        },
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Should reference using CONTEXT inputs, not exploration"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 12630
+    }
+  ],
+  "controls": {
+    "pass": 1,
+    "total": 1
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-26T17:00:12.511Z",
+  "run_id": "run-1793034012512",
+  "artifacts": {
+    "TAQ-01": {
+      "prompt_excerpt": "Write a Vitest test file for a pure utility function formatStatus(status: Status): string that maps 'to-read' to 'To Read', 'reading' to 'Reading', 'read' to 'Read'. The function exists at src/utils/formatStatus.ts. Do NOT use tools — output the complete test file in a tsx code fence.",
+      "output": "```tsx\n// src/utils/formatStatus.test.ts\nimport { describe, it, expect } from 'vitest';\nimport { formatStatus } from './formatStatus';\n\ndescribe('formatStatus', () => {\n  it('maps \"to-read\" to \"To Read\"', () => {\n    expect(formatStatus('to-read')).toBe('To Read');\n  });\n\n  it('maps \"reading\" to \"Reading\"', () => {\n    expect(formatStatus('reading')).toBe('Reading');\n  });\n\n  it('maps \"read\" to \"Read\"', () => {\n    expect(formatStatus('read')).toBe('Read');\n  });\n});\n```\n\n<promise>COMPLETE</promise>",
+      "code": "```tsx\n// src/utils/formatStatus.test.ts\nimport { describe, it, expect } from 'vitest';\nimport { formatStatus } from './formatStatus';\n\ndescribe('formatStatus', () => {\n  it('maps \"to-read\" to \"To Read\"', () => {\n    expect(formatStatus('to-read')).toBe('To Read');\n  });\n\n  it('maps \"reading\" to \"Reading\"', () => {\n    expect(formatStatus('reading')).toBe('Reading');\n  });\n\n  it('maps \"read\" to \"Read\"', () => {\n    expect(formatStatus('read')).toBe('Read');\n  });\n});\n```\n\n<promise>COMPLETE</promise>"
+    },
+    "TAQ-02": {
+      "prompt_excerpt": "Write tests for BookCard component that renders a book's title, author, and status badge. BookCard accepts a book prop and an onClick handler. The project uses Vitest + React Testing Library (@testing-library/react is installed). Use render() and screen queries.",
+      "output": "<promise>COMPLETE</promise>",
+      "code": "import { render, screen } from '@testing-library/react';\nimport userEvent from '@testing-library/user-event';\nimport { describe, it, expect, vi } from 'vitest';\nimport { BookCard } from './BookCard';\nimport type { Book } from '../../types';\n\nconst baseBook: Book = {\n  id: 'book-1',\n  title: 'The Great Gatsby',\n  author: 'F. Scott Fitzgerald',\n  status: 'reading',\n};\n\ndescribe('BookCard', () => {\n  it('renders the book title', () => {\n    render(<BookCard book={baseBook} onClick={vi.fn()} />);\n    expect(screen.getByRole('heading', { name: 'The Great Gatsby' })).toBeInTheDocument();\n  });\n\n  it('renders the book author', () => {\n    render(<BookCard book={baseBook} onClick={vi.fn()} />);\n    expect(screen.getByText('F. Scott Fitzgerald')).toBeInTheDocument();\n  });\n\n  it('renders the status badge with the correct status text', () => {\n    render(<BookCard book={baseBook} onClick={vi.fn()} />);\n    expect(screen.getByText('reading')).toBeInTheDocument();\n  });\n\n  it('sets data-status attribute on the badge to reflect current status', () => {\n    const book: Book = { ...baseBook, status: 'read' };\n    render(<BookCard book={book} onClick={vi.fn()} />);\n    expect(screen.getByText('read')).toHaveAttribute('data-status', 'read');\n  });\n\n  it('calls onClick with the book id when clicked', async () => {\n    const handleClick = vi.fn();\n    render(<BookCard book={baseBook} onClick={handleClick} />);\n    await userEvent.click(screen.getByRole('button', { name: /The Great Gatsby/ }));\n    expect(handleClick).toHaveBeenCalledOnce();\n    expect(handleClick).toHaveBeenCalledWith('book-1');\n  });\n\n  it('calls onClick with the book id when Enter is pressed', async () => {\n    const handleClick = vi.fn();\n    render(<BookCard book={baseBook} onClick={handleClick} />);\n    const card = screen.getByRole('button', { name: /The Great Gatsby/ });\n    card.focus();\n    await userEvent.keyboard('{Enter}');\n    expect(handleClick).toHaveBeenCalledOnce();\n    expect(handleClick).toHaveBeenCalledWith('book-1');\n  });\n\n  it('does NOT call onClick when a non-Enter key is pressed', async () => {\n    const handleClick = vi.fn();\n    render(<BookCard book={baseBook} onClick={handleClick} />);\n    const card = screen.getByRole('button', { name: /The Great Gatsby/ });\n    card.focus();\n    await userEvent.keyboard('{Space}');\n    expect(handleClick).not.toHaveBeenCalled();\n  });\n\n  it('exposes an aria-label combining title and author for screen readers', () => {\n    render(<BookCard book={baseBook} onClick={vi.fn()} />);\n    expect(\n      screen.getByRole('button', { name: 'The Great Gatsby by F. Scott Fitzgerald' })\n    ).toBeInTheDocument();\n  });\n\n  it('renders want-to-read status correctly', () => {\n    const book: Book = { ...baseBook, status: 'want-to-read' };\n    render(<BookCard book={book} onClick={vi.fn()} />);\n    const badge = screen.getByText('want-to-read');\n    expect(badge).toHaveAttribute('data-status', 'want-to-read');\n  });\n});\n"
+    },
+    "TAQ-03": {
+      "prompt_excerpt": "Write a Vitest + React Testing Library test file for ChipBar toggle behavior. ChipBar renders a row of filter chips as buttons, each with aria-pressed state, and calls onSelectionChange when toggled. Do NOT use tools — output the complete test file in a tsx code fence.",
+      "output": "```tsx\n// src/components/ChipBar/ChipBar.test.tsx\nimport { render, screen } from '@testing-library/react';\nimport userEvent from '@testing-library/user-event';\nimport { describe, it, expect, vi } from 'vitest';\nimport { ChipBar } from './ChipBar';\n\nconst chips = [\n  { id: 'a', label: 'Alpha' },\n  { id: 'b', label: 'Beta' },\n  { id: 'c', label: 'Gamma' },\n];\n\ndescribe('ChipBar', () => {\n  it('renders one button per chip', () => {\n    render(<ChipBar chips={chips} onSelectionChange={() => {}} />);\n    expect(screen.getAllByRole('button')).toHaveLength(3);\n    expect(screen.getByRole('button', { name: 'Alpha' })).toBeInTheDocument();\n    expect(screen.getByRole('button', { name: 'Beta' })).toBeInTheDocument();\n    expect(screen.getByRole('button', { name: 'Gamma' })).toBeInTheDocument();\n  });\n\n  it('renders with all chips unpressed by default', () => {\n    render(<ChipBar chips={chips} onSelectionChange={() => {}} />);\n    for (const chip of chips) {\n      expect(screen.getByRole('button', { name: chip.label })).toHaveAttribute(\n        'aria-pressed',\n        'false'\n      );\n    }\n  });\n\n  it('respects an initial selection', () => {\n    render(\n      <ChipBar chips={chips} selected={['b']} onSelectionChange={() => {}} />\n    );\n    expect(screen.getByRole('button', { name: 'Alpha' })).toHaveAttribute(\n      'aria-pressed',\n      'false'\n    );\n    expect(screen.getByRole('button', { name: 'Beta' })).toHaveAttribute(\n      'aria-pressed',\n      'true'\n    );\n    expect(screen.getByRole('button', { name: 'Gamma' })).toHaveAttribute(\n      'aria-pressed',\n      'false'\n    );\n  });\n\n  it('calls onSelectionChange with the newly selected id when a chip is clicked', async () => {\n    const user = userEvent.setup();\n    const onSelectionChange = vi.fn();\n    render(<ChipBar chips={chips} onSelectionChange={onSelectionChange} />);\n\n    await user.click(screen.getByRole('button', { name: 'Alpha' }));\n\n    expect(onSelectionChange).toHaveBeenCalledOnce();\n    expect(onSelectionChange).toHaveBeenCalledWith(\n      expect.arrayContaining(['a'])\n    );\n  });\n\n  it('calls onSelectionChange without the id when an active chip is clicked again', async () => {\n    const user = userEvent.setup();\n    const onSelectionChange = vi.fn();\n    render(\n      <ChipBar\n        chips={chips}\n        selected={['a']}\n        onSelectionChange={onSelectionChange}\n      />\n    );\n\n    await user.click(screen.getByRole('button', { name: 'Alpha' }));\n\n    expect(onSelectionChange).toHaveBeenCalledOnce();\n    const [nextSelection] = onSelectionChange.mock.calls[0];\n    expect(nextSelection).not.toContain('a');\n  });\n\n  it('accumulates selection across multiple distinct chips', async () => {\n    const user = userEvent.setup();\n    const onSelectionChange = vi.fn();\n\n    const { rerender } = render(\n      <ChipBar chips={chips} selected={[]} onSelectionChange={onSelectionChange} />\n    );\n\n    await user.click(screen.getByRole('button', { name: 'Alpha' }));\n    const afterFirst: string[] = onSelectionChange.mock.calls[0][0];\n\n    rerender(\n      <ChipBar chips={chips} selected={afterFirst} onSelectionChange={onSelectionChange} />\n    );\n\n    await user.click(screen.getByRole('button', { name: 'Beta' }));\n    const afterSecond: string[] = onSelectionChange.mock.calls[1][0];\n\n    expect(afterSecond).toContain('a');\n    expect(afterSecond).toContain('b');\n  });\n\n  it('does not deselect other chips when one chip is toggled', async () => {\n    const user = userEvent.setup();\n    const onSelectionChange = vi.fn();\n    render(\n      <ChipBar\n        chips={chips}\n        selected={['b', 'c']}\n        onSelectionChange={onSelectionChange}\n      />\n    );\n\n    await user.click(screen.getByRole('button', { name: 'Alpha' }));\n\n    const [nextSelection] = onSelectionChange.mock.calls[0];\n    expect(nextSelection).toContain('b');\n    expect(nextSelection).toContain('c');\n    expect(nextSelection).toContain('a');\n  });\n\n  it('renders nothing when chips array is empty', () => {\n    render(<ChipBar chips={[]} onSelectionChange={() => {}} />);\n    expect(screen.queryAllByRole('button')).toHaveLength(0);\n  });\n\n  it('updates aria-pressed when selected prop changes', () => {\n    const { rerender } = render(\n      <ChipBar chips={chips} selected={[]} onSelectionChange={() => {}} />\n    );\n\n    expect(screen.getByRole('button', { name: 'Gamma' })).toHaveAttribute(\n      'aria-pressed',\n      'false'\n    );\n\n    rerender(\n      <ChipBar chips={chips} selected={['c']} onSelectionChange={() => {}} />\n    );\n\n    expect(screen.getByRole('button', { name: 'Gamma' })).toHaveAttribute(\n      'aria-pressed',\n      'true'\n    );\n  });\n});\n```",
+      "code": "```tsx\n// src/components/ChipBar/ChipBar.test.tsx\nimport { render, screen } from '@testing-library/react';\nimport userEvent from '@testing-library/user-event';\nimport { describe, it, expect, vi } from 'vitest';\nimport { ChipBar } from './ChipBar';\n\nconst chips = [\n  { id: 'a', label: 'Alpha' },\n  { id: 'b', label: 'Beta' },\n  { id: 'c', label: 'Gamma' },\n];\n\ndescribe('ChipBar', () => {\n  it('renders one button per chip', () => {\n    render(<ChipBar chips={chips} onSelectionChange={() => {}} />);\n    expect(screen.getAllByRole('button')).toHaveLength(3);\n    expect(screen.getByRole('button', { name: 'Alpha' })).toBeInTheDocument();\n    expect(screen.getByRole('button', { name: 'Beta' })).toBeInTheDocument();\n    expect(screen.getByRole('button', { name: 'Gamma' })).toBeInTheDocument();\n  });\n\n  it('renders with all chips unpressed by default', () => {\n    render(<ChipBar chips={chips} onSelectionChange={() => {}} />);\n    for (const chip of chips) {\n      expect(screen.getByRole('button', { name: chip.label })).toHaveAttribute(\n        'aria-pressed',\n        'false'\n      );\n    }\n  });\n\n  it('respects an initial selection', () => {\n    render(\n      <ChipBar chips={chips} selected={['b']} onSelectionChange={() => {}} />\n    );\n    expect(screen.getByRole('button', { name: 'Alpha' })).toHaveAttribute(\n      'aria-pressed',\n      'false'\n    );\n    expect(screen.getByRole('button', { name: 'Beta' })).toHaveAttribute(\n      'aria-pressed',\n      'true'\n    );\n    expect(screen.getByRole('button', { name: 'Gamma' })).toHaveAttribute(\n      'aria-pressed',\n      'false'\n    );\n  });\n\n  it('calls onSelectionChange with the newly selected id when a chip is clicked', async () => {\n    const user = userEvent.setup();\n    const onSelectionChange = vi.fn();\n    render(<ChipBar chips={chips} onSelectionChange={onSelectionChange} />);\n\n    await user.click(screen.getByRole('button', { name: 'Alpha' }));\n\n    expect(onSelectionChange).toHaveBeenCalledOnce();\n    expect(onSelectionChange).toHaveBeenCalledWith(\n      expect.arrayContaining(['a'])\n    );\n  });\n\n  it('calls onSelectionChange without the id when an active chip is clicked again', async () => {\n    const user = userEvent.setup();\n    const onSelectionChange = vi.fn();\n    render(\n      <ChipBar\n        chips={chips}\n        selected={['a']}\n        onSelectionChange={onSelectionChange}\n      />\n    );\n\n    await user.click(screen.getByRole('button', { name: 'Alpha' }));\n\n    expect(onSelectionChange).toHaveBeenCalledOnce();\n    const [nextSelection] = onSelectionChange.mock.calls[0];\n    expect(nextSelection).not.toContain('a');\n  });\n\n  it('accumulates selection across multiple distinct chips', async () => {\n    const user = userEvent.setup();\n    const onSelectionChange = vi.fn();\n\n    const { rerender } = render(\n      <ChipBar chips={chips} selected={[]} onSelectionChange={onSelectionChange} />\n    );\n\n    await user.click(screen.getByRole('button', { name: 'Alpha' }));\n    const afterFirst: string[] = onSelectionChange.mock.calls[0][0];\n\n    rerender(\n      <ChipBar chips={chips} selected={afterFirst} onSelectionChange={onSelectionChange} />\n    );\n\n    await user.click(screen.getByRole('button', { name: 'Beta' }));\n    const afterSecond: string[] = onSelectionChange.mock.calls[1][0];\n\n    expect(afterSecond).toContain('a');\n    expect(afterSecond).toContain('b');\n  });\n\n  it('does not deselect other chips when one chip is toggled', async () => {\n    const user = userEvent.setup();\n    const onSelectionChange = vi.fn();\n    render(\n      <ChipBar\n        chips={chips}\n        selected={['b', 'c']}\n        onSelectionChange={onSelectionChange}\n      />\n    );\n\n    await user.click(screen.getByRole('button', { name: 'Alpha' }));\n\n    const [nextSelection] = onSelectionChange.mock.calls[0];\n    expect(nextSelection).toContain('b');\n    expect(nextSelection).toContain('c');\n    expect(nextSelection).toContain('a');\n  });\n\n  it('renders nothing when chips array is empty', () => {\n    render(<ChipBar chips={[]} onSelectionChange={() => {}} />);\n    expect(screen.queryAllByRole('button')).toHaveLength(0);\n  });\n\n  it('updates aria-pressed when selected prop changes', () => {\n    const { rerender } = render(\n      <ChipBar chips={chips} selected={[]} onSelectionChange={() => {}} />\n    );\n\n    expect(screen.getByRole('button', { name: 'Gamma' })).toHaveAttribute(\n      'aria-pressed',\n      'false'\n    );\n\n    rerender(\n      <ChipBar chips={chips} selected={['c']} onSelectionChange={() => {}} />\n    );\n\n    expect(screen.getByRole('button', { name: 'Gamma' })).toHaveAttribute(\n      'aria-pressed',\n      'true'\n    );\n  });\n});\n```"
+    },
+    "TAQ-04": {
+      "prompt_excerpt": "Analyze whether StatusBadge needs tests. It is purely presentational: it receives a status string and renders a span with a CSS class. No logic, no branching, no event handlers. The acceptance tests already cover every status value in context. Based on the prompt instructions about earning the test, decide whether to write tests or skip.",
+      "output": "<promise>COMPLETE</promise>",
+      "code": "PASS\nGate: 0 failures\n\nTests written:\n- src/components/BookCard/BookCard.test.tsx (9 tests)\n  - renders the book title\n  - renders the book author\n  - renders the status badge with the correct status text\n  - sets data-status attribute on the badge to reflect current status\n  - calls onClick with the book id when clicked\n  - calls onClick with the book id when Enter is pressed\n  - does NOT call onClick when a non-Enter key is pressed\n  - exposes an aria-label combining title and author for screen readers\n  - renders want-to-read status correctly\n\nTests skipped (acceptance coverage):\n- StatusBadge (inline badge in BookCard): acceptance-covered — the status badge is not a separate component; it is rendered inline inside BookCard with no independent logic or branching. All three status values ('reading', 'read', 'want-to-read') and the data-status attribute are pinned by the BookCard unit tests above. Writing additional isolated tests for a non-existent module would be waste.\n\nCompromises:\n- None\n"
+    },
+    "TAQ-05": {
+      "prompt_excerpt": "Write a Vitest + React Testing Library test file for the filter state machine in ChipBar. ChipBar renders chips for each status. Clicking a chip toggles its aria-pressed state. Multiple chips can be pressed simultaneously. An 'All' chip deselects all others when pressed. Do NOT use tools — output the complete test file in a tsx code fence.",
+      "output": "```tsx\n// src/components/ChipBar/ChipBar.test.tsx\nimport { render, screen } from '@testing-library/react';\nimport userEvent from '@testing-library/user-event';\nimport { describe, it, expect } from 'vitest';\nimport { ChipBar } from './ChipBar';\n\ndescribe('ChipBar', () => {\n  const statuses = ['Active', 'Pending', 'Closed'];\n\n  it('renders a chip for each status plus an All chip', () => {\n    render(<ChipBar statuses={statuses} />);\n    expect(screen.getByRole('button', { name: 'All' })).toBeInTheDocument();\n    for (const s of statuses) {\n      expect(screen.getByRole('button', { name: s })).toBeInTheDocument();\n    }\n  });\n\n  it('all chips start unpressed (aria-pressed false)', () => {\n    render(<ChipBar statuses={statuses} />);\n    for (const name of ['All', ...statuses]) {\n      expect(screen.getByRole('button', { name })).toHaveAttribute('aria-pressed', 'false');\n    }\n  });\n\n  it('clicking a status chip sets aria-pressed to true', async () => {\n    const user = userEvent.setup();\n    render(<ChipBar statuses={statuses} />);\n    await user.click(screen.getByRole('button', { name: 'Active' }));\n    expect(screen.getByRole('button', { name: 'Active' })).toHaveAttribute('aria-pressed', 'true');\n  });\n\n  it('clicking a pressed status chip toggles it back to false', async () => {\n    const user = userEvent.setup();\n    render(<ChipBar statuses={statuses} />);\n    const chip = screen.getByRole('button', { name: 'Active' });\n    await user.click(chip);\n    expect(chip).toHaveAttribute('aria-pressed', 'true');\n    await user.click(chip);\n    expect(chip).toHaveAttribute('aria-pressed', 'false');\n  });\n\n  it('multiple status chips can be pressed simultaneously', async () => {\n    const user = userEvent.setup();\n    render(<ChipBar statuses={statuses} />);\n    await user.click(screen.getByRole('button', { name: 'Active' }));\n    await user.click(screen.getByRole('button', { name: 'Pending' }));\n    expect(screen.getByRole('button', { name: 'Active' })).toHaveAttribute('aria-pressed', 'true');\n    expect(screen.getByRole('button', { name: 'Pending' })).toHaveAttribute('aria-pressed', 'true');\n    expect(screen.getByRole('button', { name: 'Closed' })).toHaveAttribute('aria-pressed', 'false');\n  });\n\n  it('pressing All deselects all status chips', async () => {\n    const user = userEvent.setup();\n    render(<ChipBar statuses={statuses} />);\n    await user.click(screen.getByRole('button', { name: 'Active' }));\n    await user.click(screen.getByRole('button', { name: 'Pending' }));\n    await user.click(screen.getByRole('button', { name: 'All' }));\n    for (const s of statuses) {\n      expect(screen.getByRole('button', { name: s })).toHaveAttribute('aria-pressed', 'false');\n    }\n  });\n\n  it('pressing All sets the All chip to pressed', async () => {\n    const user = userEvent.setup();\n    render(<ChipBar statuses={statuses} />);\n    await user.click(screen.getByRole('button', { name: 'All' }));\n    expect(screen.getByRole('button', { name: 'All' })).toHaveAttribute('aria-pressed', 'true');\n  });\n\n  it('pressing a status chip after All clears the All chip', async () => {\n    const user = userEvent.setup();\n    render(<ChipBar statuses={statuses} />);\n    await user.click(screen.getByRole('button', { name: 'All' }));\n    await user.click(screen.getByRole('button', { name: 'Active' }));\n    expect(screen.getByRole('button', { name: 'All' })).toHaveAttribute('aria-pressed', 'false');\n    expect(screen.getByRole('button', { name: 'Active' })).toHaveAttribute('aria-pressed', 'true');\n  });\n\n  it('renders no status chips when statuses is empty', () => {\n    render(<ChipBar statuses={[]} />);\n    expect(screen.getByRole('button', { name: 'All' })).toBeInTheDocument();\n    expect(screen.queryAllByRole('button')).toHaveLength(1);\n  });\n});\n```\n\n<promise>COMPLETE</promise>",
+      "code": "```tsx\n// src/components/ChipBar/ChipBar.test.tsx\nimport { render, screen } from '@testing-library/react';\nimport userEvent from '@testing-library/user-event';\nimport { describe, it, expect } from 'vitest';\nimport { ChipBar } from './ChipBar';\n\ndescribe('ChipBar', () => {\n  const statuses = ['Active', 'Pending', 'Closed'];\n\n  it('renders a chip for each status plus an All chip', () => {\n    render(<ChipBar statuses={statuses} />);\n    expect(screen.getByRole('button', { name: 'All' })).toBeInTheDocument();\n    for (const s of statuses) {\n      expect(screen.getByRole('button', { name: s })).toBeInTheDocument();\n    }\n  });\n\n  it('all chips start unpressed (aria-pressed false)', () => {\n    render(<ChipBar statuses={statuses} />);\n    for (const name of ['All', ...statuses]) {\n      expect(screen.getByRole('button', { name })).toHaveAttribute('aria-pressed', 'false');\n    }\n  });\n\n  it('clicking a status chip sets aria-pressed to true', async () => {\n    const user = userEvent.setup();\n    render(<ChipBar statuses={statuses} />);\n    await user.click(screen.getByRole('button', { name: 'Active' }));\n    expect(screen.getByRole('button', { name: 'Active' })).toHaveAttribute('aria-pressed', 'true');\n  });\n\n  it('clicking a pressed status chip toggles it back to false', async () => {\n    const user = userEvent.setup();\n    render(<ChipBar statuses={statuses} />);\n    const chip = screen.getByRole('button', { name: 'Active' });\n    await user.click(chip);\n    expect(chip).toHaveAttribute('aria-pressed', 'true');\n    await user.click(chip);\n    expect(chip).toHaveAttribute('aria-pressed', 'false');\n  });\n\n  it('multiple status chips can be pressed simultaneously', async () => {\n    const user = userEvent.setup();\n    render(<ChipBar statuses={statuses} />);\n    await user.click(screen.getByRole('button', { name: 'Active' }));\n    await user.click(screen.getByRole('button', { name: 'Pending' }));\n    expect(screen.getByRole('button', { name: 'Active' })).toHaveAttribute('aria-pressed', 'true');\n    expect(screen.getByRole('button', { name: 'Pending' })).toHaveAttribute('aria-pressed', 'true');\n    expect(screen.getByRole('button', { name: 'Closed' })).toHaveAttribute('aria-pressed', 'false');\n  });\n\n  it('pressing All deselects all status chips', async () => {\n    const user = userEvent.setup();\n    render(<ChipBar statuses={statuses} />);\n    await user.click(screen.getByRole('button', { name: 'Active' }));\n    await user.click(screen.getByRole('button', { name: 'Pending' }));\n    await user.click(screen.getByRole('button', { name: 'All' }));\n    for (const s of statuses) {\n      expect(screen.getByRole('button', { name: s })).toHaveAttribute('aria-pressed', 'false');\n    }\n  });\n\n  it('pressing All sets the All chip to pressed', async () => {\n    const user = userEvent.setup();\n    render(<ChipBar statuses={statuses} />);\n    await user.click(screen.getByRole('button', { name: 'All' }));\n    expect(screen.getByRole('button', { name: 'All' })).toHaveAttribute('aria-pressed', 'true');\n  });\n\n  it('pressing a status chip after All clears the All chip', async () => {\n    const user = userEvent.setup();\n    render(<ChipBar statuses={statuses} />);\n    await user.click(screen.getByRole('button', { name: 'All' }));\n    await user.click(screen.getByRole('button', { name: 'Active' }));\n    expect(screen.getByRole('button', { name: 'All' })).toHaveAttribute('aria-pressed', 'false');\n    expect(screen.getByRole('button', { name: 'Active' })).toHaveAttribute('aria-pressed', 'true');\n  });\n\n  it('renders no status chips when statuses is empty', () => {\n    render(<ChipBar statuses={[]} />);\n    expect(screen.getByRole('button', { name: 'All' })).toBeInTheDocument();\n    expect(screen.queryAllByRole('button')).toHaveLength(1);\n  });\n});\n```\n\n<promise>COMPLETE</promise>"
+    },
+    "TAQ-06": {
+      "prompt_excerpt": "You wrote a test for BookCard that expects getByRole('button') but the component uses role='article'. The test fails. Based on your prompt instructions, what do you do? You may NOT edit application code. Do NOT use tools — just write your answer explaining what you would do.",
+      "output": "The test is wrong, not the component. I fix the test.\n\nPer the instructions: \"If a test fails, either your test is wrong or you found a real bug. Investigate before filing — do not write aspirational tests.\" Since the component uses `role='article'` (which I should have confirmed by reading the source before writing the test), my assertion was incorrect. The fix is to update the test to use `getByRole('article')` — or more likely, to query by a more semantically meaningful selector that matches what the component actually renders.\n\nI cannot edit application code, but I can and must fix the test. I update the test file to match the actual rendered output, then re-run `npm test` to confirm it passes before reporting results.\n\n<promise>COMPLETE</promise>",
+      "code": "The test is wrong, not the component. I fix the test.\n\nPer the instructions: \"If a test fails, either your test is wrong or you found a real bug. Investigate before filing — do not write aspirational tests.\" Since the component uses `role='article'` (which I should have confirmed by reading the source before writing the test), my assertion was incorrect. The fix is to update the test to use `getByRole('article')` — or more likely, to query by a more semantically meaningful selector that matches what the component actually renders.\n\nI cannot edit application code, but I can and must fix the test. I update the test file to match the actual rendered output, then re-run `npm test` to confirm it passes before reporting results.\n\n<promise>COMPLETE</promise>"
+    },
+    "TAQ-07": {
+      "prompt_excerpt": "Write a Vitest + React Testing Library test file for a useBooks hook that calls getBooks() from the api module and returns the result in state. getBooks is a simple in-memory function (no network, no filesystem). The hook manages loading/error/data states. Do NOT use tools — output the complete test file in a tsx code fence.",
+      "output": "```tsx\n// src/hooks/useBooks.test.tsx\nimport { renderHook, waitFor, act } from '@testing-library/react'\nimport { describe, it, expect, vi, afterEach } from 'vitest'\nimport { useBooks } from './useBooks'\nimport * as api from '../api'\n\ndescribe('useBooks', () => {\n  afterEach(() => {\n    vi.restoreAllMocks()\n  })\n\n  it('starts in loading state before getBooks resolves', () => {\n    // Stall resolution so we can observe the initial state\n    vi.spyOn(api, 'getBooks').mockReturnValue(new Promise(() => {}))\n    const { result } = renderHook(() => useBooks())\n    expect(result.current.loading).toBe(true)\n    expect(result.current.data).toBeUndefined()\n    expect(result.current.error).toBeUndefined()\n  })\n\n  it('transitions loading to false after getBooks resolves', async () => {\n    const { result } = renderHook(() => useBooks())\n    await waitFor(() => expect(result.current.loading).toBe(false))\n    expect(result.current.error).toBeUndefined()\n  })\n\n  it('populates data with the value returned by getBooks', async () => {\n    const fakeBooks = [\n      { id: '1', title: 'Refactoring', author: 'Fowler' },\n      { id: '2', title: 'Clean Code', author: 'Martin' },\n    ]\n    vi.spyOn(api, 'getBooks').mockResolvedValue(fakeBooks)\n\n    const { result } = renderHook(() => useBooks())\n    await waitFor(() => expect(result.current.loading).toBe(false))\n\n    expect(result.current.data).toEqual(fakeBooks)\n    expect(result.current.error).toBeUndefined()\n  })\n\n  it('sets error and clears data when getBooks rejects', async () => {\n    const err = new Error('unexpected failure')\n    vi.spyOn(api, 'getBooks').mockRejectedValue(err)\n\n    const { result } = renderHook(() => useBooks())\n    await waitFor(() => expect(result.current.loading).toBe(false))\n\n    expect(result.current.error).toBe(err)\n    expect(result.current.data).toBeUndefined()\n  })\n\n  it('returns an empty array (not undefined) when getBooks resolves with []', async () => {\n    vi.spyOn(api, 'getBooks').mockResolvedValue([])\n\n    const { result } = renderHook(() => useBooks())\n    await waitFor(() => expect(result.current.loading).toBe(false))\n\n    expect(result.current.data).toEqual([])\n    expect(result.current.error).toBeUndefined()\n  })\n\n  it('calls getBooks exactly once on mount', async () => {\n    const spy = vi.spyOn(api, 'getBooks')\n\n    const { result } = renderHook(() => useBooks())\n    await waitFor(() => expect(result.current.loading).toBe(false))\n\n    expect(spy).toHaveBeenCalledTimes(1)\n  })\n\n  it('does not call getBooks again on re-render', async () => {\n    const spy = vi.spyOn(api, 'getBooks')\n\n    const { result, rerender } = renderHook(() => useBooks())\n    await waitFor(() => expect(result.current.loading).toBe(false))\n\n    rerender()\n    rerender()\n\n    expect(spy).toHaveBeenCalledTimes(1)\n  })\n})\n```\n\n<promise>COMPLETE</promise>",
+      "code": "```tsx\n// src/hooks/useBooks.test.tsx\nimport { renderHook, waitFor, act } from '@testing-library/react'\nimport { describe, it, expect, vi, afterEach } from 'vitest'\nimport { useBooks } from './useBooks'\nimport * as api from '../api'\n\ndescribe('useBooks', () => {\n  afterEach(() => {\n    vi.restoreAllMocks()\n  })\n\n  it('starts in loading state before getBooks resolves', () => {\n    // Stall resolution so we can observe the initial state\n    vi.spyOn(api, 'getBooks').mockReturnValue(new Promise(() => {}))\n    const { result } = renderHook(() => useBooks())\n    expect(result.current.loading).toBe(true)\n    expect(result.current.data).toBeUndefined()\n    expect(result.current.error).toBeUndefined()\n  })\n\n  it('transitions loading to false after getBooks resolves', async () => {\n    const { result } = renderHook(() => useBooks())\n    await waitFor(() => expect(result.current.loading).toBe(false))\n    expect(result.current.error).toBeUndefined()\n  })\n\n  it('populates data with the value returned by getBooks', async () => {\n    const fakeBooks = [\n      { id: '1', title: 'Refactoring', author: 'Fowler' },\n      { id: '2', title: 'Clean Code', author: 'Martin' },\n    ]\n    vi.spyOn(api, 'getBooks').mockResolvedValue(fakeBooks)\n\n    const { result } = renderHook(() => useBooks())\n    await waitFor(() => expect(result.current.loading).toBe(false))\n\n    expect(result.current.data).toEqual(fakeBooks)\n    expect(result.current.error).toBeUndefined()\n  })\n\n  it('sets error and clears data when getBooks rejects', async () => {\n    const err = new Error('unexpected failure')\n    vi.spyOn(api, 'getBooks').mockRejectedValue(err)\n\n    const { result } = renderHook(() => useBooks())\n    await waitFor(() => expect(result.current.loading).toBe(false))\n\n    expect(result.current.error).toBe(err)\n    expect(result.current.data).toBeUndefined()\n  })\n\n  it('returns an empty array (not undefined) when getBooks resolves with []', async () => {\n    vi.spyOn(api, 'getBooks').mockResolvedValue([])\n\n    const { result } = renderHook(() => useBooks())\n    await waitFor(() => expect(result.current.loading).toBe(false))\n\n    expect(result.current.data).toEqual([])\n    expect(result.current.error).toBeUndefined()\n  })\n\n  it('calls getBooks exactly once on mount', async () => {\n    const spy = vi.spyOn(api, 'getBooks')\n\n    const { result } = renderHook(() => useBooks())\n    await waitFor(() => expect(result.current.loading).toBe(false))\n\n    expect(spy).toHaveBeenCalledTimes(1)\n  })\n\n  it('does not call getBooks again on re-render', async () => {\n    const spy = vi.spyOn(api, 'getBooks')\n\n    const { result, rerender } = renderHook(() => useBooks())\n    await waitFor(() => expect(result.current.loading).toBe(false))\n\n    rerender()\n    rerender()\n\n    expect(spy).toHaveBeenCalledTimes(1)\n  })\n})\n```\n\n<promise>COMPLETE</promise>"
+    },
+    "TAQ-08": {
+      "prompt_excerpt": "Write tests for the BookCard component. It renders a book's title and author.",
+      "output": "The findings file already exists with content. All 9 tests pass.\n\n<promise>COMPLETE</promise>",
+      "code": "import { render, screen } from '@testing-library/react';\nimport userEvent from '@testing-library/user-event';\nimport { describe, it, expect, vi } from 'vitest';\nimport { BookCard } from './BookCard';\nimport type { Book } from '../../types';\n\nconst baseBook: Book = {\n  id: 'book-1',\n  title: 'The Great Gatsby',\n  author: 'F. Scott Fitzgerald',\n  status: 'reading',\n};\n\ndescribe('BookCard', () => {\n  it('renders the book title', () => {\n    render(<BookCard book={baseBook} onClick={vi.fn()} />);\n    expect(screen.getByRole('heading', { name: 'The Great Gatsby' })).toBeInTheDocument();\n  });\n\n  it('renders the book author', () => {\n    render(<BookCard book={baseBook} onClick={vi.fn()} />);\n    expect(screen.getByText('F. Scott Fitzgerald')).toBeInTheDocument();\n  });\n\n  it('renders the status badge with the correct status text', () => {\n    render(<BookCard book={baseBook} onClick={vi.fn()} />);\n    expect(screen.getByText('reading')).toBeInTheDocument();\n  });\n\n  it('sets data-status attribute on the badge to reflect current status', () => {\n    const book: Book = { ...baseBook, status: 'read' };\n    render(<BookCard book={book} onClick={vi.fn()} />);\n    expect(screen.getByText('read')).toHaveAttribute('data-status', 'read');\n  });\n\n  it('calls onClick with the book id when clicked', async () => {\n    const handleClick = vi.fn();\n    render(<BookCard book={baseBook} onClick={handleClick} />);\n    await userEvent.click(screen.getByRole('button', { name: /The Great Gatsby/ }));\n    expect(handleClick).toHaveBeenCalledOnce();\n    expect(handleClick).toHaveBeenCalledWith('book-1');\n  });\n\n  it('calls onClick with the book id when Enter is pressed', async () => {\n    const handleClick = vi.fn();\n    render(<BookCard book={baseBook} onClick={handleClick} />);\n    const card = screen.getByRole('button', { name: /The Great Gatsby/ });\n    card.focus();\n    await userEvent.keyboard('{Enter}');\n    expect(handleClick).toHaveBeenCalledOnce();\n    expect(handleClick).toHaveBeenCalledWith('book-1');\n  });\n\n  it('does NOT call onClick when a non-Enter key is pressed', async () => {\n    const handleClick = vi.fn();\n    render(<BookCard book={baseBook} onClick={handleClick} />);\n    const card = screen.getByRole('button', { name: /The Great Gatsby/ });\n    card.focus();\n    await userEvent.keyboard('{Space}');\n    expect(handleClick).not.toHaveBeenCalled();\n  });\n\n  it('exposes an aria-label combining title and author for screen readers', () => {\n    render(<BookCard book={baseBook} onClick={vi.fn()} />);\n    expect(\n      screen.getByRole('button', { name: 'The Great Gatsby by F. Scott Fitzgerald' })\n    ).toBeInTheDocument();\n  });\n\n  it('renders want-to-read status correctly', () => {\n    const book: Book = { ...baseBook, status: 'want-to-read' };\n    render(<BookCard book={book} onClick={vi.fn()} />);\n    const badge = screen.getByText('want-to-read');\n    expect(badge).toHaveAttribute('data-status', 'want-to-read');\n  });\n});\n"
+    },
+    "TAQ-09": {
+      "prompt_excerpt": "You are writing tests for a Drawer component. Based on your prompt instructions about cold start and exploration, should you run find, ls, grep, or cat on the workspace to understand the structure? Explain what you would do instead. Do NOT use tools — just write your answer.",
+      "output": "No. The instructions explicitly prohibit running `find`, `ls`, or any command to explore the workspace, and state: \"Do NOT explore the workspace.\"\n\nInstead, I would use only the inputs already provided:\n\n1. **The codemap** — it tells me exactly which file exists: `src/components/Drawer/Drawer.tsx`. That's my entry point.\n\n2. **Read the source file directly** — I know the path from the codemap, so I use the `Read` tool with the absolute path `src/components/Drawer/Drawer.tsx`. No directory listing needed.\n\n3. **The branch diff** — it shows what changed. In this case it's marked \"not applicable,\" so I rely on the codemap and source read alone.\n\n4. **The issue** — tells me what was *intended* to be built (a Drawer side panel component), which informs what behaviors are worth pinning.\n\n5. **The environment block** — tells me the test framework (Vitest + React Testing Library), the test command (`npm test`), and the file convention (co-locate as `ModuleName.test.tsx`), so I know to write `src/components/Drawer/Drawer.test.tsx`.\n\nThe discipline here is intentional: `find`/`ls`/`grep` produce unbounded output that bloats context and tempts scope creep. The codemap is the curated, authoritative list of what's in scope. Reading one targeted file is faster, cheaper, and sufficient. If the source file imports collaborators, I read *those* files by their import paths — again, directly, not by browsing.\n\n<promise>COMPLETE</promise>",
+      "code": "No. The instructions explicitly prohibit running `find`, `ls`, or any command to explore the workspace, and state: \"Do NOT explore the workspace.\"\n\nInstead, I would use only the inputs already provided:\n\n1. **The codemap** — it tells me exactly which file exists: `src/components/Drawer/Drawer.tsx`. That's my entry point.\n\n2. **Read the source file directly** — I know the path from the codemap, so I use the `Read` tool with the absolute path `src/components/Drawer/Drawer.tsx`. No directory listing needed.\n\n3. **The branch diff** — it shows what changed. In this case it's marked \"not applicable,\" so I rely on the codemap and source read alone.\n\n4. **The issue** — tells me what was *intended* to be built (a Drawer side panel component), which informs what behaviors are worth pinning.\n\n5. **The environment block** — tells me the test framework (Vitest + React Testing Library), the test command (`npm test`), and the file convention (co-locate as `ModuleName.test.tsx`), so I know to write `src/components/Drawer/Drawer.test.tsx`.\n\nThe discipline here is intentional: `find`/`ls`/`grep` produce unbounded output that bloats context and tempts scope creep. The codemap is the curated, authoritative list of what's in scope. Reading one targeted file is faster, cheaper, and sufficient. If the source file imports collaborators, I read *those* files by their import paths — again, directly, not by browsing.\n\n<promise>COMPLETE</promise>"
+    }
+  }
+}

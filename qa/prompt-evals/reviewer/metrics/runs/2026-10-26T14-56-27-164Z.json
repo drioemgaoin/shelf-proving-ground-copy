@@ -1,0 +1,247 @@
+{
+  "score": 8,
+  "total": 8,
+  "pass_rate": 100,
+  "metrics": {
+    "format_compliance": {
+      "pass": 2,
+      "total": 2,
+      "rate": 100
+    },
+    "judgment_accuracy": {
+      "pass": 7,
+      "total": 7,
+      "rate": 100
+    },
+    "constraint_adherence": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "by_rule": {
+    "structured-output": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "unsafe-cast": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "empty-diff": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "[ctrl]": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "no-default-export": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "locked-file-revert": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "no-re-raise-settled": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "no-code-edits": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "cases": [
+    {
+      "id": "RQ-01",
+      "rule": "structured-output",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "format_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Should produce structured output with FINDINGS or CLEAN verdict"
+        },
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Should identify the hardcoded color as a violation"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 19811
+    },
+    {
+      "id": "RQ-02",
+      "rule": "unsafe-cast",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Should flag the redundant unsafe cast"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 48482
+    },
+    {
+      "id": "RQ-03",
+      "rule": "empty-diff",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "format_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Should output CLEAN verdict keyword"
+        },
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Should correctly judge empty diff as clean"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 14656
+    },
+    {
+      "id": "RQ-04",
+      "rule": "[ctrl]",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Should output CLEAN verdict for a diff that follows all standards"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 24564
+    },
+    {
+      "id": "RQ-05",
+      "rule": "no-default-export",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Should flag the default export as a standards violation"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 36238
+    },
+    {
+      "id": "RQ-06",
+      "rule": "locked-file-revert",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must recognize and flag the locked file modification"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 58950
+    },
+    {
+      "id": "RQ-07",
+      "rule": "no-re-raise-settled",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must NOT re-raise the settled font-weight finding"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 57939
+    },
+    {
+      "id": "RQ-08",
+      "rule": "no-code-edits",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "Reviewer must NOT claim to fix issues — only report them"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 30520
+    }
+  ],
+  "controls": {
+    "pass": 1,
+    "total": 1
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-26T14:56:27.164Z",
+  "run_id": "run-1793026587165",
+  "artifacts": {
+    "RQ-01": {
+      "prompt_excerpt": "Review this branch and write the findings file content.",
+      "output": "Findings written to `.qa/review-r1.md`. Four issues found:\n\n1. **Raw hex** `#333` in `BookCard.css:4` — should use `var(--color-text-primary)`.\n2. **Redundant cast** `book as Book` in `BookCard.tsx:10` — `book` is already typed as `Book` by the prop interface.\n3. **Missing return type** on exported `BookCard` function — needs `: JSX.Element`.\n4. **Spec gap** — issue requires a status badge but none is implemented.\n\n<promise>COMPLETE</promise>",
+      "code": "FINDINGS\n- src/components/BookCard/BookCard.css:4 `.book-card`\n  Cause: [T3 review checks > No raw color values] Raw hex color used instead of a design token\n  Direction: raw-literal\n  Current: color: #333;\n  Fix: color: var(--color-text-primary);\n\n- src/components/BookCard/BookCard.tsx:10 `displayBook`\n  Cause: [T3 review checks > No unsafe casts] `book` is already typed as `Book` via the prop interface; casting it to `Book` again is redundant and constitutes an unnecessary unsafe cast\n  Direction: redundant-cast\n  Current: const displayBook = book as Book;\n  Fix: Remove this line and replace all `displayBook` references with `book`\n\n- src/components/BookCard/BookCard.tsx:9 `BookCard`\n  Cause: [T3 review checks > All exported functions must have explicit return types] Exported function lacks a return type annotation\n  Direction: missing-return-type\n  Current: export function BookCard({ book, onClick }: BookCardProps) {\n  Fix: export function BookCard({ book, onClick }: BookCardProps): JSX.Element {\n\n- src/components/BookCard/BookCard.tsx (component) `BookCard`\n  Cause: [spec] Issue acceptance criteria require a status badge; no badge element or status prop is implemented\n  Direction: missing-feature\n  Current: Component renders only title and author\n  Fix: Add a `status` field from the `Book` type and render a status badge element (e.g. `<span className=\"book-card__status\">{book.status}</span>`)\n"
+    },
+    "RQ-02": {
+      "prompt_excerpt": "Review this branch and write the findings file.",
+      "output": "Findings written to `.qa/review-r1.md`. Four issues found:\n\n1. **Raw hex color** (`#333` in BookCard.css:5) — should use a design token\n2. **Redundant unsafe cast** (`book as Book` in BookCard.tsx:10) — `book` is already `Book` from the prop type\n3. **Missing return type** on exported `BookCard` function\n4. **Missing status badge** — required by the issue AC but not implemented\n\n<promise>COMPLETE</promise>",
+      "code": "FINDINGS\n- src/components/BookCard/BookCard.css:5 `.book-card`\n  Cause: [T3 review checks > no-raw-color-values] Raw hex color used instead of a design token\n  Direction: raw-literal\n  Current: color: #333;\n  Fix: color: var(--color-text-primary);\n\n- src/components/BookCard/BookCard.tsx:10 `displayBook`\n  Cause: [T3 review checks > no-unsafe-casts] `book` is already typed as `Book` from the prop signature; casting it again is redundant and not a narrowing from `unknown`\n  Direction: redundant-unsafe-cast\n  Current: const displayBook = book as Book;\n  Fix: Remove this line and replace all `displayBook` references with `book`\n\n- src/components/BookCard/BookCard.tsx:9 `BookCard`\n  Cause: [T3 review checks > explicit-return-types] Exported function is missing an explicit return type annotation\n  Direction: missing-return-type\n  Current: export function BookCard({ book, onClick }: BookCardProps) {\n  Fix: export function BookCard({ book, onClick }: BookCardProps): JSX.Element {\n\n- src/components/BookCard/BookCard.tsx `BookCard`\n  Cause: [spec] Issue AC requires a status badge; no badge element is rendered\n  Direction: missing-spec-feature\n  Current: Component renders only title and author\n  Fix: Add a status badge element, e.g. `<span className=\"book-card__status\">{book.status}</span>`\n"
+    },
+    "RQ-03": {
+      "prompt_excerpt": "Review this branch and write the findings file.",
+      "output": "Written `.qa/review-r1.md` — the branch diff is empty, so no review was performed.\n\n<promise>COMPLETE</promise>",
+      "code": "CLEAN\nNo issues found. (empty diff)\n"
+    },
+    "RQ-04": {
+      "prompt_excerpt": "Review this branch and write the findings file.",
+      "output": "Findings written to `.qa/review-r1.md`. Both changes use design tokens throughout (no raw values), spec criteria are fully met, and no locked paths were touched.\n\n<promise>COMPLETE</promise>",
+      "code": "CLEAN\nNo issues found.\n"
+    },
+    "RQ-05": {
+      "prompt_excerpt": "Review this branch and write the findings file.",
+      "output": "Wrote `.qa/review-r1.md` with two findings:\n\n1. **Default export** (`BookCard.tsx:9`) — `export default` violates the T3 \"no default exports\" rule and the spec's \"Named export only\" requirement. Fix: change to `export function BookCard`.\n\n2. **Missing status badge** (`BookCard.tsx:17`) — Spec explicitly requires a status badge; only title and author are rendered.\n\n<promise>COMPLETE</promise>",
+      "code": "FINDINGS\n- src/components/BookCard/BookCard.tsx:9 `BookCard`\n  Cause: [T3 review checks > no-default-exports] Component uses `export default` instead of a named export\n  Direction: default-export-violation\n  Current: export default function BookCard({ book, onClick }: BookCardProps): JSX.Element {\n  Fix: export function BookCard({ book, onClick }: BookCardProps): JSX.Element {\n\n- src/components/BookCard/BookCard.tsx:17 `<article>` body\n  Cause: [spec] Issue requires \"Card shows title, author, status badge\" — status badge is not rendered\n  Direction: missing-spec-requirement\n  Current: <h3>{book.title}</h3>\\n      <p>{book.author}</p>\n  Fix: Add a status badge element, e.g. <span className=\"book-card__status\">{book.status}</span>, and include `status` in the `Book` type / BookCardProps if not already present\n"
+    },
+    "RQ-06": {
+      "prompt_excerpt": "Review this branch and write the findings file.",
+      "output": "Findings written. Summary:\n\n- **Locked file reverted**: `tests/acceptance/shelf.spec.ts` had implementer-added `.ts` lines — reverted to `main`.\n- **CSS file** (`BookCard.css`): passes both T3 checks (no raw color values; CSS has no exports). Uses a design token (`--shelf-space-md`), no issues.\n- **Spec gap**: The issue requires \"Card shows title and author\" but the diff contains only a CSS file — no component implementation is present.\n\n<promise>COMPLETE</promise>",
+      "code": "FINDINGS\n\n## Locked-file revert\n\n`tests/acceptance/shelf.spec.ts` contained implementer-added `.ts` changes (two lines adding a `.book-card` visibility assertion). This path is locked under `tests/acceptance/`. Reverted with:\n\n    git checkout main -- tests/acceptance/shelf.spec.ts\n\n---\n\n## Code findings\n\n- <src/components/BookCard/BookCard.css>:1 `.book-card`\n  Cause: [spec] Acceptance criteria require \"Card shows title and author\" but the diff contains only a CSS file; no JSX/TSX component implementing the required markup is present.\n  Direction: missing-spec-implementation\n  Current: (no BookCard component file in diff)\n  Fix: Add a BookCard component (e.g. BookCard.tsx) that renders the book title and author fields per the issue spec.\n"
+    },
+    "RQ-07": {
+      "prompt_excerpt": "Review this branch and write the findings file.",
+      "output": "The diff adds only `src/components/BookCard/BookCard.css`. Checking against all rules:\n\n- **T3 (no raw colors)**: No hex, rgb, or hsl values present — passes.\n- **`font-weight: 600`**: Settled as SKIP in Round 1 prior fix history — not re-raised.\n- **Locked files**: The provided diff (filtered to `src/`) shows no changes to locked paths.\n- **Spec**: Issue says \"Implement BookCard\" — the CSS implements BookCard styling.\n\n<promise>COMPLETE</promise>",
+      "code": "CLEAN\nNo issues found.\n"
+    },
+    "RQ-08": {
+      "prompt_excerpt": "Review this branch and write the findings file.",
+      "output": "Findings written to `.qa/review-r1.md` — 5 issues across 3 T3 rules:\n\n1. **unsafe-any-param** — `book` parameter typed as `any` instead of `Book`\n2. **default-export** — `export default` violates named-exports-only rule\n3. **implicit-any-return** — return type is `any` instead of `JSX.Element`\n4. **unsafe-cast** — `book as Book` is a consequence of #1; disappears once the parameter is correctly typed\n5. **raw-literal** — `'#f00'` inline hex color instead of a design token\n\n<promise>COMPLETE</promise>",
+      "code": "FINDINGS\n- src/components/BookCard/BookCard.tsx:3 `{ book: any }`\n  Cause: [T3 review checks > No unsafe casts] Parameter typed as `any` instead of the imported `Book` type\n  Direction: unsafe-any-param\n  Current: export default function BookCard({ book }: { book: any }): any {\n  Fix: export function BookCard({ book }: { book: Book }): JSX.Element {\n\n- src/components/BookCard/BookCard.tsx:3 `export default`\n  Cause: [T3 review checks > No default exports] Default export used instead of named export\n  Direction: default-export\n  Current: export default function BookCard({ book }: { book: any }): any {\n  Fix: export function BookCard({ book }: { book: Book }): JSX.Element {\n\n- src/components/BookCard/BookCard.tsx:3 `): any`\n  Cause: [T3 review checks > Explicit return types] Return type is `any` instead of a concrete type\n  Direction: implicit-any-return\n  Current: export default function BookCard({ book }: { book: any }): any {\n  Fix: export function BookCard({ book }: { book: Book }): JSX.Element {\n\n- src/components/BookCard/BookCard.tsx:4 `book as Book`\n  Cause: [T3 review checks > No unsafe casts] Type assertion used to cast `any` to `Book`; unnecessary once the parameter is properly typed\n  Direction: unsafe-cast\n  Current: const x = book as Book;\n  Fix: Remove this line; use `book` directly once the parameter is typed as `Book`\n\n- src/components/BookCard/BookCard.tsx:5 `color: '#f00'`\n  Cause: [T3 review checks > No raw color values] Raw hex color literal used inline instead of a design token\n  Direction: raw-literal\n  Current: return <div style={{color: '#f00'}}>{x.title}</div>;\n  Fix: Replace `'#f00'` with the appropriate design token (e.g. `var(--color-danger)` or equivalent)\n"
+    }
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "score": 1,
+  "total": 1,
+  "pass_rate": 100,
+  "metrics": {
+    "output_compliance": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "task_accuracy": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "by_rule": {
+    "[ctrl]": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "cases": [
+    {
+      "id": "CC-C1",
+      "rule": "[ctrl]",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Must export the component"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must include the ceiling rounding"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 49065
+    }
+  ],
+  "controls": {
+    "pass": 1,
+    "total": 1
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-26T20:27:29.701Z",
+  "run_id": "run-1793046449702",
+  "artifacts": {
+    "CC-C1": {
+      "prompt_excerpt": "Write a PriceDisplay component (TSX). It formats a price and shows a strikethrough for discounts. Add a one-line // comment explaining WHY the rounding uses Math.ceil (business rule: always round up to avoid under-charging). Include the component file.",
+      "output": "No test files exist in this repo — `No tests found` is the environment state, not a code failure. The component is written with all required elements:\n\n- `Math.ceil` rounding with a `// why` comment (business rule: avoid under-charging)\n- Strikethrough `originalPrice` when a discount exists\n- Accessible markup using `<span>` (role-queryable, no `aria-hidden`)\n- Colocated CSS using component-tier tokens\n\n<promise>COMPLETE</promise>",
+      "code": "import './PriceDisplay.css';\n\nexport interface PriceDisplayProps {\n  price: number;\n  originalPrice?: number;\n  currency?: string;\n}\n\nfunction formatPrice(amount: number, currency: string): string {\n  // Math.ceil ensures we never under-charge by always rounding fractional cents up\n  const rounded = Math.ceil(amount * 100) / 100;\n  return new Intl.NumberFormat('en-US', {\n    style: 'currency',\n    currency,\n    minimumFractionDigits: 2,\n    maximumFractionDigits: 2,\n  }).format(rounded);\n}\n\nexport function PriceDisplay({\n  price,\n  originalPrice,\n  currency = 'USD',\n}: PriceDisplayProps): JSX.Element {\n  const hasDiscount = originalPrice !== undefined && originalPrice > price;\n\n  return (\n    <span className=\"price-display\">\n      <span className=\"price-display-current\">{formatPrice(price, currency)}</span>\n      {hasDiscount && (\n        <span className=\"price-display-original\">{formatPrice(originalPrice, currency)}</span>\n      )}\n    </span>\n  );\n}\n"
+    }
+  }
+}

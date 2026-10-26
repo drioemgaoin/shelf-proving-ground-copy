@@ -1,0 +1,79 @@
+{
+  "score": 1,
+  "total": 1,
+  "pass_rate": 100,
+  "metrics": {
+    "constraint_adherence": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "output_compliance": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "by_rule": {
+    "comment-clarity": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "cases": [
+    {
+      "id": "CC-03",
+      "rule": "comment-clarity",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No multi-line // comment blocks — one line maximum"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No JSDoc blocks on internal code"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No verbose null-state explanation — if any comment, max: // null = loading; array = loaded"
+        },
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Must use useState"
+        },
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Must export the component"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 325593
+    }
+  ],
+  "controls": {
+    "pass": 0,
+    "total": 0
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-26T18:21:12.808Z",
+  "run_id": "run-1793038872809",
+  "artifacts": {
+    "CC-03": {
+      "prompt_excerpt": "Write a TaskBoard component in a single file. It uses useState<Task[] | null>(null) where null = loading. It fetches tasks via an async getTasks() call in useEffect, handles errors by setting an empty array, and shows: skeletons when null, an empty state when array is empty, the task list when populated.\n\nThe component is complex: it has a header with a count badge, a filter bar (stub — just the container div), and the main list area with three states. Export the component.",
+      "output": "All 6 files in place. The implementation:\n\n- **`TaskBoard.tsx`** — `useState<Task[] | null>(null)` loading pattern, `useEffect` with `getTasks()`, error handler sets `[]`, three states (skeleton/empty/populated), header with count badge, filter bar stub. No nested ternaries, named export, no `aria-hidden` on `<li>` elements so `getByRole('listitem')` finds skeletons and real tasks alike.\n- **`TaskBoard.css`** — `@layer components`, `@keyframes` inside the layer, component-tier color tokens only, `transform`/`opacity` animation, no raw values, kebab-case selectors.\n- **`tokens.css`** — three-tier token system (primitive → semantic → component), full light/dark coverage in `:root`, `[data-theme=\"dark\"]`, and `@media (prefers-color-scheme: dark)`, `@layer base` with box-sizing and element resets.\n- **`layers.css`** — only `@layer base, tokens, components;`.\n\n<promise>COMPLETE</promise>",
+      "code": "import { useEffect, useState } from 'react';\nimport { getTasks } from '../../api';\nimport type { Task } from '../../types';\nimport './TaskBoard.css';\n\nconst SKELETON_COUNT = 3;\n\nfunction TaskSkeleton(): JSX.Element {\n  return (\n    <li className=\"task-board-item\">\n      <div className=\"task-board-skeleton-line\" />\n    </li>\n  );\n}\n\nfunction TaskItem({ task }: { task: Task }): JSX.Element {\n  return (\n    <li className=\"task-board-item\">\n      <span className=\"task-board-item-title\">{task.title}</span>\n    </li>\n  );\n}\n\nfunction renderListContent(tasks: Task[] | null): JSX.Element[] {\n  if (tasks === null) {\n    return Array.from({ length: SKELETON_COUNT }, (_, i) => <TaskSkeleton key={i} />);\n  }\n  return tasks.map((task) => <TaskItem key={task.id} task={task} />);\n}\n\nexport function TaskBoard(): JSX.Element {\n  const [tasks, setTasks] = useState<Task[] | null>(null);\n\n  useEffect(() => {\n    getTasks()\n      .then((data) => {\n        setTasks(data);\n      })\n      .catch(() => {\n        setTasks([]);\n      });\n  }, []);\n\n  const isLoading = tasks === null;\n  const isEmpty = tasks !== null && tasks.length === 0;\n  const count = tasks !== null ? tasks.length : 0;\n\n  return (\n    <section className=\"task-board\" aria-labelledby=\"task-board-heading\">\n      <header className=\"task-board-header\">\n        <h2 id=\"task-board-heading\" className=\"task-board-heading\">\n          Tasks\n        </h2>\n        {!isLoading && (\n          <span className=\"task-board-badge\" aria-label={`${count} tasks`}>\n            {count}\n          </span>\n        )}\n      </header>\n\n      <div className=\"task-board-filter-bar\" role=\"search\" aria-label=\"Filter tasks\" />\n\n      {isEmpty && <p className=\"task-board-empty\">No tasks yet.</p>}\n\n      {!isEmpty && (\n        <ul className=\"task-board-list\" aria-label=\"Tasks\">\n          {renderListContent(tasks)}\n        </ul>\n      )}\n    </section>\n  );\n}\n"
+    }
+  }
+}

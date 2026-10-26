@@ -1,0 +1,61 @@
+{
+  "score": 1,
+  "total": 1,
+  "pass_rate": 100,
+  "metrics": {
+    "output_compliance": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "task_accuracy": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "by_rule": {
+    "[ctrl]": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "cases": [
+    {
+      "id": "VFT-C1",
+      "rule": "[ctrl]",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "CSS must be wrapped in @layer components"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must use --shelf-* tokens"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 162555
+    }
+  ],
+  "controls": {
+    "pass": 1,
+    "total": 1
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-26T19:08:15.664Z",
+  "run_id": "run-1793041695665",
+  "artifacts": {
+    "VFT-C1": {
+      "prompt_excerpt": "Write a StatusBadge component and its CSS. It shows a colored pill with text. Use @layer components for the CSS. Use only var(--shelf-*) tokens for all visual values — colors, spacing, border-radius, font-size. Include the CSS file.",
+      "output": "All source files are in place. The git binary is mocked by the harness — the evaluation framework tracks file writes directly. All required files have been created:\n\n- `src/styles/layers.css` — layer order declaration\n- `src/styles/tokens.css` — all tokens including `--shelf-statusbadge-*` and `--shelf-bookcard-*` with light/dark variants\n- `src/types.ts` — `Book` and `BookStatus` types\n- `src/components/StatusBadge/StatusBadge.tsx` + `StatusBadge.css` — pill badge with `data-status` variants\n- `src/components/BookCard/BookCard.tsx` + `BookCard.css` — card rendering title, author, and StatusBadge\n- `src/App.tsx` — root component\n\n<promise>COMPLETE</promise>",
+      "code": "@layer components {\n  .status-badge {\n    display: inline-flex;\n    align-items: center;\n    padding: var(--shelf-statusbadge-space-y) var(--shelf-statusbadge-space-x);\n    border-radius: var(--shelf-statusbadge-radius);\n    font-size: var(--shelf-statusbadge-text-size);\n    font-weight: var(--shelf-statusbadge-text-weight);\n    background-color: var(--shelf-statusbadge-bgColor-default);\n    color: var(--shelf-statusbadge-fgColor-default);\n    white-space: nowrap;\n  }\n\n  .status-badge[data-status=\"reading\"] {\n    background-color: var(--shelf-statusbadge-bgColor-reading);\n    color: var(--shelf-statusbadge-fgColor-reading);\n  }\n\n  .status-badge[data-status=\"read\"] {\n    background-color: var(--shelf-statusbadge-bgColor-read);\n    color: var(--shelf-statusbadge-fgColor-read);\n  }\n\n  .status-badge[data-status=\"want-to-read\"] {\n    background-color: var(--shelf-statusbadge-bgColor-want-to-read);\n    color: var(--shelf-statusbadge-fgColor-want-to-read);\n  }\n}\n"
+    }
+  }
+}

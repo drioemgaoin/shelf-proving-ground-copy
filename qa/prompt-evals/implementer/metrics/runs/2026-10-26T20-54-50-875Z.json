@@ -1,0 +1,78 @@
+{
+  "score": 1,
+  "total": 1,
+  "pass_rate": 100,
+  "metrics": {
+    "constraint_adherence": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "output_compliance": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "task_accuracy": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "by_rule": {
+    "values-from-tokens": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "cases": [
+    {
+      "id": "VFT-02",
+      "rule": "values-from-tokens",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No bare numeric line-height — use a --shelf-font-lineheight-* token"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No raw line-height values — must use tokens"
+        },
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "CSS must be wrapped in @layer components"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must include line-height declarations"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 15954
+    }
+  ],
+  "controls": {
+    "pass": 0,
+    "total": 0
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-26T20:54:50.875Z",
+  "run_id": "run-1793048090876",
+  "artifacts": {
+    "VFT-02": {
+      "prompt_excerpt": "Write a ArticlePreview component and its CSS. It shows a title with tight line-height (~1.3) and a body excerpt with normal line-height (~1.5). Use @layer components for the CSS. Use tokens for all styling (assume --shelf-* tokens exist for font properties including line-height). Include the CSS file.",
+      "output": "Here's the CSS file at `src/components/ArticlePreview/ArticlePreview.css`.\n\nKey decisions:\n- `@layer components` wraps all rules per the constraint\n- `.article-preview-title` uses `--shelf-lineHeight-tight` (~1.3) and `.article-preview-excerpt` uses `--shelf-lineHeight-normal` (~1.5)\n- All values reference `--shelf-*` tokens — component-tier color aliases (`--shelf-article-preview-fgColor-*`, `--shelf-article-preview-bgColor-*`) and shared scale tokens for font size, weight, and line-height\n- No raw values, no margin, kebab-case selectors throughout",
+      "code": "@layer components {\n  .article-preview {\n    background-color: var(--shelf-article-preview-bgColor-surface);\n    color: var(--shelf-article-preview-fgColor-default);\n  }\n\n  .article-preview-title {\n    color: var(--shelf-article-preview-fgColor-title);\n    font-size: var(--shelf-fontSize-lg);\n    font-weight: var(--shelf-fontWeight-semibold);\n    line-height: var(--shelf-lineHeight-tight);\n  }\n\n  .article-preview-excerpt {\n    color: var(--shelf-article-preview-fgColor-body);\n    font-size: var(--shelf-fontSize-md);\n    font-weight: var(--shelf-fontWeight-regular);\n    line-height: var(--shelf-lineHeight-normal);\n  }\n}\n"
+    }
+  }
+}

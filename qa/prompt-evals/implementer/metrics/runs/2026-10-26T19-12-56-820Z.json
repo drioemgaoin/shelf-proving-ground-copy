@@ -1,0 +1,84 @@
+{
+  "score": 0,
+  "total": 1,
+  "pass_rate": 0,
+  "metrics": {
+    "constraint_adherence": {
+      "pass": 0,
+      "total": 1,
+      "rate": 0
+    },
+    "output_compliance": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "task_accuracy": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "by_rule": {
+    "values-from-tokens": {
+      "pass": 0,
+      "total": 1,
+      "rate": 0
+    }
+  },
+  "cases": [
+    {
+      "id": "VFT-01",
+      "rule": "values-from-tokens",
+      "pass": false,
+      "checkResults": [
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No border-width keyword 'thin' as a CSS value — token refs like var(--shelf-borderWidth-thin) are fine"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No border-width keyword 'medium' as a CSS value"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": false,
+          "detail": "Found at offset 1122:     width: 60%",
+          "description": "No raw percentage as a property value (e.g. width: 60%) — 100% and custom property declarations are fine"
+        },
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "CSS must be wrapped in @layer components"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must include border styling"
+        }
+      ],
+      "detail": "Found at offset 1122:     width: 60%",
+      "duration_ms": 31148
+    }
+  ],
+  "controls": {
+    "pass": 0,
+    "total": 0
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-26T19:12:56.820Z",
+  "run_id": "run-1793041976821",
+  "artifacts": {
+    "VFT-01": {
+      "prompt_excerpt": "Write a ProfileCard component and its CSS. It has a bordered container with a thin border, a title, a subtitle, and a skeleton variant with two shimmer bars (one full-width, one shorter at about 60% width). Use @layer components for the CSS. Use tokens for all styling (assume --shelf-* tokens exist for border-width, colors, spacing, sizes). Include the CSS file.",
+      "output": "Here's what the file does and why each choice was made:\n\n**Structure**\n- Single `@layer components` block wrapping everything, including the `@keyframes` — satisfies the constraint that keyframes must live inside their parent layer.\n\n**Skeleton shimmer**\n- Animates only `transform: translateX` and `opacity` on a `::after` pseudo-element overlay — the only two properties allowed for animation.\n- The shimmer bar slides from `translateX(-100%)` to `translateX(100%)` with `overflow: hidden` on the parent clipping it to the bar's bounds.\n- The full-width bar is `.profile-card-title`; the 60%-width bar is `.profile-card-subtitle` with `width: 60%`.\n\n**Tokens used**\n| Token | Role |\n|---|---|\n| `--shelf-profile-card-bgColor-base` | container background |\n| `--shelf-profile-card-borderColor-base` | container border |\n| `--shelf-profile-card-fgColor-title` | title text |\n| `--shelf-profile-card-fgColor-subtitle` | subtitle text |\n| `--shelf-profile-card-bgColor-skeleton` | skeleton bar fill |\n| `--shelf-profile-card-bgColor-shimmer` | shimmer overlay color |\n| `--shelf-borderWidth-thin` | border thickness |\n| `--shelf-radius-md/sm` | corner rounding |\n| `--shelf-spacing-md` | container padding |\n| `--shelf-fontSize-md/sm` | type scale |\n| `--shelf-fontWeight-semibold` | title weight |\n| `--shelf-duration-shimmer` | animation duration |\n| `--shelf-easing-linear` | animation easing |\n\nAll component-tier tokens follow the `--shelf-profile-card-*` naming convention required by the constraints. You'll need to define these aliases in `tokens.css` (both `:root` and any dark-mode blocks) before the component renders correctly.",
+      "code": "@layer components {\n  @keyframes profile-card-shimmer {\n    from {\n      transform: translateX(-100%);\n      opacity: 0.4;\n    }\n    to {\n      transform: translateX(100%);\n      opacity: 0.4;\n    }\n  }\n\n  .profile-card {\n    background-color: var(--shelf-profile-card-bgColor-base);\n    border: var(--shelf-borderWidth-thin) solid var(--shelf-profile-card-borderColor-base);\n    border-radius: var(--shelf-radius-md);\n    padding: var(--shelf-spacing-md);\n  }\n\n  .profile-card-title {\n    color: var(--shelf-profile-card-fgColor-title);\n    font-size: var(--shelf-fontSize-md);\n    font-weight: var(--shelf-fontWeight-semibold);\n  }\n\n  .profile-card-subtitle {\n    color: var(--shelf-profile-card-fgColor-subtitle);\n    font-size: var(--shelf-fontSize-sm);\n  }\n\n  /* Skeleton variant */\n\n  .profile-card--skeleton .profile-card-title,\n  .profile-card--skeleton .profile-card-subtitle {\n    background-color: var(--shelf-profile-card-bgColor-skeleton);\n    color: transparent;\n    border-radius: var(--shelf-radius-sm);\n    overflow: hidden;\n    position: relative;\n  }\n\n  .profile-card--skeleton .profile-card-subtitle {\n    width: 60%;\n  }\n\n  .profile-card--skeleton .profile-card-title::after,\n  .profile-card--skeleton .profile-card-subtitle::after {\n    content: \"\";\n    position: absolute;\n    inset: 0;\n    background-color: var(--shelf-profile-card-bgColor-shimmer);\n    animation: profile-card-shimmer var(--shelf-duration-shimmer) var(--shelf-easing-linear) infinite;\n  }\n}\n"
+    }
+  }
+}

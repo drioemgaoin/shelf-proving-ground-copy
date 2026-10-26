@@ -47,7 +47,7 @@ async function loadModule() {
   const mod = await import("../lib/violations-memory.mjs");
   return mod as {
     recordViolation: (entry: any) => void;
-    loadViolationsMemory: () => string;
+    loadViolationsMemory: (filterRuleIds?: string[]) => string;
   };
 }
 
@@ -100,7 +100,7 @@ describe("loadViolationsMemory", () => {
     assert.equal(result, "");
   });
 
-  test("(b) record 3, load returns all 3 with correct fields", async () => {
+  test("(b) record 3 different rules, load groups by ruleId", async () => {
     const { recordViolation, loadViolationsMemory } = await loadModule();
 
     recordViolation(makeEntry({ ruleId: "rule-A", file: "a.ts", wrote: "bad-a", fix: "good-a" }));
@@ -109,39 +109,53 @@ describe("loadViolationsMemory", () => {
 
     const output = loadViolationsMemory();
 
-    assert.ok(output.includes("[rule-A] in a.ts"), "missing rule-A entry");
-    assert.ok(output.includes("[rule-B] in b.ts"), "missing rule-B entry");
-    assert.ok(output.includes("[rule-C] in c.ts"), "missing rule-C entry");
-    assert.ok(output.includes("bad-a"), "missing wrote field for A");
-    assert.ok(output.includes("good-a"), "missing fix field for A");
+    assert.ok(output.includes("[rule-A]"), "missing rule-A");
+    assert.ok(output.includes("[rule-B]"), "missing rule-B");
+    assert.ok(output.includes("[rule-C]"), "missing rule-C");
   });
 
-  test("(c) record 15, load returns only last 10", async () => {
+  test("(c) duplicates with same direction collapse, count reflects total", async () => {
     const { recordViolation, loadViolationsMemory } = await loadModule();
 
-    for (let i = 1; i <= 15; i++) {
-      recordViolation(makeEntry({ ruleId: `rule-${String(i).padStart(2, "0")}` }));
+    // Same ruleId and direction — should collapse into one representative
+    for (let i = 0; i < 5; i++) {
+      recordViolation(makeEntry({ ruleId: "rule-X", wrote: "color: #fff", fix: "use token", direction: "raw-literal" }));
     }
 
     const output = loadViolationsMemory();
 
-    // Entries 1–5 should be truncated
-    for (let i = 1; i <= 5; i++) {
-      assert.ok(
-        !output.includes(`[rule-${String(i).padStart(2, "0")}]`),
-        `entry ${i} should be truncated`,
-      );
-    }
-    // Entries 6–15 should be present
-    for (let i = 6; i <= 15; i++) {
-      assert.ok(
-        output.includes(`[rule-${String(i).padStart(2, "0")}]`),
-        `entry ${i} should be present`,
-      );
-    }
+    // Should show count of 5 and only one line for rule-X
+    assert.ok(output.includes("(5×)"), "should show 5× count");
+    // Only one line for rule-X (the ruleId appears once in a single bullet)
+    const ruleXLines = output.split("\n").filter(l => l.includes("[rule-X]"));
+    assert.equal(ruleXLines.length, 1, "duplicate directions should collapse into one line");
   });
 
-  test("(e) formatted output includes header and learning instruction", async () => {
+  test("(c2) different directions within same rule produce multiple examples", async () => {
+    const { recordViolation, loadViolationsMemory } = await loadModule();
+
+    recordViolation(makeEntry({ ruleId: "rule-X", wrote: "color: #fff", fix: "use token", direction: "raw-literal" }));
+    recordViolation(makeEntry({ ruleId: "rule-X", wrote: "bg: var(--fg)", fix: "use bgColor", direction: "wrong-tier" }));
+
+    const output = loadViolationsMemory();
+
+    assert.ok(output.includes("raw-literal"), "missing raw-literal direction");
+    assert.ok(output.includes("wrong-tier"), "missing wrong-tier direction");
+  });
+
+  test("(c3) filterRuleIds limits output to specified rules", async () => {
+    const { recordViolation, loadViolationsMemory } = await loadModule();
+
+    recordViolation(makeEntry({ ruleId: "rule-A", wrote: "bad-a", fix: "good-a" }));
+    recordViolation(makeEntry({ ruleId: "rule-B", wrote: "bad-b", fix: "good-b" }));
+
+    const filtered = loadViolationsMemory(["rule-A"]);
+
+    assert.ok(filtered.includes("[rule-A]"), "filtered output missing rule-A");
+    assert.ok(!filtered.includes("[rule-B]"), "filtered output should not contain rule-B");
+  });
+
+  test("(e) formatted output includes header", async () => {
     const { recordViolation, loadViolationsMemory } = await loadModule();
 
     recordViolation(makeEntry());
@@ -149,8 +163,17 @@ describe("loadViolationsMemory", () => {
     const output = loadViolationsMemory();
 
     assert.ok(output.startsWith("# Past violations"), "missing header");
-    assert.ok(output.includes("learn from these"), "missing learning instruction");
     assert.ok(output.includes("do not repeat"), "missing 'do not repeat'");
-    assert.ok(output.includes("Apply these lessons"), "missing application instruction");
+  });
+
+  test("(f) entries without direction use normalized wrote as fallback key", async () => {
+    const { recordViolation, loadViolationsMemory } = await loadModule();
+
+    // Two entries with same normalized wrote but no explicit direction — should collapse
+    recordViolation(makeEntry({ ruleId: "rule-X", wrote: "color: #fff", fix: "use token" }));
+    recordViolation(makeEntry({ ruleId: "rule-X", wrote: "color: #fff", fix: "use token v2" }));
+
+    const output = loadViolationsMemory();
+    assert.ok(output.includes("(2×)"), "should show 2× count for collapsed entries");
   });
 });

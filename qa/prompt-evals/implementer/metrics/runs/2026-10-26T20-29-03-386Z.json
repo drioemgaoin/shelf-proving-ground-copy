@@ -1,0 +1,78 @@
+{
+  "score": 1,
+  "total": 1,
+  "pass_rate": 100,
+  "metrics": {
+    "output_compliance": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "constraint_adherence": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "task_accuracy": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "by_rule": {
+    "role-query-diagnostic": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "cases": [
+    {
+      "id": "RQD-01",
+      "rule": "role-query-diagnostic",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Model produced component code with exports/imports"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No aria-hidden on placeholder elements — they must participate in the accessible tree for role-based locators"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "Named exports only — no default exports"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must render a list container with role=list"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 40623
+    }
+  ],
+  "controls": {
+    "pass": 0,
+    "total": 0
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-26T20:29:03.386Z",
+  "run_id": "run-1793046543388",
+  "artifacts": {
+    "RQD-01": {
+      "prompt_excerpt": "Write a NotificationList component. It receives `items: Notification[]` and `isLoading: boolean`. When loading, render 4 placeholder `<li>` elements inside a `<ul role=\"list\">` showing grey bars. When loaded, render the real notification items as `<li>`. Use tokens for all styling. Include the CSS file.",
+      "output": "Both files are written:\n\n**`NotificationList.tsx`** — named export, typed props with a local `Notification` interface. Loading state renders 4 `<li>` placeholders inside `<ul role=\"list\">` without `aria-hidden`, so `getByRole('listitem')` can find them. Real items render identically as `<li>` elements.\n\n**`NotificationList.css`** — all values use component-tier token aliases (`--shelf-notification-*`) defined in all three color-scheme blocks (`:root`, `[data-theme=\"dark\"]`, and the `prefers-color-scheme: dark` media query). No raw hex/px/rem values. Wrapped in `@layer components`.\n\n<promise>COMPLETE</promise>",
+      "code": "import './NotificationList.css';\n\nexport interface Notification {\n  id: string;\n  message: string;\n}\n\ninterface NotificationListProps {\n  items: Notification[];\n  isLoading: boolean;\n}\n\nconst PLACEHOLDER_COUNT = 4;\n\nexport function NotificationList({ items, isLoading }: NotificationListProps): JSX.Element {\n  return (\n    <ul role=\"list\" className=\"notification-list\">\n      {isLoading\n        ? Array.from({ length: PLACEHOLDER_COUNT }, (_, i) => (\n            <li key={i} className=\"notification-list__item notification-list__item--placeholder\">\n              <span className=\"notification-list__bar\" />\n            </li>\n          ))\n        : items.map((item) => (\n            <li key={item.id} className=\"notification-list__item\">\n              {item.message}\n            </li>\n          ))}\n    </ul>\n  );\n}\n"
+    }
+  }
+}

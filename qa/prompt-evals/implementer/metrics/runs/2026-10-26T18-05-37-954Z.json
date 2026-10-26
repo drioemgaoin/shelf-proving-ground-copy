@@ -1,0 +1,79 @@
+{
+  "score": 1,
+  "total": 1,
+  "pass_rate": 100,
+  "metrics": {
+    "constraint_adherence": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "output_compliance": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "by_rule": {
+    "comment-clarity": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "cases": [
+    {
+      "id": "CC-03",
+      "rule": "comment-clarity",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No multi-line // comment blocks — one line maximum"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No JSDoc blocks on internal code"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No verbose null-state explanation — if any comment, max: // null = loading; array = loaded"
+        },
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Must use useState"
+        },
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Must export the component"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 229819
+    }
+  ],
+  "controls": {
+    "pass": 0,
+    "total": 0
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-26T18:05:37.954Z",
+  "run_id": "run-1793037937954",
+  "artifacts": {
+    "CC-03": {
+      "prompt_excerpt": "Write a TaskBoard component in a single file. It uses useState<Task[] | null>(null) where null = loading. It fetches tasks via an async getTasks() call in useEffect, handles errors by setting an empty array, and shows: skeletons when null, an empty state when array is empty, the task list when populated.\n\nThe component is complex: it has a header with a count badge, a filter bar (stub — just the container div), and the main list area with three states. Export the component.",
+      "output": "The component is correctly written. All files are in place:\n\n- `src/types.ts` — `Task` interface\n- `src/api.ts` — `getTasks()` with type guard validation\n- `src/styles/layers.css` — `@layer base, tokens, components;`\n- `src/styles/tokens.css` — full primitive/semantic/component token tiers with light, dark (`[data-theme=\"dark\"]`), and `prefers-color-scheme: dark` blocks\n- `src/components/TaskBoard/TaskBoard.tsx` — component with `useState<Task[] | null>(null)`, loading skeletons (no `aria-hidden`, same `<li>` role as real items), empty state, populated state, header with count badge, filter bar stub\n- `src/components/TaskBoard/TaskBoard.css` — `@layer components` with component-tier color tokens, `@keyframes` inside the layer, reduced-motion fallback\n\n<promise>COMPLETE</promise>",
+      "code": "import { useState, useEffect } from 'react';\nimport type { ReactElement } from 'react';\nimport type { Task } from '../../types';\nimport { getTasks } from '../../api';\nimport './TaskBoard.css';\n\nconst SKELETON_COUNT = 4;\n\nexport function TaskBoard(): ReactElement {\n  // null = loading; array = loaded\n  const [tasks, setTasks] = useState<Task[] | null>(null);\n\n  useEffect(() => {\n    getTasks().then(setTasks).catch(() => { setTasks([]); });\n  }, []);\n\n  const isLoading = tasks === null;\n  const isEmpty = tasks !== null && tasks.length === 0;\n  const taskCount = tasks !== null ? tasks.length : 0;\n\n  return (\n    <div className=\"task-board\">\n      <header className=\"task-board-header\">\n        <h1 className=\"task-board-title\">Tasks</h1>\n        <span\n          className=\"task-board-badge\"\n          aria-label={isLoading ? 'loading' : `${taskCount} tasks`}\n        >\n          {isLoading ? '–' : taskCount}\n        </span>\n      </header>\n      <div className=\"task-board-filter-bar\" role=\"search\" aria-label=\"Filter tasks\" />\n      <div className=\"task-board-main\">\n        {isLoading && (\n          <ul className=\"task-list\" aria-label=\"Loading tasks\">\n            {Array.from({ length: SKELETON_COUNT }, (_, i) => (\n              <li key={i} className=\"task-card task-card-skeleton\">\n                <div className=\"skeleton-title\" />\n                <div className=\"skeleton-meta\" />\n              </li>\n            ))}\n          </ul>\n        )}\n        {isEmpty && (\n          <p className=\"task-board-empty\">No tasks yet.</p>\n        )}\n        {!isLoading && !isEmpty && tasks !== null && (\n          <ul className=\"task-list\" aria-label=\"Tasks\">\n            {tasks.map((task) => (\n              <li key={task.id} className=\"task-card\">\n                <span className=\"task-card-title\">{task.title}</span>\n                <span className=\"task-card-status\">{task.status}</span>\n              </li>\n            ))}\n          </ul>\n        )}\n      </div>\n    </div>\n  );\n}\n"
+    }
+  }
+}

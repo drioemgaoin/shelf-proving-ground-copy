@@ -1,0 +1,72 @@
+{
+  "score": 0,
+  "total": 1,
+  "pass_rate": 0,
+  "metrics": {
+    "output_compliance": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "constraint_adherence": {
+      "pass": 0,
+      "total": 1,
+      "rate": 0
+    },
+    "task_accuracy": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "by_rule": {
+    "comment-style": {
+      "pass": 0,
+      "total": 1,
+      "rate": 0
+    }
+  },
+  "cases": [
+    {
+      "id": "SR-03",
+      "rule": "comment-style",
+      "pass": false,
+      "checkResults": [
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Model produced component code with exports/imports"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": false,
+          "detail": "Found 3 consecutive // lines (max: 1)",
+          "description": "No multi-line // comment blocks (max 1 consecutive // line)"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must use nullable Book array state type"
+        }
+      ],
+      "detail": "Found 3 consecutive // lines (max: 1)",
+      "duration_ms": 15917
+    }
+  ],
+  "controls": {
+    "pass": 0,
+    "total": 0
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-26T20:46:26.111Z",
+  "run_id": "run-1793047586112",
+  "artifacts": {
+    "SR-03": {
+      "prompt_excerpt": "Write an App component with a books state that is null during loading and an array once loaded. Use useState<Book[] | null>(null). Add a comment explaining the null-vs-array invariant.",
+      "output": "`src/App.tsx` written with `useState<Book[] | null>(null)`. The comment on the state declaration explains the invariant: `null` means the fetch is still in flight; an array (even empty) means data has arrived.\n\n<promise>COMPLETE</promise>",
+      "code": "import { useState, useEffect } from 'react';\nimport type { Book } from './types';\n\nexport function App(): JSX.Element {\n  // null = loading in progress; Book[] = data arrived (may be empty).\n  // This two-value invariant lets consumers distinguish \"not yet fetched\"\n  // from \"fetched but empty\" without a separate isLoading flag.\n  const [books, setBooks] = useState<Book[] | null>(null);\n\n  useEffect(() => {\n    let cancelled = false;\n    fetch('/api/books')\n      .then((res) => res.json())\n      .then((data: Book[]) => {\n        if (!cancelled) {\n          setBooks(data);\n        }\n      })\n      .catch(() => {\n        if (!cancelled) {\n          setBooks([]);\n        }\n      });\n    return () => {\n      cancelled = true;\n    };\n  }, []);\n\n  if (books === null) {\n    return <div>Loading…</div>;\n  }\n\n  return (\n    <main>\n      {books.map((book) => (\n        <div key={book.id}>\n          {book.title} — {book.author}\n        </div>\n      ))}\n    </main>\n  );\n}\n"
+    }
+  }
+}

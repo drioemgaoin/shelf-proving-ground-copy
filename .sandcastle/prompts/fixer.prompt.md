@@ -36,6 +36,8 @@ When a fix adds or changes a custom property in `:root` inside `tokens.css`, def
 
 Fix only what the findings describe. No refactoring, no new features, no "while I'm here" improvements.
 
+**Never reduce scope and report success.** If you cannot apply a fix due to a technical obstacle after 3 distinct attempts, escalate — do not silently skip the finding and commit.
+
 ## Completion
 
 Once done, output the completion signal below as the **very last tokens you generate**. After emitting this tag, do not make any more tool calls, do not write any more text, do not explain what happens next, do not discuss the stop hook, do not verify or clean up anything. The signal is a hard stop — your turn ends the instant it appears.
@@ -57,3 +59,5 @@ Once done, output the completion signal below as the **very last tokens you gene
 {{VERIFY_COMMAND}}
 
 {{CONSTRAINTS}}
+
+{{VIOLATIONS_MEMORY}}

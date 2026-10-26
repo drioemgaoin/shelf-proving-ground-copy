@@ -1,0 +1,84 @@
+{
+  "score": 1,
+  "total": 1,
+  "pass_rate": 100,
+  "metrics": {
+    "constraint_adherence": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "output_compliance": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "task_accuracy": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "by_rule": {
+    "no-outer-margin": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "cases": [
+    {
+      "id": "NOM-02",
+      "rule": "no-outer-margin",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No margin: 0 in component CSS — list/paragraph resets belong in @layer base"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No padding: 0 list reset in component CSS — belongs in @layer base"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No margin-block resets in component CSS"
+        },
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "CSS must be wrapped in @layer components"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must use CSS grid for the layout"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 6168
+    }
+  ],
+  "controls": {
+    "pass": 0,
+    "total": 0
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-26T18:22:14.829Z",
+  "run_id": "run-1793038934830",
+  "artifacts": {
+    "NOM-02": {
+      "prompt_excerpt": "Write a ProjectGrid component CSS file. It styles a <ul role=\"list\"> of project cards as <li> elements. Each card has a <p> for the project name and a <p> for the description. The grid uses CSS grid with auto-fill columns. Use @layer components. Use tokens for all styling (assume --shelf-* tokens exist). Element resets (margin: 0, padding: 0, list-style: none) belong in @layer base, not in component CSS. Do NOT use tools — output ONLY the CSS in a single css code fence, no explanation.",
+      "output": "```css\n@layer components {\n  .project-grid {\n    display: grid;\n    grid-template-columns: repeat(auto-fill, minmax(var(--shelf-projectGrid-colMinWidth), 1fr));\n    gap: var(--shelf-projectGrid-gap);\n  }\n\n  .project-card {\n    background-color: var(--shelf-projectCard-bgColor-default);\n    border: 1px solid var(--shelf-projectCard-borderColor-default);\n    border-radius: var(--shelf-projectCard-borderRadius);\n    padding: var(--shelf-projectCard-padding);\n  }\n\n  .project-card-name {\n    color: var(--shelf-projectCard-fgColor-name);\n    font-size: var(--shelf-projectCard-fontSize-name);\n    font-weight: var(--shelf-projectCard-fontWeight-name);\n  }\n\n  .project-card-description {\n    color: var(--shelf-projectCard-fgColor-description);\n    font-size: var(--shelf-projectCard-fontSize-description);\n  }\n}\n```",
+      "code": "```css\n@layer components {\n  .project-grid {\n    display: grid;\n    grid-template-columns: repeat(auto-fill, minmax(var(--shelf-projectGrid-colMinWidth), 1fr));\n    gap: var(--shelf-projectGrid-gap);\n  }\n\n  .project-card {\n    background-color: var(--shelf-projectCard-bgColor-default);\n    border: 1px solid var(--shelf-projectCard-borderColor-default);\n    border-radius: var(--shelf-projectCard-borderRadius);\n    padding: var(--shelf-projectCard-padding);\n  }\n\n  .project-card-name {\n    color: var(--shelf-projectCard-fgColor-name);\n    font-size: var(--shelf-projectCard-fontSize-name);\n    font-weight: var(--shelf-projectCard-fontWeight-name);\n  }\n\n  .project-card-description {\n    color: var(--shelf-projectCard-fgColor-description);\n    font-size: var(--shelf-projectCard-fontSize-description);\n  }\n}\n```"
+    }
+  }
+}

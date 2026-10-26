@@ -1,0 +1,84 @@
+{
+  "score": 0,
+  "total": 1,
+  "pass_rate": 0,
+  "metrics": {
+    "constraint_adherence": {
+      "pass": 0,
+      "total": 1,
+      "rate": 0
+    },
+    "output_compliance": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "task_accuracy": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "by_rule": {
+    "values-from-tokens": {
+      "pass": 0,
+      "total": 1,
+      "rate": 0
+    }
+  },
+  "cases": [
+    {
+      "id": "VFT-01",
+      "rule": "values-from-tokens",
+      "pass": false,
+      "checkResults": [
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No border-width keyword 'thin' as a CSS value — token refs like var(--shelf-borderWidth-thin) are fine"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No border-width keyword 'medium' as a CSS value"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": false,
+          "detail": "Found at offset 2539:     width: 60%",
+          "description": "No raw percentage as a property value (e.g. width: 60%) — 100% and custom property declarations are fine"
+        },
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "CSS must be wrapped in @layer components"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must include border styling"
+        }
+      ],
+      "detail": "Found at offset 2539:     width: 60%",
+      "duration_ms": 36926
+    }
+  ],
+  "controls": {
+    "pass": 0,
+    "total": 0
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-26T19:12:25.457Z",
+  "run_id": "run-1793041945459",
+  "artifacts": {
+    "VFT-01": {
+      "prompt_excerpt": "Write a ProfileCard component and its CSS. It has a bordered container with a thin border, a title, a subtitle, and a skeleton variant with two shimmer bars (one full-width, one shorter at about 60% width). Use @layer components for the CSS. Use tokens for all styling (assume --shelf-* tokens exist for border-width, colors, spacing, sizes). Include the CSS file.",
+      "output": "Here's what the file does and why each choice was made:\n\n**Structure**\n- Everything is inside `@layer components` with `@keyframes profile-card-shimmer` nested inside that layer (constraint: keyframes must live inside their parent `@layer`)\n- Component-tier aliases (`--shelf-profile-card-*`) are declared in `:root`, `[data-theme=\"dark\"]`, and the `prefers-color-scheme: dark` media block so no light-only tokens cause axe contrast failures\n\n**Tokens used**\n- `--shelf-bgColor-*` for backgrounds, `--shelf-fgColor-*` for text, `--shelf-borderColor-*` for borders — all role-matched\n- `--shelf-borderWidth-thin`, `--shelf-borderRadius-*`, `--shelf-spacing-*`, `--shelf-fontSize-*`, `--shelf-fontWeight-*`, `--shelf-size-skeletonBar` — no raw values\n- `--shelf-duration-slow` + `--shelf-easing-linear` for animation timing\n\n**Skeleton shimmer**\n- Uses `transform: translateX(-100% → 100%)` — animates only `transform` (constraint: only `transform`/`opacity`)\n- `::after` pseudo-element carries the shimmer so no extra DOM nodes needed\n- `.skeleton-bar--short` is `width: 60%` for the shorter bar\n\n**Selectors**\n- All kebab-case: `.profile-card`, `.profile-card-title`, `.skeleton-bar--full`, etc.\n- BEM-style modifier `.profile-card--skeleton` scopes skeleton styles without nesting conflicts",
+      "code": "@layer components {\n  /* Component-tier token aliases */\n  :root {\n    --shelf-profile-card-bgColor-base: var(--shelf-bgColor-surface);\n    --shelf-profile-card-borderColor-base: var(--shelf-borderColor-subtle);\n    --shelf-profile-card-fgColor-title: var(--shelf-fgColor-default);\n    --shelf-profile-card-fgColor-subtitle: var(--shelf-fgColor-muted);\n    --shelf-profile-card-bgColor-skeleton: var(--shelf-bgColor-skeleton);\n    --shelf-profile-card-bgColor-shimmer: var(--shelf-bgColor-shimmer);\n  }\n\n  [data-theme=\"dark\"] {\n    --shelf-profile-card-bgColor-base: var(--shelf-bgColor-surface);\n    --shelf-profile-card-borderColor-base: var(--shelf-borderColor-subtle);\n    --shelf-profile-card-fgColor-title: var(--shelf-fgColor-default);\n    --shelf-profile-card-fgColor-subtitle: var(--shelf-fgColor-muted);\n    --shelf-profile-card-bgColor-skeleton: var(--shelf-bgColor-skeleton);\n    --shelf-profile-card-bgColor-shimmer: var(--shelf-bgColor-shimmer);\n  }\n\n  @media (prefers-color-scheme: dark) {\n    :root:not([data-theme=\"light\"]) {\n      --shelf-profile-card-bgColor-base: var(--shelf-bgColor-surface);\n      --shelf-profile-card-borderColor-base: var(--shelf-borderColor-subtle);\n      --shelf-profile-card-fgColor-title: var(--shelf-fgColor-default);\n      --shelf-profile-card-fgColor-subtitle: var(--shelf-fgColor-muted);\n      --shelf-profile-card-bgColor-skeleton: var(--shelf-bgColor-skeleton);\n      --shelf-profile-card-bgColor-shimmer: var(--shelf-bgColor-shimmer);\n    }\n  }\n\n  .profile-card {\n    background-color: var(--shelf-profile-card-bgColor-base);\n    border: var(--shelf-borderWidth-thin) solid var(--shelf-profile-card-borderColor-base);\n    border-radius: var(--shelf-borderRadius-md);\n    padding: var(--shelf-spacing-md);\n    display: flex;\n    flex-direction: column;\n    gap: var(--shelf-spacing-xs);\n  }\n\n  .profile-card-title {\n    color: var(--shelf-profile-card-fgColor-title);\n    font-size: var(--shelf-fontSize-md);\n    font-weight: var(--shelf-fontWeight-semibold);\n  }\n\n  .profile-card-subtitle {\n    color: var(--shelf-profile-card-fgColor-subtitle);\n    font-size: var(--shelf-fontSize-sm);\n  }\n\n  /* Skeleton variant */\n  .profile-card--skeleton .skeleton-bar {\n    background-color: var(--shelf-profile-card-bgColor-skeleton);\n    border-radius: var(--shelf-borderRadius-sm);\n    height: var(--shelf-size-skeletonBar);\n    overflow: hidden;\n    position: relative;\n  }\n\n  .profile-card--skeleton .skeleton-bar--full {\n    width: 100%;\n  }\n\n  .profile-card--skeleton .skeleton-bar--short {\n    width: 60%;\n  }\n\n  .profile-card--skeleton .skeleton-bar::after {\n    content: \"\";\n    position: absolute;\n    inset: 0;\n    background-color: var(--shelf-profile-card-bgColor-shimmer);\n    transform: translateX(-100%);\n    animation: profile-card-shimmer var(--shelf-duration-slow) var(--shelf-easing-linear) infinite;\n  }\n\n  @keyframes profile-card-shimmer {\n    to {\n      transform: translateX(100%);\n    }\n  }\n}\n"
+    }
+  }
+}

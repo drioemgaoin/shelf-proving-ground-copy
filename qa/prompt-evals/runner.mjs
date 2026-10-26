@@ -36,6 +36,7 @@
  *   node qa/prompt-evals/runner.mjs --prompt implementer --baseline
  *   node qa/prompt-evals/runner.mjs --prompt implementer --inspect RQD-01
  *   node qa/prompt-evals/runner.mjs --prompt implementer --verbose
+ *   node qa/prompt-evals/runner.mjs --prompt implementer --repeat 3
  *   node qa/prompt-evals/runner.mjs --prompt implementer --dry-run
  */
 
@@ -61,6 +62,7 @@ const ruleFilter = flagValue(args, "--rule");
 const tagFilter = flagValue(args, "--tag");
 const inspectCase = flagValue(args, "--inspect");
 const model = flagValue(args, "--model") || "sonnet";
+const repeat = Math.max(1, parseInt(flagValue(args, "--repeat") ?? "1", 10));
 const save = args.includes("--save");
 const force = args.includes("--force");
 const showBaseline = args.includes("--baseline");
@@ -68,7 +70,7 @@ const verbose = args.includes("--verbose") || caseFilter != null || ruleFilter !
 const dryRun = args.includes("--dry-run");
 
 if (!promptName) {
-  console.error("Usage: runner.mjs --prompt <name> [--case ID] [--rule RULE] [--tag TAG] [--model MODEL] [--save] [--force] [--baseline] [--inspect CASE] [--verbose] [--dry-run]");
+  console.error("Usage: runner.mjs --prompt <name> [--case ID] [--rule RULE] [--tag TAG] [--model MODEL] [--repeat N] [--save] [--force] [--baseline] [--inspect CASE] [--verbose] [--dry-run]");
   console.error("\nAvailable prompts:");
   try {
     const dirs = readdirSync(EVALS_BASE, { withFileTypes: true })
@@ -147,6 +149,19 @@ esac
   }
 
   return sandboxDir;
+}
+
+/** Remove all files except infrastructure (.claude/, .mock-bin/, .git/).
+ *  Called before each case so cases run in a clean environment — same as
+ *  a fresh sandcastle Docker container. */
+function resetSandbox() {
+  if (!sandboxDir) return;
+  const keep = new Set([".claude", ".mock-bin", ".git"]);
+  for (const entry of readdirSync(sandboxDir)) {
+    if (!keep.has(entry)) {
+      rmSync(join(sandboxDir, entry), { recursive: true, force: true });
+    }
+  }
 }
 
 function cleanupSandbox() {
@@ -297,6 +312,9 @@ function runCheck(check, code) {
 // ─── Run one case ──────────────────────────────────────────────────
 
 function runCase(c, expandedPrompt) {
+  // Clean sandbox between cases — each case runs in isolation, same as sandcastle Docker.
+  resetSandbox();
+
   // Create parent dirs for the target file in the sandbox
   if (c.file) {
     const filePath = join(sandboxDir, c.file);
@@ -947,21 +965,63 @@ const defaultExpandedPrompt = buildExpandedPrompt();
 const results = [];
 
 try {
-  console.log(`\nRunning ${cases.length} cases (model: ${model})...`);
+  const repeatLabel = repeat > 1 ? `, ${repeat}x repeat` : "";
+  console.log(`\nRunning ${cases.length} cases (model: ${model}${repeatLabel})...`);
   for (let i = 0; i < cases.length; i++) {
     const c = cases[i];
-    process.stdout.write(`  [${i + 1}/${cases.length}] ${c.id} ...`);
     const expandedPrompt = c.vars
       ? buildExpandedPrompt(c.vars)
       : defaultExpandedPrompt;
-    const result = runCase(c, expandedPrompt);
-    results.push(result);
-    if (!dryRun) {
-      const label = result.pass ? "PASS" : result.error ? "ERROR" : "FAIL";
-      const sec = (result.duration_ms / 1000).toFixed(1);
-      process.stdout.write(` ${label} (${sec}s)\n`);
+
+    if (repeat === 1) {
+      // Single run (default)
+      process.stdout.write(`  [${i + 1}/${cases.length}] ${c.id} ...`);
+      const result = runCase(c, expandedPrompt);
+      results.push(result);
+      if (!dryRun) {
+        const label = result.pass ? "PASS" : result.error ? "ERROR" : "FAIL";
+        const sec = (result.duration_ms / 1000).toFixed(1);
+        process.stdout.write(` ${label} (${sec}s)\n`);
+      } else {
+        process.stdout.write(" (dry run)\n");
+      }
     } else {
-      process.stdout.write(" (dry run)\n");
+      // Multi-run: case passes only if ALL runs pass (worst-case aggregation).
+      // This proves the eval is not flaky.
+      process.stdout.write(`  [${i + 1}/${cases.length}] ${c.id} x${repeat} ...`);
+      const runResults = [];
+      for (let r = 0; r < repeat; r++) {
+        const result = runCase(c, expandedPrompt);
+        runResults.push(result);
+        if (!dryRun) {
+          const mark = result.pass ? "\u2713" : result.error ? "E" : "\u2717";
+          process.stdout.write(` ${mark}`);
+        }
+      }
+
+      // Aggregate: worst-case for pass, sum duration, keep worst checkResults
+      const passCount = runResults.filter((r) => r.pass).length;
+      const allPass = passCount === repeat;
+      const totalDuration = runResults.reduce((sum, r) => sum + r.duration_ms, 0);
+
+      // Use the first failing run's details (or the last run if all pass)
+      const representative = runResults.find((r) => !r.pass) ?? runResults[runResults.length - 1];
+
+      const aggregated = {
+        ...representative,
+        pass: allPass,
+        duration_ms: totalDuration,
+        _repeat: { total: repeat, passed: passCount },
+      };
+      results.push(aggregated);
+
+      if (!dryRun) {
+        const label = allPass ? "PASS" : "FAIL";
+        const sec = (totalDuration / 1000).toFixed(1);
+        process.stdout.write(` ${label} ${passCount}/${repeat} (${sec}s)\n`);
+      } else {
+        process.stdout.write(" (dry run)\n");
+      }
     }
   }
 

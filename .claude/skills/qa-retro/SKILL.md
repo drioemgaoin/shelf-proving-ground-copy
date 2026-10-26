@@ -1,6 +1,6 @@
 ---
 name: qa-retro
-description: After a sandcastle run, turn review and visual-qa findings into evals that reproduce the issue, research the most universal rule fix, apply it, and verify evals pass green. Deferred items are logged for human decision. Use when the user says "qa retro", "retro the run", "fix the findings", "process review findings", or after any sandcastle run that produced findings.
+description: After a sandcastle run, turn findings from all agents (review, visual-qa, test-author, agent logs) into evals that reproduce the issue, research the most universal rule or prompt fix, apply it, and verify evals pass green. Deferred items are logged for human decision. Use when the user says "qa retro", "retro the run", "fix the findings", "process review findings", or after any sandcastle run.
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Agent, WebSearch, WebFetch
 ---
 
@@ -12,22 +12,23 @@ You are a pipeline hardener. You turn QA findings into permanent guardrails so t
 
 ## Mission
 
-For every finding in a sandcastle review or visual-qa report — whether a violation or a deferred conflict — produce: (1) tests that give fast deterministic feedback, (2) evals that prove the LLM agent will follow the fix without divergence, (3) the fix itself applied to the right layer, (4) a violation log entry.
+For every finding in a sandcastle run — review reports, visual-qa reports, test-author reports, and agent logs — whether a violation, a deferred conflict, or a coverage gap — produce: (1) tests that give fast deterministic feedback, (2) evals that prove the LLM agent will follow the fix without divergence, (3) the fix itself applied to the right layer, (4) a violation log entry with a `direction` tag.
 
-**Done when:** every finding has tests + evals that went RED → GREEN, every violation is logged, the full test and eval suites show zero regressions.
+**Done when:** every finding has tests + evals that went RED → GREEN, every violation is logged with `direction`, the full test and eval suites show zero regressions.
 
 ## Inputs
 
 | Name | Source | Required |
 |------|--------|----------|
-| review report | `.sandcastle/worktrees/*/.qa/review-r*.md` or path from `$ARGUMENTS` | yes |
+| agent reports | `.sandcastle/worktrees/*/.qa/*.md` (all reports — review, visual-qa, test-author) | yes |
+| agent logs | `.sandcastle/logs/<ticket>/*.log` (for wasted-turn and dropped-work patterns) | no |
 | rules files | `.claude/rules/*.md` (discovered) | yes |
 | existing tests | `qa/rules-enforcement/unit/*.test.mjs`, `qa/pipeline/unit/*.test.mjs` | yes |
 | existing evals | `qa/hooks/evals/*.jsonl`, `qa/prompt-evals/{agent}/evals/*.jsonl` | yes |
 | violations log | `.sandcastle/violations.jsonl` | yes |
 | violations module | `.sandcastle/lib/violations-memory.mts` | yes |
 
-If `$ARGUMENTS` is empty, find the most recent review file by searching `.sandcastle/worktrees/` or `.qa/`. If none found, ask the user and stop.
+If `$ARGUMENTS` is empty, find the most recent reports by searching `.sandcastle/worktrees/*/.qa/`. If none found, ask the user and stop.
 
 ## Fix targets
 
@@ -39,6 +40,10 @@ The fix is NEVER in the project codebase (`src/`, `e2e/`, etc.). For each findin
 | Agent prompt | The agent's prompt template didn't guide it to produce correct output | `.sandcastle/prompts/*.md` or agent `vars.json` | Implementer didn't know the sr-only pattern |
 | Violations memory | A past mistake class isn't being learned from | `.sandcastle/lib/violations-memory.mts` | Defer support missing |
 | Pipeline logic | Orchestrator, fixer, or gate logic has a bug | `.sandcastle/lib/*.mts`, `.sandcastle/scripts/*.mjs` | beforeFix never called |
+
+### Issue class: scope-reduction-reported-clean
+
+When an agent reports success (PASS/CLEAN/COMPLETE) while having silently dropped part of its scope, the issue class is `scope-reduction-reported-clean`. This applies to any agent: test-author dropping a test, implementer skipping an edge case, fixer giving up on a finding. The fix layer is always the **agent prompt** — either the agent needs technique guidance (it didn't know how) or a behavioral rule (it chose to skip instead of escalate).
 
 One finding may require fixes in multiple layers. Apply all.
 
@@ -121,12 +126,17 @@ Check types: `regex_absent` (must NOT appear), `regex_present` (must appear), `m
 
 ### 1. Parse findings
 
-1. Read the review report.
-2. Extract two lists:
-   - **FINDINGS** — violations with: ruleId, file, cause, current code, fix description.
-   - **DEFER** — conflicts with: ruleId, cause, why deferred.
-3. For each finding, classify the **issue class** — the general pattern, not the specific instance. Ask: "What category of mistake is this? What other code could have the same problem?"
-4. For each finding, identify the **fix layer** — rule, agent prompt, violations memory, or pipeline logic.
+1. Read ALL `.qa/*.md` reports in the worktree (review, visual-qa, test-author).
+2. From **review and visual-qa reports**, extract:
+   - **FINDINGS** — violations with: ruleId, direction, file, cause, current code, fix description.
+   - **DEFER** — conflicts with: ruleId, direction, cause, why deferred.
+3. From **test-author reports**, extract:
+   - Parse the `Compromises` section. For each entry with category `technical-obstacle`: this is a **FINDING** with issue class `scope-reduction-reported-clean`, fix layer = agent prompt.
+   - Entries with `acceptance-covered` or `out-of-scope` are legitimate — skip.
+4. Optionally scan **agent logs** (`.sandcastle/logs/<ticket>/*.log`) for retry-then-abandon patterns (agent attempts same operation 2+ times, then drops it). These are `scope-reduction-reported-clean` findings.
+5. For each finding, classify the **issue class** — the general pattern, not the specific instance. Ask: "What category of mistake is this? What other code could have the same problem?"
+6. For each finding, identify the **fix layer** — rule, agent prompt, violations memory, or pipeline logic.
+7. For each finding, assign a **direction** — a 2-4 word failure mode label (e.g., "raw-literal", "wrong-semantic-tier", "dropped-coverage"). This tag is required for the violation log entry.
 
 ### 2. Research each finding
 
@@ -155,6 +165,7 @@ For each finding, write BOTH tests and evals as appropriate for the fix layer:
 2. For hook evals: simulate the exact file content from the sandcastle finding.
 3. For prompt evals: craft a task that requires the agent to handle the pattern. Include `origin` referencing the real sandcastle finding. Design checks that catch the specific failure mode.
 4. Run with the eval runner. Must fail RED (or document current baseline).
+5. **Flakiness gate (prompt evals only):** After the fix turns the eval GREEN, run the eval 3 times with `--repeat 3`. The eval passes only if ALL 3 runs pass. If any run fails, the eval is flaky — tighten the check patterns or simplify the task until 3/3 is stable. Do not promote a baseline from a flaky eval.
 
 If a test or eval cannot be made to fail against the current state, the issue class is already covered — document why and skip.
 
@@ -180,11 +191,12 @@ For each finding, apply the minimal fix to the correct layer:
 After applying fixes:
 1. Run tests: `node qa/.../test-file.test.mjs`. Must pass GREEN.
 2. Run eval runner for affected eval files. Must improve or match baseline.
-3. If tests fail, adjust the FIX, not the tests.
+3. **Flakiness verification (prompt evals only):** Run affected prompt evals with `--repeat 3` (e.g. `node qa/prompt-evals/runner.mjs --prompt implementer --case SR-01 --repeat 3`). All 3 runs must pass. A flaky eval that passes 2/3 is not GREEN — tighten check patterns or simplify the task.
+4. If tests fail, adjust the FIX, not the tests.
 
 ### 5. Log violations
 
-For each finding, append to `.sandcastle/violations.jsonl`:
+For each finding, append to `.sandcastle/violations.jsonl`. The `direction` field is **required** — it classifies the failure mode in 2-4 words and is the key used by `loadViolationsMemory()` for compression.
 
 ```json
 {
@@ -194,7 +206,8 @@ For each finding, append to `.sandcastle/violations.jsonl`:
   "file": "<file where violation occurred>",
   "wrote": "<one-line: what was written>",
   "fix": "<one-line: what the fix was>",
-  "gate": "<review|visual-qa|implementer-lint|implementer-a11y>",
+  "gate": "<review|visual-qa|test-author|implementer-lint|implementer-a11y>",
+  "direction": "<2-4 word failure mode label, e.g. raw-literal, wrong-semantic-tier, dropped-coverage>",
   "status": "violation"
 }
 ```
@@ -210,10 +223,19 @@ For deferred items:
   "wrote": "<one-line: what was written>",
   "fix": "<describe the conflict, not a solution>",
   "gate": "<gate that found it>",
+  "direction": "<2-4 word failure mode label>",
   "status": "defer",
   "reason": "<why this needs human decision — name both sides of the conflict>"
 }
 ```
+
+### 5b. Technique knowledge compression
+
+When adding technique guidance to an agent prompt (fix layer = agent prompt):
+
+1. **Search the prompt for an existing technique block** covering the same domain (e.g., "Vitest async", "CSS specificity"). If found: extend it, compress both, check if a principle covers both.
+2. **When 3+ techniques share a root cause**, promote to a principle that replaces the individual entries. A principle is cheaper in tokens and more likely to generalize.
+3. **Enforce a budget**: technique knowledge sections in agent prompts should not exceed ~500 tokens total. When a new finding pushes past the budget, promote specifics to principles or drop entries already covered by a principle.
 
 ### 6. Regression check
 
@@ -232,10 +254,10 @@ node qa/hooks/runner.mjs
 Run prompt evals if prompt eval files were created or modified:
 
 ```bash
-node qa/prompt-evals/runner.mjs
+node qa/prompt-evals/runner.mjs --prompt <agent> --repeat 3
 ```
 
-Every test must pass. Every eval must meet or exceed its baseline. If a pre-existing test or eval broke, the fix introduced a regression — revert and adjust.
+Every test must pass. Every eval must meet or exceed its baseline. Every prompt eval must pass 3/3 runs (flakiness gate). If a pre-existing test or eval broke, the fix introduced a regression — revert and adjust.
 
 Report: total passed, total failed, list of changed files.
 
@@ -271,9 +293,10 @@ Before reporting done:
 1. Every finding has tests AND evals (or documented reason for skipping evals)
 2. Every test was RED before the fix and GREEN after
 3. Every eval was RED (or below baseline) before the fix and GREEN (or at/above baseline) after
-4. The full test suite passes with zero regressions
-5. The eval runner passes with zero regressions
-6. No new enforcement block duplicates an existing one
-7. Every T3 instruction is under 650 characters
-8. Every violation and defer is logged to violations.jsonl
-9. Changed files are listed for the user to review
+4. Every prompt eval passes the flakiness gate: `--repeat 3` with 3/3 passes
+5. The full test suite passes with zero regressions
+6. The eval runner passes with zero regressions
+7. No new enforcement block duplicates an existing one
+8. Every T3 instruction is under 650 characters
+9. Every violation and defer is logged to violations.jsonl
+10. Changed files are listed for the user to review

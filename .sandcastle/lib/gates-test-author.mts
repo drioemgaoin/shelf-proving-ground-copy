@@ -22,6 +22,7 @@ import {
   setPhase,
   findingsOverlap,
 } from "./qa-gates.mjs";
+import { recordViolation } from "./violations-memory.mjs";
 
 // ---------------------------------------------------------------------------
 // Project-specific test config — change these per project.
@@ -116,6 +117,35 @@ export function createTestAuthorGate(
 
     beforeFix: (_round, ctx) => {
       setPhase(ctx.worktree, "fix");
+    },
+
+    afterFix: (round, ctx) => {
+      // Record technical-obstacle compromises as violations so they appear
+      // in the violations memory and trigger qa-retro investigation.
+      try {
+        const findingsPath = `${ctx.worktree}/.qa/test-author-r${round}.md`;
+        if (existsSync(findingsPath)) {
+          const report = readFileSync(findingsPath, "utf8");
+          // Parse Compromises section: "- <module>: technical-obstacle — <reason>"
+          const compromiseRe = /^- (.+?):\s*technical-obstacle\s*[—–-]\s*(.+)/gm;
+          let m;
+          while ((m = compromiseRe.exec(report)) !== null) {
+            const [, module, reason] = m;
+            recordViolation({
+              ts: new Date().toISOString(),
+              issueId,
+              ruleId: "test-coverage-gap",
+              file: module.trim(),
+              wrote: "test dropped due to technique obstacle",
+              fix: reason.trim().slice(0, 120),
+              gate: "test-author",
+              direction: "dropped-coverage",
+            });
+          }
+        }
+      } catch {
+        // Best-effort — never breaks the gate.
+      }
     },
 
     detectOscillation: (round, ctx) => {

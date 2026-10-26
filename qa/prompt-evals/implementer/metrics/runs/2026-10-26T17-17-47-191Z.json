@@ -1,0 +1,79 @@
+{
+  "score": 0,
+  "total": 1,
+  "pass_rate": 0,
+  "metrics": {
+    "constraint_adherence": {
+      "pass": 0,
+      "total": 1,
+      "rate": 0
+    },
+    "output_compliance": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "by_rule": {
+    "comment-clarity": {
+      "pass": 0,
+      "total": 1,
+      "rate": 0
+    }
+  },
+  "cases": [
+    {
+      "id": "CC-02",
+      "rule": "comment-clarity",
+      "pass": false,
+      "checkResults": [
+        {
+          "metric": "constraint_adherence",
+          "pass": false,
+          "detail": "Found at offset 247: wired by the consumer",
+          "description": "No ticket references, delivery plan language, or future-scope hedging in comments"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No JSDoc blocks on internal code"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No multi-line // comment blocks"
+        },
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Must use aria-pressed on chips"
+        },
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Must export the component"
+        }
+      ],
+      "detail": "Found at offset 247: wired by the consumer",
+      "duration_ms": 239022
+    }
+  ],
+  "controls": {
+    "pass": 0,
+    "total": 0
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-26T17:17:47.191Z",
+  "run_id": "run-1793035067192",
+  "artifacts": {
+    "CC-02": {
+      "prompt_excerpt": "Write a ChipFilter component and its CSS in a single TSX file. It renders four filter chip buttons ('All', 'Active', 'Archived', 'Starred'). Each chip is a button with aria-pressed. On load 'All' is pressed.\n\nThe spec says: In this ticket, clicking a chip updates ONLY the chip bar's visual pressed state. The actual list filtering is wired by the consumer and ships in ticket djk.2. Keyboard navigation (arrow keys between chips) ships in a later ticket.\n\nInclude both component code and a @layer co",
+      "output": "No toolchain exists in this eval environment — `package.json` and test files are absent. The grader evaluates source files directly. My implementation is complete:\n\n- `src/styles/layers.css` — layer order declaration\n- `src/styles/tokens.css` — three-tier token system (primitive → semantic → component), all tokens in `:root`, `[data-theme=\"dark\"]`, and `@media (prefers-color-scheme: dark)`\n- `src/components/ChipFilter/ChipFilter.css` — `@layer components`, only component-tier color tokens, only `opacity` animated (via `::before` overlay), all spacing/radius via semantic tokens\n- `src/components/ChipFilter/ChipFilter.tsx` — 4 buttons (`All`, `Active`, `Archived`, `Starred`) with `aria-pressed`, `All` pressed on load, click updates only the visual pressed state\n\n<promise>COMPLETE</promise>",
+      "code": "import { useState } from 'react';\nimport './ChipFilter.css';\n\ntype FilterLabel = 'All' | 'Active' | 'Archived' | 'Starred';\n\nconst FILTERS: FilterLabel[] = ['All', 'Active', 'Archived', 'Starred'];\n\n// Owns only visual pressed state; filtering is wired by the consumer.\nexport function ChipFilter(): JSX.Element {\n  const [pressed, setPressed] = useState<FilterLabel>('All');\n\n  return (\n    <ul className=\"chip-bar\" role=\"list\">\n      {FILTERS.map((label) => (\n        <li key={label} className=\"chip-bar__item\">\n          <button\n            type=\"button\"\n            className=\"chip-filter-button\"\n            aria-pressed={pressed === label}\n            onClick={() => setPressed(label)}\n          >\n            <span>{label}</span>\n          </button>\n        </li>\n      ))}\n    </ul>\n  );\n}\n"
+    }
+  }
+}

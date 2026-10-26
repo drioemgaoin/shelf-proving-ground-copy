@@ -1,0 +1,79 @@
+{
+  "score": 1,
+  "total": 1,
+  "pass_rate": 100,
+  "metrics": {
+    "constraint_adherence": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "output_compliance": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "by_rule": {
+    "comment-clarity": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "cases": [
+    {
+      "id": "CC-02",
+      "rule": "comment-clarity",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No ticket references or delivery plan language in code"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No JSDoc blocks on internal code"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No multi-line // comment blocks"
+        },
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Must use aria-pressed on chips"
+        },
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Must export the component"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 155568
+    }
+  ],
+  "controls": {
+    "pass": 0,
+    "total": 0
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-26T17:46:23.971Z",
+  "run_id": "run-1793036783972",
+  "artifacts": {
+    "CC-02": {
+      "prompt_excerpt": "Write a ChipFilter component and its CSS in a single TSX file. It renders four filter chip buttons ('All', 'Active', 'Archived', 'Starred'). Each chip is a button with aria-pressed. On load 'All' is pressed.\n\nThe spec says: In this ticket, clicking a chip updates ONLY the chip bar's visual pressed state. The actual list filtering is wired by the consumer and ships in ticket djk.2. Keyboard navigation (arrow keys between chips) ships in a later ticket.\n\nInclude both component code and a @layer co",
+      "output": "The test infrastructure (package.json, playwright config, test files) is absent from this eval environment — the toolchain can't run. The component itself is correctly implemented:\n\n- `src/components/ChipFilter/ChipFilter.tsx` — four chip buttons (`All`, `Active`, `Archived`, `Starred`), each with `aria-pressed`, `All` pressed on mount, click updates pressed state exclusively\n- `src/styles/tokens.css` — all `--shelf-chip-*` tokens defined in `:root`, `[data-theme=\"dark\"]`, and `@media (prefers-color-scheme: dark)`\n- `@layer components` CSS block embedded via `<style>` tag per task spec\n- No raw values in component CSS; no `aria-hidden`; appearance reset on buttons\n\n<promise>COMPLETE</promise>",
+      "code": "import React, { useState } from 'react';\n\ntype FilterLabel = 'All' | 'Active' | 'Archived' | 'Starred';\n\nconst FILTERS: FilterLabel[] = ['All', 'Active', 'Archived', 'Starred'];\n\nconst chipStyles = `\n  @layer components {\n    .chip-bar {\n      display: flex;\n      gap: var(--shelf-chip-gap);\n      padding: var(--shelf-chip-bar-paddingBlock) var(--shelf-chip-bar-paddingInline);\n      background-color: var(--shelf-chip-bar-bgColor-default);\n    }\n\n    .chip-button {\n      appearance: none;\n      display: inline-flex;\n      align-items: center;\n      justify-content: center;\n      padding: var(--shelf-chip-paddingBlock) var(--shelf-chip-paddingInline);\n      background-color: var(--shelf-chip-bgColor-default);\n      color: var(--shelf-chip-fgColor-default);\n      border: var(--shelf-chip-borderWidth) solid var(--shelf-chip-borderColor-default);\n      border-radius: var(--shelf-chip-borderRadius);\n      cursor: pointer;\n      font-size: var(--shelf-chip-fontSize);\n    }\n\n    .chip-button[aria-pressed=\"true\"] {\n      background-color: var(--shelf-chip-bgColor-pressed);\n      color: var(--shelf-chip-fgColor-pressed);\n      border-color: var(--shelf-chip-borderColor-pressed);\n    }\n\n    .chip-button:hover:not([aria-pressed=\"true\"]) {\n      background-color: var(--shelf-chip-bgColor-hover);\n    }\n  }\n`;\n\nexport function ChipFilter(): React.ReactElement {\n  const [selected, setSelected] = useState<FilterLabel>('All');\n\n  return (\n    <>\n      <style>{chipStyles}</style>\n      <div className=\"chip-bar\" role=\"group\" aria-label=\"Filter chips\">\n        {FILTERS.map((label) => (\n          <button\n            key={label}\n            type=\"button\"\n            className=\"chip-button\"\n            aria-pressed={selected === label}\n            onClick={() => setSelected(label)}\n          >\n            {label}\n          </button>\n        ))}\n      </div>\n    </>\n  );\n}\n"
+    }
+  }
+}

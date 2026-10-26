@@ -138,6 +138,7 @@ If there are actionable failures (regressions the fixer can address in source co
       Expected: <literal value>
       Received: <literal value>
       Cause: [<rule-file> > <section> > <rule>] <one-line explanation>
+      Direction: <2-4 word failure mode label, e.g. wrong-semantic-tier, missing-appearance, specificity-override, mid-transition-value>
       Fix: <exact code change — what to replace with what>
 
     Flaky: <n>
@@ -155,6 +156,7 @@ If all failures are contract gaps, flaky, or in locked files:
       Expected: <literal value>
       Received: <literal value>
       Cause: [<rule-file> > <section> > <rule>] <one-line explanation>
+      Direction: <2-4 word failure mode label>
       Why deferred: <fix requires change to locked file / design decision needed>
 
     Contract gaps: <n>
@@ -165,6 +167,8 @@ If all failures are contract gaps, flaky, or in locked files:
 Use `FAIL` only when `Fix now` has at least one item. If every regression needs changes to locked files, use `DEFER`.
 
 Do NOT edit application code. Do NOT commit. Do NOT create issues.
+
+**Never reduce scope and report success.** If you cannot evaluate a check due to a technical obstacle, escalate — do not silently skip it and report PASS.
 
 ## Context budget
 

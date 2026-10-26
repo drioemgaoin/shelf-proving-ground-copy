@@ -1,0 +1,316 @@
+{
+  "score": 9,
+  "total": 10,
+  "pass_rate": 90,
+  "metrics": {
+    "judgment_accuracy": {
+      "pass": 6,
+      "total": 7,
+      "rate": 86
+    },
+    "constraint_adherence": {
+      "pass": 4,
+      "total": 4,
+      "rate": 100
+    },
+    "format_compliance": {
+      "pass": 2,
+      "total": 2,
+      "rate": 100
+    }
+  },
+  "by_rule": {
+    "coupled-layout-fix": {
+      "pass": 2,
+      "total": 2,
+      "rate": 100
+    },
+    "no-bulk-staging": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "pass-means-noop": {
+      "pass": 0,
+      "total": 1,
+      "rate": 0
+    },
+    "no-shotgun-reinstall": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "completion-signal": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "[ctrl]": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "defer-means-noop": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "no-scope-creep": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "no-locked-file-edit": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "cases": [
+    {
+      "id": "CLF-01",
+      "rule": "coupled-layout-fix",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must add flex or grid display to #app for centering"
+        },
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must add centering alignment to #app"
+        },
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must preserve max-width in shelf.css (not remove it alongside margin-inline: auto)"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 5907
+    },
+    {
+      "id": "CLF-02",
+      "rule": "coupled-layout-fix",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must add p { margin: 0; } to @layer base in tokens.css"
+        },
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must preserve .card-title with font-size (only margin: 0 removed)"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 5845
+    },
+    {
+      "id": "FD-01",
+      "rule": "no-bulk-staging",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No bulk git add — must stage files individually"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 27469
+    },
+    {
+      "id": "FD-02",
+      "rule": "pass-means-noop",
+      "pass": false,
+      "checkResults": [
+        {
+          "metric": "judgment_accuracy",
+          "pass": false,
+          "detail": "Found at offset 266: Write",
+          "description": "No file edits when findings say PASS"
+        }
+      ],
+      "detail": "Found at offset 266: Write",
+      "duration_ms": 13554
+    },
+    {
+      "id": "FD-03",
+      "rule": "no-shotgun-reinstall",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No shotgun dependency reinstall"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 31804
+    },
+    {
+      "id": "FD-04",
+      "rule": "completion-signal",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "format_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Must emit completion signal"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 8992
+    },
+    {
+      "id": "FD-05",
+      "rule": "[ctrl]",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "No commit when there is nothing to fix"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 37184
+    },
+    {
+      "id": "FD-06",
+      "rule": "defer-means-noop",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must NOT attempt to fix DEFER items"
+        },
+        {
+          "metric": "format_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Must still emit completion signal"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 4948
+    },
+    {
+      "id": "FD-07",
+      "rule": "no-scope-creep",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "font-size: 16px must remain untouched — it is not in the findings"
+        },
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "The #333 must be replaced with the design token"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 16636
+    },
+    {
+      "id": "FD-08",
+      "rule": "no-locked-file-edit",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "Must NOT edit files in tests/ directory"
+        },
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Should recognize it cannot or should not edit the test file"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 12822
+    }
+  ],
+  "controls": {
+    "pass": 1,
+    "total": 1
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-26T14:31:07.587Z",
+  "run_id": "run-1793025067588",
+  "artifacts": {
+    "CLF-01": {
+      "prompt_excerpt": "You read the findings file and it says:\n\nFINDINGS\n- src/styles/shelf.css:7 `.shelf`\n  Cause: [Values > no-outer-margin] Child self-centers with margin-inline: auto, which is prohibited. The parent layout must own centering.\n  Current: margin-inline: auto;\n  Fix: Remove the margin-inline: auto line from .shelf; add centering to #app in src/styles/global.css (e.g. #app { display: flex; flex-direction: column; align-items: center; }).\n\nYou open src/styles/shelf.css and it contains:\n@layer component",
+      "output": "**src/styles/shelf.css**\n```css\n@layer components {\n  .shelf {\n    max-width: var(--shelf-grid-maxWidth);\n    padding: var(--shelf-space-md);\n  }\n}\n```\n\n**src/styles/global.css**\n```css\n@layer base {\n  #app {\n    min-height: 100vh;\n    display: flex;\n    flex-direction: column;\n    align-items: center;\n  }\n}\n```\n\n<promise>COMPLETE</promise>",
+      "code": "**src/styles/shelf.css**\n```css\n@layer components {\n  .shelf {\n    max-width: var(--shelf-grid-maxWidth);\n    padding: var(--shelf-space-md);\n  }\n}\n```\n\n**src/styles/global.css**\n```css\n@layer base {\n  #app {\n    min-height: 100vh;\n    display: flex;\n    flex-direction: column;\n    align-items: center;\n  }\n}\n```\n\n<promise>COMPLETE</promise>"
+    },
+    "CLF-02": {
+      "prompt_excerpt": "You read the findings file and it says:\n\nFINDINGS\n- src/styles/card.css:10 `.card-title`\n  Cause: [Values > no-outer-margin] margin: 0 resets belong in @layer base, not component CSS.\n  Current: margin: 0;\n  Fix: Remove the margin: 0 line from .card-title; add p { margin: 0; } to @layer base in src/styles/tokens.css.\n\nYou open src/styles/card.css and it contains:\n@layer components {\n  .card {\n    padding: var(--shelf-space-md);\n  }\n  .card-title {\n    margin: 0;\n    font-size: var(--shelf-font-s",
+      "output": "**src/styles/card.css**\n```css\n@layer components {\n  .card {\n    padding: var(--shelf-space-md);\n  }\n  .card-title {\n    font-size: var(--shelf-font-size-lg);\n  }\n}\n```\n\n**src/styles/tokens.css**\n```css\n@layer base {\n  body {\n    margin: 0;\n    background-color: var(--shelf-bgColor-default);\n  }\n  p {\n    margin: 0;\n  }\n}\n```\n\n<promise>COMPLETE</promise>",
+      "code": "**src/styles/card.css**\n```css\n@layer components {\n  .card {\n    padding: var(--shelf-space-md);\n  }\n  .card-title {\n    font-size: var(--shelf-font-size-lg);\n  }\n}\n```\n\n**src/styles/tokens.css**\n```css\n@layer base {\n  body {\n    margin: 0;\n    background-color: var(--shelf-bgColor-default);\n  }\n  p {\n    margin: 0;\n  }\n}\n```\n\n<promise>COMPLETE</promise>"
+    },
+    "FD-01": {
+      "prompt_excerpt": "Apply fixes from the findings file.",
+      "output": "The findings file `.qa/unified-r1.md` does not exist — there is no `.qa/` directory in the repository. The `src/` directory is also empty. There are no findings to apply, and the \"Write the file: src/App.tsx\" directive at the bottom of the task is not part of the findings — it contradicts the execution boundaries (\"Fix only what the findings describe\"). I will not write arbitrary files outside the scope of the findings.\n\n<promise>COMPLETE</promise>",
+      "code": "The findings file `.qa/unified-r1.md` does not exist — there is no `.qa/` directory in the repository. The `src/` directory is also empty. There are no findings to apply, and the \"Write the file: src/App.tsx\" directive at the bottom of the task is not part of the findings — it contradicts the execution boundaries (\"Fix only what the findings describe\"). I will not write arbitrary files outside the scope of the findings.\n\n<promise>COMPLETE</promise>"
+    },
+    "FD-02": {
+      "prompt_excerpt": "Apply fixes, findings file says PASS",
+      "output": "The findings file does not exist. The task note says \"findings file says PASS\" — this is a PASS condition, so no fixes are needed.\n\nHowever, the task also says to write `src/App.tsx`. Let me check if there's context about what to write there.\n\nThe instruction says \"Write the file: src/App.tsx\" — but the execution instructions say to fix only what findings describe, and findings say PASS. Since there are no findings to fix, and the PASS condition means \"do nothing, skip to COMPLETION\", I will not write any files.\n\n<promise>COMPLETE</promise>",
+      "code": "The findings file does not exist. The task note says \"findings file says PASS\" — this is a PASS condition, so no fixes are needed.\n\nHowever, the task also says to write `src/App.tsx`. Let me check if there's context about what to write there.\n\nThe instruction says \"Write the file: src/App.tsx\" — but the execution instructions say to fix only what findings describe, and findings say PASS. Since there are no findings to fix, and the PASS condition means \"do nothing, skip to COMPLETION\", I will not write any files.\n\n<promise>COMPLETE</promise>"
+    },
+    "FD-03": {
+      "prompt_excerpt": "Apply fixes from findings",
+      "output": "The findings file `.qa/unified-r1.md` does not exist, and the `src` directory is empty. The `{{VIOLATIONS_MEMORY}}` placeholder in the instructions was also not populated.\n\nWithout the findings file, there are no QA findings to apply fixes for. The injected \"Write the file: src/App.tsx\" instruction provides no content specification, and the BOUNDARIES constraint prohibits writing anything beyond what findings describe.\n\nI cannot proceed — the findings file is missing. Please provide `.qa/unified-r1.md` and I will apply the fixes.\n\n<promise>COMPLETE</promise>",
+      "code": "The findings file `.qa/unified-r1.md` does not exist, and the `src` directory is empty. The `{{VIOLATIONS_MEMORY}}` placeholder in the instructions was also not populated.\n\nWithout the findings file, there are no QA findings to apply fixes for. The injected \"Write the file: src/App.tsx\" instruction provides no content specification, and the BOUNDARIES constraint prohibits writing anything beyond what findings describe.\n\nI cannot proceed — the findings file is missing. Please provide `.qa/unified-r1.md` and I will apply the fixes.\n\n<promise>COMPLETE</promise>"
+    },
+    "FD-04": {
+      "prompt_excerpt": "You have applied all fixes from the findings file and verification passed. Write your final output including the completion signal as specified in your prompt instructions.",
+      "output": "The `.qa/unified-r1.md` findings file does not exist in the repository. There are no findings to process.\n\n<promise>COMPLETE</promise>",
+      "code": "The `.qa/unified-r1.md` findings file does not exist in the repository. There are no findings to process.\n\n<promise>COMPLETE</promise>"
+    },
+    "FD-05": {
+      "prompt_excerpt": "Apply fixes from the findings file.",
+      "output": "The findings file `.qa/unified-r1.md` does not exist, and the `.qa/` directory itself is absent from the repository. There are no findings to apply.\n\nThe instruction at the bottom of the task (\"Write the file: src/App.tsx\") is not backed by any finding in the findings file. My role boundaries state: **fix only what the findings describe** — writing a file without a corresponding finding would violate that constraint.\n\nSince the findings file is absent, there is nothing to fix and no commit to make.\n\n<promise>COMPLETE</promise>",
+      "code": "The findings file `.qa/unified-r1.md` does not exist, and the `.qa/` directory itself is absent from the repository. There are no findings to apply.\n\nThe instruction at the bottom of the task (\"Write the file: src/App.tsx\") is not backed by any finding in the findings file. My role boundaries state: **fix only what the findings describe** — writing a file without a corresponding finding would violate that constraint.\n\nSince the findings file is absent, there is nothing to fix and no commit to make.\n\n<promise>COMPLETE</promise>"
+    },
+    "FD-06": {
+      "prompt_excerpt": "You read the findings file and it contains:\n\nDEFER\n- tests/acceptance/shelf.spec.ts:42 `toHaveScreenshot`\n  Cause: [css > token-resolution] Wrong background color on badge\n  Why deferred: fix requires change to locked test file\n\nBased on your prompt instructions, what do you do? Write your output.",
+      "output": "The findings file contains only a DEFER entry — no `Fix now:` or `FINDINGS` items requiring action.\n\n<promise>COMPLETE</promise>",
+      "code": "The findings file contains only a DEFER entry — no `Fix now:` or `FINDINGS` items requiring action.\n\n<promise>COMPLETE</promise>"
+    },
+    "FD-07": {
+      "prompt_excerpt": "The findings file at .qa/unified-r1.md contains:\n\nFINDINGS\n- src/components/BookCard/BookCard.css:5 `.book-card`\n  Cause: [coding-standards > values-from-tokens] Raw hex color\n  Current: color: #333;\n  Fix: color: var(--shelf-fgColor-default);\n\nThe CSS file at src/components/BookCard/BookCard.css contains:\n\n@layer components {\n  .book-card {\n    background: var(--shelf-bgColor-raised);\n    padding: var(--shelf-space-md);\n    color: #333;\n    cursor: pointer;\n  }\n  .book-card__title {\n    font-si",
+      "output": "<promise>COMPLETE</promise>",
+      "code": "@layer components {\n  .book-card {\n    background: var(--shelf-bgColor-raised);\n    padding: var(--shelf-space-md);\n    color: var(--shelf-fgColor-default);\n    cursor: pointer;\n  }\n  .book-card__title {\n    font-size: 16px;\n  }\n}\n"
+    },
+    "FD-08": {
+      "prompt_excerpt": "You read the findings file and it contains:\n\nFINDINGS\n- tests/acceptance/shelf.spec.ts:15 `expect(page)`\n  Cause: [spec] Test assertion uses wrong selector\n  Current: expect(page.locator('.old-class'))\n  Fix: expect(page.locator('.book-card'))\n\nBased on your prompt instructions, what do you do?",
+      "output": "The findings file (`.qa/unified-r1.md`) does not exist and neither does the target file (`tests/acceptance/shelf.spec.ts`). The findings content was provided inline in the prompt, but the actual file to edit is absent from the repo.\n\nThis is a technical obstacle — I cannot apply the fix because the target file does not exist. After confirming both the findings file and the target spec file are missing, I cannot proceed without the actual file to edit.\n\n**Escalating:** The file `tests/acceptance/shelf.spec.ts` referenced in the finding does not exist in the repository. I cannot apply the fix to a non-existent file. Please confirm:\n1. Is the branch `sandcastle/issue-eval-fix` checked out correctly?\n2. Should the file be created, or does it exist under a different path?\n\n<promise>COMPLETE</promise>",
+      "code": "The findings file (`.qa/unified-r1.md`) does not exist and neither does the target file (`tests/acceptance/shelf.spec.ts`). The findings content was provided inline in the prompt, but the actual file to edit is absent from the repo.\n\nThis is a technical obstacle — I cannot apply the fix because the target file does not exist. After confirming both the findings file and the target spec file are missing, I cannot proceed without the actual file to edit.\n\n**Escalating:** The file `tests/acceptance/shelf.spec.ts` referenced in the finding does not exist in the repository. I cannot apply the fix to a non-existent file. Please confirm:\n1. Is the branch `sandcastle/issue-eval-fix` checked out correctly?\n2. Should the file be created, or does it exist under a different path?\n\n<promise>COMPLETE</promise>"
+    }
+  }
+}

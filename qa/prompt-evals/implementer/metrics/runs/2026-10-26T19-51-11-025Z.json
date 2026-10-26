@@ -1,0 +1,85 @@
+{
+  "score": 1,
+  "total": 1,
+  "pass_rate": 100,
+  "metrics": {
+    "constraint_adherence": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "output_compliance": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "by_rule": {
+    "comment-clarity": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "cases": [
+    {
+      "id": "CC-01",
+      "rule": "comment-clarity",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No JSDoc blocks (/** */) on internal code"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No comments restating what SKELETON_COUNT means — the name is self-documenting"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No multi-line // comment blocks — one line maximum"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No ticket delivery plan references in source comments"
+        },
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Must include the SKELETON_COUNT constant"
+        },
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Must export symbols"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 182317
+    }
+  ],
+  "controls": {
+    "pass": 0,
+    "total": 0
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-26T19:51:11.025Z",
+  "run_id": "run-1793044271026",
+  "artifacts": {
+    "CC-01": {
+      "prompt_excerpt": "Write the following in a single file:\n\n1. A STATUS_LABELS constant mapping status keys to display labels\n2. A SKELETON_COUNT = 6 constant for placeholder count\n3. A statusColor helper that maps status to a CSS class\n4. A StatusList component that renders items grouped by status, with skeleton placeholders during loading (null = loading, array = loaded)\n\nThe spec says: this ticket only implements the status list view; inline editing ships in ticket djk.3. Drag-to-reorder is planned for a later ti",
+      "output": "<promise>COMPLETE</promise>",
+      "code": "import './StatusList.css';\nimport type { Status, StatusItem } from '../../types';\n\nexport const STATUS_LABELS: Record<Status, string> = {\n  todo: 'To Do',\n  'in-progress': 'In Progress',\n  review: 'In Review',\n  done: 'Done',\n  blocked: 'Blocked',\n};\n\nexport const SKELETON_COUNT = 6;\n\nexport function statusColor(status: Status): string {\n  const map: Record<Status, string> = {\n    todo: 'status-color-todo',\n    'in-progress': 'status-color-in-progress',\n    review: 'status-color-review',\n    done: 'status-color-done',\n    blocked: 'status-color-blocked',\n  };\n  return map[status];\n}\n\nfunction skeletonWidthClass(index: number): string {\n  const cycle = index % 3;\n  if (cycle === 0) {\n    return 'skeleton-line-long';\n  }\n  if (cycle === 1) {\n    return 'skeleton-line-medium';\n  }\n  return 'skeleton-line-short';\n}\n\nfunction groupByStatus(items: StatusItem[]): Map<Status, StatusItem[]> {\n  const order: Status[] = ['todo', 'in-progress', 'review', 'done', 'blocked'];\n  const groups = new Map<Status, StatusItem[]>();\n  for (const status of order) {\n    const group = items.filter((item) => item.status === status);\n    if (group.length > 0) {\n      groups.set(status, group);\n    }\n  }\n  return groups;\n}\n\ninterface StatusListProps {\n  // null = loading; array (possibly empty) = loaded\n  items: StatusItem[] | null;\n}\n\nexport function StatusList({ items }: StatusListProps): JSX.Element {\n  if (items === null) {\n    return (\n      <ul className=\"status-list\" aria-label=\"Status list\">\n        {Array.from({ length: SKELETON_COUNT }, (_, i) => (\n          <li key={i} className=\"status-item-skeleton\">\n            <span className={`skeleton-line ${skeletonWidthClass(i)}`} />\n          </li>\n        ))}\n      </ul>\n    );\n  }\n\n  const groups = groupByStatus(items);\n\n  return (\n    <ul className=\"status-list\" aria-label=\"Status list\">\n      {Array.from(groups.entries()).map(([status, groupItems]) => (\n        <li key={status} className=\"status-group\">\n          <ul className=\"status-group-items\">\n            <li className=\"status-group-heading\">\n              <span className={statusColor(status)}>{STATUS_LABELS[status]}</span>\n            </li>\n            {groupItems.map((item) => (\n              <li key={item.id} className=\"status-item\">\n                {item.label}\n              </li>\n            ))}\n          </ul>\n        </li>\n      ))}\n    </ul>\n  );\n}\n"
+    }
+  }
+}

@@ -1,0 +1,85 @@
+{
+  "score": 1,
+  "total": 1,
+  "pass_rate": 100,
+  "metrics": {
+    "constraint_adherence": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "output_compliance": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "by_rule": {
+    "comment-clarity": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "cases": [
+    {
+      "id": "CC-01",
+      "rule": "comment-clarity",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No JSDoc blocks (/** */) on internal code"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No comments restating what SKELETON_COUNT means — the name is self-documenting"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No multi-line // comment blocks — one line maximum"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No ticket delivery plan references in source comments"
+        },
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Must include the SKELETON_COUNT constant"
+        },
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Must export symbols"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 306164
+    }
+  ],
+  "controls": {
+    "pass": 0,
+    "total": 0
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-26T18:11:20.213Z",
+  "run_id": "run-1793038280214",
+  "artifacts": {
+    "CC-01": {
+      "prompt_excerpt": "Write the following in a single file:\n\n1. A STATUS_LABELS constant mapping status keys to display labels\n2. A SKELETON_COUNT = 6 constant for placeholder count\n3. A statusColor helper that maps status to a CSS class\n4. A StatusList component that renders items grouped by status, with skeleton placeholders during loading (null = loading, array = loaded)\n\nThe spec says: this ticket only implements the status list view; inline editing ships in ticket djk.3. Drag-to-reorder is planned for a later ti",
+      "output": "The implementation is complete. All five files are written:\n\n- `src/types.ts` — `Status` union type and `StatusItem` interface\n- `src/styles/layers.css` — `@layer base, tokens, components;` declaration\n- `src/styles/tokens.css` — primitive → semantic → component token tiers, with light/dark variants in all three blocks (`:root`, `[data-theme=\"dark\"]`, `@media (prefers-color-scheme: dark)`)\n- `src/components/StatusList/StatusList.css` — component styles using only component-tier tokens, `@keyframes` inside `@layer components`, no raw values, no margin\n- `src/components/StatusList/StatusList.tsx` — exports `STATUS_LABELS`, `SKELETON_COUNT`, `statusColor`, and `StatusList`\n\nKey correctness points for `getByRole` queries in the Playwright test:\n- Loading state (`items === null`): renders a `<ul role=\"list\">` with exactly 6 `<li>` children — no `aria-hidden`, skeletons participate in the accessible tree as `listitem` roles\n- Loaded state: items grouped by status under `<section>` + `<h3>` headings, each group's items in a `<ul role=\"list\">` with `<li>` children\n\n<promise>COMPLETE</promise>",
+      "code": "import type { ReactElement } from 'react';\nimport './StatusList.css';\nimport type { Status, StatusItem } from '../../types';\n\nexport const STATUS_LABELS = {\n  active: 'Active',\n  idle: 'Idle',\n  error: 'Error',\n  offline: 'Offline',\n} as const satisfies Record<Status, string>;\n\nexport const SKELETON_COUNT = 6;\n\nexport function statusColor(status: Status): string {\n  switch (status) {\n    case 'active':\n      return 'status-active';\n    case 'idle':\n      return 'status-idle';\n    case 'error':\n      return 'status-error';\n    case 'offline':\n      return 'status-offline';\n  }\n}\n\nfunction groupByStatus(items: StatusItem[]): Map<Status, StatusItem[]> {\n  const groups = new Map<Status, StatusItem[]>();\n  for (const item of items) {\n    const existing = groups.get(item.status) ?? [];\n    existing.push(item);\n    groups.set(item.status, existing);\n  }\n  return groups;\n}\n\ninterface StatusListProps {\n  items: StatusItem[] | null;\n}\n\nexport function StatusList({ items }: StatusListProps): ReactElement {\n  if (items === null) {\n    return (\n      <ul className=\"status-list status-list--loading\" role=\"list\">\n        {Array.from({ length: SKELETON_COUNT }).map((_, i) => (\n          <li key={i} className=\"status-list-item status-list-item--skeleton\">\n            <span className=\"status-list-skeleton-bar\" />\n            <span className=\"status-list-skeleton-label\" />\n          </li>\n        ))}\n      </ul>\n    );\n  }\n\n  const groups = groupByStatus(items);\n\n  return (\n    <div className=\"status-list-container\">\n      {Array.from(groups.entries()).map(([status, groupItems]) => (\n        <section key={status} className=\"status-list-group\">\n          <h3 className=\"status-list-group-heading\">{STATUS_LABELS[status]}</h3>\n          <ul className=\"status-list\" role=\"list\">\n            {groupItems.map((item) => (\n              <li key={item.id} className={`status-list-item ${statusColor(item.status)}`}>\n                <span className=\"status-list-item-label\">{item.label}</span>\n              </li>\n            ))}\n          </ul>\n        </section>\n      ))}\n    </div>\n  );\n}\n"
+    }
+  }
+}

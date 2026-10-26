@@ -1,0 +1,84 @@
+{
+  "score": 1,
+  "total": 1,
+  "pass_rate": 100,
+  "metrics": {
+    "constraint_adherence": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "output_compliance": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "task_accuracy": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "by_rule": {
+    "values-from-tokens": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "cases": [
+    {
+      "id": "VFT-01",
+      "rule": "values-from-tokens",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No border-width keyword 'thin' as a CSS value — token refs like var(--shelf-borderWidth-thin) are fine"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No border-width keyword 'medium' as a CSS value"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No raw percentage as a property value (e.g. width: 60%) — 100% and custom property declarations are fine"
+        },
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "CSS must be wrapped in @layer components"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must include border styling"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 15409
+    }
+  ],
+  "controls": {
+    "pass": 0,
+    "total": 0
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-26T19:08:34.483Z",
+  "run_id": "run-1793041714483",
+  "artifacts": {
+    "VFT-01": {
+      "prompt_excerpt": "Write a ProfileCard component and its CSS. It has a bordered container with a thin border, a title, a subtitle, and a skeleton variant with two shimmer bars (one full-width, one shorter at about 60% width). Use @layer components for the CSS. Use tokens for all styling (assume --shelf-* tokens exist for border-width, colors, spacing, sizes). Include the CSS file.",
+      "output": "`src/components/ProfileCard/ProfileCard.css` written. Key decisions:\n\n- All values use `--shelf-profileCard-*` component-tier tokens for colors, border, spacing, and sizing — no raw values.\n- Skeleton bars use `--shelf-skeleton-*` tokens for color, height, radius, and widths (full vs. ~60%).\n- Shimmer animation uses only `opacity` (constraint: animate only `transform`/`opacity`) with motion tokens for duration/easing.\n- `@keyframes shimmer` is declared inside `@layer components` per the constraint.\n\n<promise>COMPLETE</promise>",
+      "code": "@layer components {\n  .profile-card {\n    border-width: var(--shelf-profileCard-borderWidth);\n    border-style: solid;\n    border-color: var(--shelf-profileCard-borderColor);\n    background-color: var(--shelf-profileCard-bgColor);\n    padding: var(--shelf-profileCard-padding);\n  }\n\n  .profile-card-title {\n    color: var(--shelf-profileCard-title-fgColor);\n    font-size: var(--shelf-profileCard-title-size);\n  }\n\n  .profile-card-subtitle {\n    color: var(--shelf-profileCard-subtitle-fgColor);\n    font-size: var(--shelf-profileCard-subtitle-size);\n  }\n\n  /* Skeleton variant */\n  .profile-card-skeleton .profile-card-bar {\n    background-color: var(--shelf-skeleton-bgColor);\n    height: var(--shelf-skeleton-height);\n    border-radius: var(--shelf-skeleton-borderRadius);\n  }\n\n  .profile-card-skeleton .profile-card-bar-full {\n    width: var(--shelf-skeleton-barFull-width);\n  }\n\n  .profile-card-skeleton .profile-card-bar-short {\n    width: var(--shelf-skeleton-barShort-width);\n  }\n\n  @keyframes shimmer {\n    from {\n      opacity: var(--shelf-skeleton-shimmer-opacityFrom);\n    }\n    to {\n      opacity: var(--shelf-skeleton-shimmer-opacityTo);\n    }\n  }\n\n  .profile-card-skeleton .profile-card-bar {\n    animation: shimmer var(--shelf-motion-duration-medium) var(--shelf-motion-easing-standard) infinite alternate;\n  }\n}\n"
+    }
+  }
+}

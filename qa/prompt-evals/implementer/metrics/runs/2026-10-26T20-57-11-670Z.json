@@ -1,0 +1,61 @@
+{
+  "score": 1,
+  "total": 1,
+  "pass_rate": 100,
+  "metrics": {
+    "output_compliance": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "task_accuracy": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "by_rule": {
+    "[ctrl]": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "cases": [
+    {
+      "id": "VFT-C1",
+      "rule": "[ctrl]",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "CSS must be wrapped in @layer components"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must use --shelf-* tokens"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 63271
+    }
+  ],
+  "controls": {
+    "pass": 1,
+    "total": 1
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-26T20:57:11.670Z",
+  "run_id": "run-1793048231671",
+  "artifacts": {
+    "VFT-C1": {
+      "prompt_excerpt": "Write a StatusBadge component and its CSS. It shows a colored pill with text. Use @layer components for the CSS. Use only var(--shelf-*) tokens for all visual values — colors, spacing, border-radius, font-size. Include the CSS file.",
+      "output": "`src/components/StatusBadge/StatusBadge.css` is written with:\n- `@layer components` wrapping all rules\n- Only `var(--shelf-status-badge-*)` tokens for every visual value (background, color, padding, border-radius, font-size, font-weight, line-height)\n- Kebab-case class selectors (`.status-badge`, `.status-badge--read`, etc.)\n- Modifier classes for each status variant: `--read`, `--reading`, `--want-to-read`\n\nThe companion `tokens.css` defines all `--shelf-status-badge-*` aliases (including dark-mode overrides in both `[data-theme=\"dark\"]` and `@media (prefers-color-scheme: dark)`) so no raw values leak into the component layer.\n\n<promise>COMPLETE</promise>",
+      "code": "@layer components {\n  .status-badge {\n    display: inline-flex;\n    align-items: center;\n    padding-block: var(--shelf-status-badge-paddingBlock);\n    padding-inline: var(--shelf-status-badge-paddingInline);\n    border-radius: var(--shelf-status-badge-borderRadius);\n    background-color: var(--shelf-status-badge-bgColor-default);\n    color: var(--shelf-status-badge-fgColor-default);\n    font-size: var(--shelf-status-badge-fontSize);\n    font-weight: var(--shelf-status-badge-fontWeight);\n    line-height: var(--shelf-status-badge-lineHeight);\n  }\n\n  .status-badge--read {\n    background-color: var(--shelf-status-badge-bgColor-read);\n    color: var(--shelf-status-badge-fgColor-read);\n  }\n\n  .status-badge--reading {\n    background-color: var(--shelf-status-badge-bgColor-reading);\n    color: var(--shelf-status-badge-fgColor-reading);\n  }\n\n  .status-badge--want-to-read {\n    background-color: var(--shelf-status-badge-bgColor-wantToRead);\n    color: var(--shelf-status-badge-fgColor-wantToRead);\n  }\n}\n"
+    }
+  }
+}

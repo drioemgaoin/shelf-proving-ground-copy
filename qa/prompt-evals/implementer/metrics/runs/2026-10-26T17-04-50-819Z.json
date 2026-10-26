@@ -1,0 +1,84 @@
+{
+  "score": 0,
+  "total": 1,
+  "pass_rate": 0,
+  "metrics": {
+    "constraint_adherence": {
+      "pass": 0,
+      "total": 1,
+      "rate": 0
+    },
+    "output_compliance": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "task_accuracy": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "by_rule": {
+    "no-outer-margin": {
+      "pass": 0,
+      "total": 1,
+      "rate": 0
+    }
+  },
+  "cases": [
+    {
+      "id": "NOM-02",
+      "rule": "no-outer-margin",
+      "pass": false,
+      "checkResults": [
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No margin: 0 in component CSS — list/paragraph resets belong in @layer base"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": false,
+          "detail": "Found at offset 1117: padding: 0",
+          "description": "No padding: 0 list reset in component CSS — belongs in @layer base"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No margin-block resets in component CSS"
+        },
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "CSS must be wrapped in @layer components"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Must use CSS grid for the layout"
+        }
+      ],
+      "detail": "Found at offset 1117: padding: 0",
+      "duration_ms": 11608
+    }
+  ],
+  "controls": {
+    "pass": 0,
+    "total": 0
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-26T17:04:50.819Z",
+  "run_id": "run-1793034290820",
+  "artifacts": {
+    "NOM-02": {
+      "prompt_excerpt": "Write a ProjectGrid component CSS file. It styles a <ul role=\"list\"> of project cards as <li> elements. Each card has a <p> for the project name and a <p> for the description. The grid uses CSS grid with auto-fill columns. Use @layer components. Use tokens for all styling (assume --shelf-* tokens exist). Element resets (margin: 0, padding: 0, list-style: none) belong in @layer base, not in component CSS. Output the complete CSS file content directly.",
+      "output": "```css\n@layer components {\n  .project-grid {\n    display: grid;\n    grid-template-columns: repeat(auto-fill, minmax(var(--shelf-projectGrid-column-min-size), 1fr));\n    gap: var(--shelf-projectGrid-gap);\n  }\n\n  .project-card {\n    background-color: var(--shelf-projectGrid-card-bgColor-default);\n    color: var(--shelf-projectGrid-card-fgColor-default);\n    border: var(--shelf-projectGrid-card-borderWidth) solid var(--shelf-projectGrid-card-borderColor-default);\n    border-radius: var(--shelf-projectGrid-card-borderRadius);\n    padding: var(--shelf-projectGrid-card-padding);\n  }\n\n  .project-card-name {\n    color: var(--shelf-projectGrid-cardName-fgColor);\n    font-size: var(--shelf-projectGrid-cardName-fontSize);\n    font-weight: var(--shelf-projectGrid-cardName-fontWeight);\n  }\n\n  .project-card-description {\n    color: var(--shelf-projectGrid-cardDescription-fgColor);\n    font-size: var(--shelf-projectGrid-cardDescription-fontSize);\n  }\n}\n```\n\n**Key decisions:**\n\n- `auto-fill` + `minmax` gives responsive columns without breakpoints or raw `px` values — the min size comes from a token.\n- No `margin`, `padding: 0`, or `list-style: none` — those resets belong in `@layer base`.\n- Every visual value is a `--shelf-projectGrid-*` component-tier token. You'd need to define all of them in `tokens.css` (including dark-mode blocks) before this compiles cleanly.\n- `gap` uses a token instead of a raw length.\n- Class names are kebab-case throughout.",
+      "code": "```css\n@layer components {\n  .project-grid {\n    display: grid;\n    grid-template-columns: repeat(auto-fill, minmax(var(--shelf-projectGrid-column-min-size), 1fr));\n    gap: var(--shelf-projectGrid-gap);\n  }\n\n  .project-card {\n    background-color: var(--shelf-projectGrid-card-bgColor-default);\n    color: var(--shelf-projectGrid-card-fgColor-default);\n    border: var(--shelf-projectGrid-card-borderWidth) solid var(--shelf-projectGrid-card-borderColor-default);\n    border-radius: var(--shelf-projectGrid-card-borderRadius);\n    padding: var(--shelf-projectGrid-card-padding);\n  }\n\n  .project-card-name {\n    color: var(--shelf-projectGrid-cardName-fgColor);\n    font-size: var(--shelf-projectGrid-cardName-fontSize);\n    font-weight: var(--shelf-projectGrid-cardName-fontWeight);\n  }\n\n  .project-card-description {\n    color: var(--shelf-projectGrid-cardDescription-fgColor);\n    font-size: var(--shelf-projectGrid-cardDescription-fontSize);\n  }\n}\n```\n\n**Key decisions:**\n\n- `auto-fill` + `minmax` gives responsive columns without breakpoints or raw `px` values — the min size comes from a token.\n- No `margin`, `padding: 0`, or `list-style: none` — those resets belong in `@layer base`.\n- Every visual value is a `--shelf-projectGrid-*` component-tier token. You'd need to define all of them in `tokens.css` (including dark-mode blocks) before this compiles cleanly.\n- `gap` uses a token instead of a raw length.\n- Class names are kebab-case throughout."
+    }
+  }
+}

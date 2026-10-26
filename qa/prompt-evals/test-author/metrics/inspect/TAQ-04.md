@@ -2,7 +2,7 @@
 
 **Result:** ✗ FAIL
 **Rule:** [ctrl]
-**Duration:** 108.1s
+**Duration:** 128.4s
 **Model:** sonnet
 **Source:** latest run
 
@@ -20,4 +20,4 @@ Analyze whether StatusBadge needs tests. It is purely presentational: it receive
 
 | Metric | Check | Result |
 |---|---|---|
-| judgment_accuracy | Should decide no tests needed for purely presentational component | ✗ FAIL — Pattern not found: (No tests written|nothing to test|[Ss]kip|acceptance.*cover|purely presentational) |
+| judgment_accuracy | Should decide no tests needed for purely presentational component | ✗ FAIL — Pattern not found: (No tests written|nothing to test|[Ss]kip|acceptance.*cover|purely presentational|no unit tests|SKIP|not needed|zero test) |

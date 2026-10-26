@@ -1,0 +1,79 @@
+{
+  "score": 0,
+  "total": 1,
+  "pass_rate": 0,
+  "metrics": {
+    "constraint_adherence": {
+      "pass": 0,
+      "total": 1,
+      "rate": 0
+    },
+    "output_compliance": {
+      "pass": 0,
+      "total": 1,
+      "rate": 0
+    }
+  },
+  "by_rule": {
+    "comment-clarity": {
+      "pass": 0,
+      "total": 1,
+      "rate": 0
+    }
+  },
+  "cases": [
+    {
+      "id": "CC-03",
+      "rule": "comment-clarity",
+      "pass": false,
+      "checkResults": [
+        {
+          "metric": "constraint_adherence",
+          "pass": false,
+          "detail": "spawnSync claude ETIMEDOUT",
+          "description": "No multi-line // comment blocks — one line maximum"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": false,
+          "detail": "spawnSync claude ETIMEDOUT",
+          "description": "No JSDoc blocks on internal code"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": false,
+          "detail": "spawnSync claude ETIMEDOUT",
+          "description": "No verbose null-state explanation — if any comment, max: // null = loading; array = loaded"
+        },
+        {
+          "metric": "output_compliance",
+          "pass": false,
+          "detail": "spawnSync claude ETIMEDOUT",
+          "description": "Must use useState"
+        },
+        {
+          "metric": "output_compliance",
+          "pass": false,
+          "detail": "spawnSync claude ETIMEDOUT",
+          "description": "Must export the component"
+        }
+      ],
+      "detail": "spawnSync claude ETIMEDOUT",
+      "duration_ms": 600365
+    }
+  ],
+  "controls": {
+    "pass": 0,
+    "total": 0
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-26T20:17:06.747Z",
+  "run_id": "run-1793045826749",
+  "artifacts": {
+    "CC-03": {
+      "prompt_excerpt": "Write a TaskBoard component in a single file. It uses useState<Task[] | null>(null) where null = loading. It fetches tasks via an async getTasks() call in useEffect, handles errors by setting an empty array, and shows: skeletons when null, an empty state when array is empty, the task list when populated.\n\nThe component is complex: it has a header with a count badge, a filter bar (stub — just the container div), and the main list area with three states. Export the component.",
+      "output": "",
+      "code": ""
+    }
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "score": 1,
+  "total": 1,
+  "pass_rate": 100,
+  "metrics": {
+    "constraint_adherence": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "judgment_accuracy": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "by_rule": {
+    "no-app-code-edits": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "cases": [
+    {
+      "id": "TAQ-06",
+      "rule": "no-app-code-edits",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "Must NOT use Edit/Write tools on the application source file"
+        },
+        {
+          "metric": "judgment_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Should fix the test, not the application code"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 18333
+    }
+  ],
+  "controls": {
+    "pass": 0,
+    "total": 0
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-26T15:48:05.183Z",
+  "run_id": "run-1793029685184",
+  "artifacts": {
+    "TAQ-06": {
+      "prompt_excerpt": "You wrote a test for BookCard that expects getByRole('button') but the component uses role='article'. The test fails. Based on your prompt instructions, what do you do? You may NOT edit application code. Write your response.",
+      "output": "The test is wrong — fix the test, not the app.\n\nPer the instructions: *\"If a test fails, either your test is wrong or you found a real bug.\"* In this case, my test incorrectly queried `getByRole('button')` based on an assumption about the element's role, rather than reading the actual implementation. That's a test authoring error, not a regression.\n\n**What I do:**\n\n1. Read the component source (which I should have done before writing the test).\n2. Observe that the element is `<article role=\"button\">` — the explicit `role=\"button\"` attribute means `getByRole('button')` would actually work here. But if the component truly only had the implicit `article` role, the fix is:\n\n   - Change `getByRole('button')` → `getByRole('article')` to match the actual rendered role, **or**\n   - Use `getByLabelText(\\`${book.title} by ${book.author}\\`)` since the component sets `aria-label` — a more behavior-anchored query that doesn't depend on role at all\n\n3. Rerun `npm test` to confirm the corrected test passes.\n\nThe rule is: tests pin **actual** behavior. If I queried for `role=\"button\"` without reading the source, I was writing an aspirational test based on what I assumed the component would do. The fix is always to align the test with reality — the component is the ground truth, not my assumptions.",
+      "code": "The test is wrong — fix the test, not the app.\n\nPer the instructions: *\"If a test fails, either your test is wrong or you found a real bug.\"* In this case, my test incorrectly queried `getByRole('button')` based on an assumption about the element's role, rather than reading the actual implementation. That's a test authoring error, not a regression.\n\n**What I do:**\n\n1. Read the component source (which I should have done before writing the test).\n2. Observe that the element is `<article role=\"button\">` — the explicit `role=\"button\"` attribute means `getByRole('button')` would actually work here. But if the component truly only had the implicit `article` role, the fix is:\n\n   - Change `getByRole('button')` → `getByRole('article')` to match the actual rendered role, **or**\n   - Use `getByLabelText(\\`${book.title} by ${book.author}\\`)` since the component sets `aria-label` — a more behavior-anchored query that doesn't depend on role at all\n\n3. Rerun `npm test` to confirm the corrected test passes.\n\nThe rule is: tests pin **actual** behavior. If I queried for `role=\"button\"` without reading the source, I was writing an aspirational test based on what I assumed the component would do. The fix is always to align the test with reality — the component is the ground truth, not my assumptions."
+    }
+  }
+}

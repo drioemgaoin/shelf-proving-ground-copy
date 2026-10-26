@@ -1,0 +1,78 @@
+{
+  "score": 0,
+  "total": 1,
+  "pass_rate": 0,
+  "metrics": {
+    "output_compliance": {
+      "pass": 0,
+      "total": 1,
+      "rate": 0
+    },
+    "constraint_adherence": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "task_accuracy": {
+      "pass": 0,
+      "total": 1,
+      "rate": 0
+    }
+  },
+  "by_rule": {
+    "role-query-diagnostic": {
+      "pass": 0,
+      "total": 1,
+      "rate": 0
+    }
+  },
+  "cases": [
+    {
+      "id": "RQD-01",
+      "rule": "role-query-diagnostic",
+      "pass": false,
+      "checkResults": [
+        {
+          "metric": "output_compliance",
+          "pass": false,
+          "detail": "Pattern not found: export (function|const)|import ",
+          "description": "Model produced component code with exports/imports"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No aria-hidden on placeholder elements — they must participate in the accessible tree for role-based locators"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "Named exports only — no default exports"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": false,
+          "detail": "Pattern not found: role=\"list\"|role=.list",
+          "description": "Must render a list container with role=list"
+        }
+      ],
+      "detail": "Pattern not found: export (function|const)|import ",
+      "duration_ms": 118554
+    }
+  ],
+  "controls": {
+    "pass": 0,
+    "total": 0
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-26T18:49:11.655Z",
+  "run_id": "run-1793040551656",
+  "artifacts": {
+    "RQD-01": {
+      "prompt_excerpt": "Write a NotificationList component. It receives `items: Notification[]` and `isLoading: boolean`. When loading, render 4 placeholder `<li>` elements inside a `<ul role=\"list\">` showing grey bars. When loaded, render the real notification items as `<li>`. Use tokens for all styling. Include the CSS file. Do NOT use tools — output ONLY the code in a single code fence, no explanation.",
+      "output": "The `bd` escalation tool has no database in this environment. I've implemented the BookCard component correctly within my allowed scope:\n\n- `src/types.ts` — `Book` type with `id`, `title`, `author`, `status`\n- `src/styles/layers.css` — layer order declaration\n- `src/styles/tokens.css` — all design tokens with full dark-mode coverage\n- `src/components/BookCard/BookCard.css` — component styles using component-tier tokens\n- `src/components/BookCard/BookCard.tsx` — renders `<h2>` title, author `<p>`, and status badge `<span>`\n\nThe test cannot run: the repo has no `package.json`, no `node_modules`, no `playwright.config.*`, and no `tests/acceptance/BookCard.spec.ts`. This is an environment scaffolding issue outside my scope.\n\n<promise>COMPLETE</promise>",
+      "code": "The `bd` escalation tool has no database in this environment. I've implemented the BookCard component correctly within my allowed scope:\n\n- `src/types.ts` — `Book` type with `id`, `title`, `author`, `status`\n- `src/styles/layers.css` — layer order declaration\n- `src/styles/tokens.css` — all design tokens with full dark-mode coverage\n- `src/components/BookCard/BookCard.css` — component styles using component-tier tokens\n- `src/components/BookCard/BookCard.tsx` — renders `<h2>` title, author `<p>`, and status badge `<span>`\n\nThe test cannot run: the repo has no `package.json`, no `node_modules`, no `playwright.config.*`, and no `tests/acceptance/BookCard.spec.ts`. This is an environment scaffolding issue outside my scope.\n\n<promise>COMPLETE</promise>"
+    }
+  }
+}

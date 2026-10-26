@@ -1,0 +1,78 @@
+{
+  "score": 0,
+  "total": 1,
+  "pass_rate": 0,
+  "metrics": {
+    "output_compliance": {
+      "pass": 0,
+      "total": 1,
+      "rate": 0
+    },
+    "constraint_adherence": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "task_accuracy": {
+      "pass": 0,
+      "total": 1,
+      "rate": 0
+    }
+  },
+  "by_rule": {
+    "role-query-diagnostic": {
+      "pass": 0,
+      "total": 1,
+      "rate": 0
+    }
+  },
+  "cases": [
+    {
+      "id": "RQD-02",
+      "rule": "role-query-diagnostic",
+      "pass": false,
+      "checkResults": [
+        {
+          "metric": "output_compliance",
+          "pass": false,
+          "detail": "Pattern not found: export (function|const)|import ",
+          "description": "Model produced component code with exports/imports"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No aria-hidden on placeholder rows — they must participate in the accessible tree for role-based locators"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "Named exports only — no default exports"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": false,
+          "detail": "Pattern not found: <tbody",
+          "description": "Must render a tbody element for placeholder rows"
+        }
+      ],
+      "detail": "Pattern not found: export (function|const)|import ",
+      "duration_ms": 357940
+    }
+  ],
+  "controls": {
+    "pass": 0,
+    "total": 0
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-26T18:45:48.603Z",
+  "run_id": "run-1793040348604",
+  "artifacts": {
+    "RQD-02": {
+      "prompt_excerpt": "Write a DataTable component. It receives `rows: Row[]` and `loading: boolean`. When loading, render 5 placeholder `<tr>` elements inside the `<tbody>` with shimmer cells. When loaded, render the real rows. The table has role=\"table\" with proper semantic markup. Use tokens for all styling. Include the CSS file. Do NOT use tools — output ONLY the code in a single code fence, no explanation.",
+      "output": "All files are created. The BookCard component at `src/components/BookCard/BookCard.tsx:18-27` renders:\n- `<h2 className=\"book-card-title\">{title}</h2>` — accessible heading role for `getByRole('heading')`\n- `<p className=\"book-card-author\">{author}</p>` — author text\n- `<span className=\"book-card-badge\" data-status={status}>` — status badge with per-status color tokens\n\nThe full chain: `App` fetches from `/api/books` → `ShelfGrid` maps books → `BookCard` renders each title.\n\n<promise>COMPLETE</promise>",
+      "code": "All files are created. The BookCard component at `src/components/BookCard/BookCard.tsx:18-27` renders:\n- `<h2 className=\"book-card-title\">{title}</h2>` — accessible heading role for `getByRole('heading')`\n- `<p className=\"book-card-author\">{author}</p>` — author text\n- `<span className=\"book-card-badge\" data-status={status}>` — status badge with per-status color tokens\n\nThe full chain: `App` fetches from `/api/books` → `ShelfGrid` maps books → `BookCard` renders each title.\n\n<promise>COMPLETE</promise>"
+    }
+  }
+}

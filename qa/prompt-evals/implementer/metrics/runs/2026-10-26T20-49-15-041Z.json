@@ -1,0 +1,78 @@
+{
+  "score": 1,
+  "total": 1,
+  "pass_rate": 100,
+  "metrics": {
+    "output_compliance": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "constraint_adherence": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "task_accuracy": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "by_rule": {
+    "no-ticket-references": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "cases": [
+    {
+      "id": "SR-04",
+      "rule": "no-ticket-references",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Model produced component code with exports/imports"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No ticket ID references in comments"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "Named exports only — no default exports"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Component must handle pressed state"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 18401
+    }
+  ],
+  "controls": {
+    "pass": 0,
+    "total": 0
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-26T20:49:15.041Z",
+  "run_id": "run-1793047755042",
+  "artifacts": {
+    "SR-04": {
+      "prompt_excerpt": "Write a ChipBar component that only handles visual pressed state. Grid filtering will be connected by a different part of the codebase. Add a comment explaining the current boundary.",
+      "output": "<promise>COMPLETE</promise>",
+      "code": "import { useState } from 'react';\n\n// Boundary: ChipBar manages its own pressed state visually only.\n// Grid filtering is wired externally — a parent will pass an onFilterChange\n// callback when that integration is built.\n\nexport type ChipBarProps = {\n  labels: string[];\n};\n\nexport function ChipBar({ labels }: ChipBarProps): JSX.Element {\n  const [pressed, setPressed] = useState<string | null>(null);\n\n  function handleClick(label: string): void {\n    setPressed(prev => (prev === label ? null : label));\n  }\n\n  return (\n    <div className=\"chip-bar\" role=\"toolbar\" aria-label=\"Filter chips\">\n      {labels.map(label => (\n        <button\n          key={label}\n          className={`chip${pressed === label ? ' chip--pressed' : ''}`}\n          aria-pressed={pressed === label}\n          onClick={() => handleClick(label)}\n          type=\"button\"\n        >\n          {label}\n        </button>\n      ))}\n    </div>\n  );\n}\n"
+    }
+  }
+}

@@ -1,0 +1,78 @@
+{
+  "score": 1,
+  "total": 1,
+  "pass_rate": 100,
+  "metrics": {
+    "output_compliance": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "constraint_adherence": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    },
+    "task_accuracy": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "by_rule": {
+    "comment-style": {
+      "pass": 1,
+      "total": 1,
+      "rate": 100
+    }
+  },
+  "cases": [
+    {
+      "id": "SR-01",
+      "rule": "comment-style",
+      "pass": true,
+      "checkResults": [
+        {
+          "metric": "output_compliance",
+          "pass": true,
+          "detail": null,
+          "description": "Model produced component code with exports/imports"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "No multi-line JSDoc blocks (/** ... */)"
+        },
+        {
+          "metric": "constraint_adherence",
+          "pass": true,
+          "detail": null,
+          "description": "Named exports only — no default exports"
+        },
+        {
+          "metric": "task_accuracy",
+          "pass": true,
+          "detail": null,
+          "description": "Chips must use aria-pressed for toggle state"
+        }
+      ],
+      "detail": null,
+      "duration_ms": 58827
+    }
+  ],
+  "controls": {
+    "pass": 0,
+    "total": 0
+  },
+  "model": "sonnet",
+  "timestamp": "2026-10-26T18:55:49.962Z",
+  "run_id": "run-1793040949963",
+  "artifacts": {
+    "SR-01": {
+      "prompt_excerpt": "Write a ChipBar component that renders a row of filter chips. Each chip shows a status string, supports pressed/unpressed state via aria-pressed, and calls onSelectionChange with the updated Set. Include the CSS file with the component.",
+      "output": "The `ChipBar` component is written at `src/components/ChipBar/ChipBar.tsx` with its colocated `ChipBar.css`. Key details:\n\n- `role=\"group\"` container with `aria-label` for accessible grouping\n- Each chip is a `<button>` with `aria-pressed` (boolean) reflecting selection state\n- Click toggles membership in the `Set<Status>` and calls `onSelectionChange` with the new set\n- CSS uses `--shelf-chip-*` component-tier tokens, `appearance: none`, transitions only on `background-color`/`color`/`border-color` (mapped through opacity/transform-safe properties)\n\n<promise>COMPLETE</promise>",
+      "code": "import './ChipBar.css';\nimport type { Status } from '../../types';\n\ninterface ChipBarProps {\n  statuses: Status[];\n  selected: Set<Status>;\n  onSelectionChange: (selected: Set<Status>) => void;\n}\n\nexport function ChipBar({ statuses, selected, onSelectionChange }: ChipBarProps): JSX.Element {\n  function handleChipClick(status: Status): void {\n    const next = new Set(selected);\n    if (next.has(status)) {\n      next.delete(status);\n    } else {\n      next.add(status);\n    }\n    onSelectionChange(next);\n  }\n\n  return (\n    <div className=\"chip-bar\" role=\"group\" aria-label=\"Filter by status\">\n      {statuses.map((status) => (\n        <button\n          key={status}\n          className=\"chip-bar__chip\"\n          aria-pressed={selected.has(status)}\n          onClick={() => handleChipClick(status)}\n        >\n          {status}\n        </button>\n      ))}\n    </div>\n  );\n}\n"
+    }
+  }
+}
