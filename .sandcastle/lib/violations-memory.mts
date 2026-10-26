@@ -23,8 +23,12 @@ export interface ViolationEntry {
   wrote: string;
   /** What the fix was */
   fix: string;
-  /** Which gate caught it (review, visual-qa) */
+  /** Which gate caught it (review, visual-qa, implementer-lint, implementer-a11y) */
   gate: string;
+  /** "violation" (default) or "defer" — deferred items need human decision */
+  status?: "violation" | "defer";
+  /** Why this was deferred (required when status=defer) */
+  reason?: string;
 }
 
 /** Append a violation to the rolling log. */
@@ -48,17 +52,39 @@ export function loadViolationsMemory(): string {
   const recent = lines.slice(-MAX_ENTRIES_IN_PROMPT);
   const entries: ViolationEntry[] = recent.map((l) => JSON.parse(l));
 
-  // Format as concise lessons
-  const lessons = entries.map(
-    (e) =>
-      `- [${e.ruleId}] in ${e.file}: wrote \`${e.wrote}\` → fix: ${e.fix}`,
-  );
+  const violations = entries.filter((e) => e.status !== "defer");
+  const deferred = entries.filter((e) => e.status === "defer");
 
-  return [
-    "# Past violations (learn from these — do not repeat)",
-    "",
-    "These were caught by QA in previous sandcastle runs. Apply these lessons on the first pass.",
-    "",
-    ...lessons,
-  ].join("\n");
+  const sections: string[] = [];
+
+  if (violations.length > 0) {
+    const lessons = violations.map(
+      (e) =>
+        `- [${e.ruleId}] in ${e.file}: wrote \`${e.wrote}\` → fix: ${e.fix}`,
+    );
+    sections.push(
+      "# Past violations (learn from these — do not repeat)",
+      "",
+      "These were caught by QA in previous sandcastle runs. Apply these lessons on the first pass.",
+      "",
+      ...lessons,
+    );
+  }
+
+  if (deferred.length > 0) {
+    const items = deferred.map(
+      (e) =>
+        `- [${e.ruleId}] in ${e.file}: ${e.wrote} — reason: ${e.reason ?? e.fix}`,
+    );
+    sections.push(
+      "",
+      "# Deferred decisions (needs human input)",
+      "",
+      "These conflicts were identified but require a human decision. Do not attempt to resolve them.",
+      "",
+      ...items,
+    );
+  }
+
+  return sections.join("\n");
 }

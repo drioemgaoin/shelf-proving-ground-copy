@@ -535,6 +535,46 @@ These apply to every project. Project values and names are in `ui-project.md`. S
 
   > **Agent:** `visual-qa` — verifying usability at 200% zoom requires visual judgment across the full rendered page; automated overflow checks alone miss clipping, overlapping text, and unreachable controls.
 
+- Accessibility CSS patterns have well-known complete forms. A partial implementation creates a silent failure — the element looks correct in code but breaks the accessibility contract at runtime. Always implement the full pattern; when tokens exist for the pattern, use them.
+
+  **sr-only / visually-hidden** — hides content visually while keeping it in the accessibility tree (used for aria-live regions, skip links, form labels). Requires all six properties: `position: absolute`, `overflow: hidden`, `width/inline-size: 1px`, `height/block-size: 1px`, `clip-path: inset(50%)`, `white-space: nowrap`. Missing any one renders text at its absolute position, visible to sighted users.
+
+  CORRECT (complete sr-only pattern via tokens):
+  ```css
+  .shelf-live {
+    position: absolute;
+    overflow: hidden;
+    inline-size: var(--shelf-shelf-live-size);   /* 1px */
+    block-size: var(--shelf-shelf-live-size);     /* 1px */
+    clip-path: var(--shelf-shelf-live-clip);      /* inset(50%) */
+    white-space: nowrap;
+  }
+  ```
+
+  WRONG (incomplete — text visible at absolute position):
+  ```css
+  .shelf-live {
+    position: absolute;
+    overflow: hidden;
+  }
+  ```
+
+  **focus-visible outline** — must use `outline` (not `border` or `box-shadow`) with `outline-offset` for the ring to be visible on all backgrounds and respect Windows High Contrast Mode.
+
+  **reduced-motion alternative** — every animation must have a `prefers-reduced-motion: reduce` fallback that is either instant (`animation: none`) or a fade (opacity only, no transform).
+
+  ```enforcement
+  id: "a11y-css-pattern-completeness"
+  tier: T3
+  agent: reviewer
+  scope: "src/**/*.css"
+  group: accessibility
+  triage_hint: "Flag when: position: absolute paired with overflow: hidden, class name contains live or sr-only or visually-hidden, element serves aria-live"
+  instruction: "Check every CSS rule block that implements an accessibility pattern (sr-only, visually-hidden, skip-link). The selector name or component context identifies these — look for class names containing live, sr-only, visually-hidden. For sr-only: all six properties are required — position: absolute, overflow: hidden, width/inline-size: 1px, height/block-size: 1px, clip-path: inset(50%), white-space: nowrap. A violation is any a11y CSS pattern missing required properties — incomplete patterns compile and pass tests but silently break the accessibility contract. Correct: every property the pattern requires is present, using tokens where they exist."
+  ```
+
+  > **Agent:** `reviewer` — multi-property completeness requires reading the selector name and checking that all required properties coexist within the rule block; line-by-line regex cannot enforce this.
+
 ## Budgets
 
 - Layout shift: total below 0.01 for any single interaction.
