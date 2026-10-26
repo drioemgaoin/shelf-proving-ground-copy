@@ -192,6 +192,21 @@ These apply to every project. Project values and names are in `ui-project.md`. S
   instruction: "layers.css must be the first import in main.tsx — before any other CSS and before the App import. A violation is layers.css imported after another CSS file, after App, or missing."
   ```
 
+- Component CSS lives colocated with the component: `src/components/<Name>/<Name>.css`. `src/styles/` holds only global infrastructure — token definitions, layer order, and base resets. Class selectors (`.card`, `.drawer`, `.chip-bar`) in `src/styles/` are a violation.
+
+  CORRECT: `src/components/BookCard/BookCard.css` — component CSS colocated
+  WRONG: `src/styles/card.css` with `.card { }` — component selector in the global styles directory
+
+  ```enforcement
+  id: "component-css-colocated"
+  tier: T1
+  - pattern: "\\.[a-z][a-z0-9-]*\\s*\\{"
+    assert: absent
+    scope: "src/styles/**/*.css"
+    strip: comments
+    fix: "Component class selectors (.card, .drawer, etc.) must live colocated with their component in src/components/<Component>/<Component>.css. src/styles/ is reserved for token definitions, layer order, and base resets only."
+  ```
+
 - No margin in component CSS. Resets (margin: 0, padding: 0) go in @layer base. Parent owns centering — no margin-inline: auto. Exception: flex auto-margin for distribution.
 
   CORRECT: Container owns centering — all children align:

@@ -41,9 +41,9 @@ Topology: Layered. Scope: `{root}` = `src`
 | type | contract | `{root}/types/**/*.ts` | — |
 | api | adapter | `{root}/api.*` | type |
 | fixture | adapter | `{root}/fixtures.*` | api, type |
-| style | adapter | `{root}/styles/**/*.css` | style |
+| foundation-style | adapter | `{root}/styles/**/*.css` | foundation-style |
 | hook | application | `{root}/hooks/**/*.ts` | api, type |
-| component | UI | `{root}/components/**/*.{ts,tsx}` | component, hook, api, type, style |
+| component | UI | `{root}/components/**/*.{ts,tsx,css}` | component, hook, api, type, foundation-style |
 | entry | entry | `{root}/main.*`, `{root}/App.*` | * |
 | test | test | `{root}/**/*.test.{ts,tsx}` | * |
 
