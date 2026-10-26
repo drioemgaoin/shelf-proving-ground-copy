@@ -354,6 +354,54 @@ const rulesFile = readFileSync('.claude/rules/coding-standards.md', 'utf8');
   );
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// testing-no-tautology-assertions — getBy*.toBeTruthy / toBeDefined
+// ═══════════════════════════════════════════════════════════════════════════
+
+{
+  const truthyPattern = /getBy(Role|LabelText|Text|AltText|Title|DisplayValue|PlaceholderText|TestId).*toBeTruthy/;
+  const definedPattern = /getBy(Role|LabelText|Text|AltText|Title|DisplayValue|PlaceholderText|TestId).*toBeDefined/;
+
+  // RED: catches tautology
+  assert(
+    'no-tautology RED: getByRole + toBeTruthy',
+    truthyPattern.test("expect(screen.getByRole('main')).toBeTruthy();"),
+    'Must catch getByRole().toBeTruthy() tautology',
+  );
+  assert(
+    'no-tautology RED: getByLabelText + toBeTruthy',
+    truthyPattern.test("expect(screen.getByLabelText('Name')).toBeTruthy();"),
+    'Must catch getByLabelText().toBeTruthy()',
+  );
+  assert(
+    'no-tautology RED: getByRole + toBeDefined',
+    definedPattern.test("expect(screen.getByRole('button')).toBeDefined();"),
+    'Must catch getByRole().toBeDefined() tautology',
+  );
+  assert(
+    'no-tautology RED: getByText + toBeTruthy',
+    truthyPattern.test("expect(screen.getByText('Hello')).toBeTruthy();"),
+    'Must catch getByText().toBeTruthy()',
+  );
+
+  // GREEN: correct assertions
+  assert(
+    'no-tautology GREEN: getByRole + toBeInTheDocument',
+    !truthyPattern.test("expect(screen.getByRole('main')).toBeInTheDocument();"),
+    'toBeInTheDocument is valid',
+  );
+  assert(
+    'no-tautology GREEN: queryByRole + toBeTruthy',
+    !truthyPattern.test("expect(screen.queryByRole('main')).toBeTruthy();"),
+    'queryByRole().toBeTruthy() is valid (queryBy returns null on miss)',
+  );
+  assert(
+    'no-tautology GREEN: findByRole + toBeDefined',
+    !definedPattern.test("expect(await screen.findByRole('main')).toBeDefined();"),
+    'findByRole is async/different API, not caught by this rule',
+  );
+}
+
 // ─── Results ────────────────────────────────────────────────────────────────
 
 console.log(`\n${passed} passed, ${failed} failed`);

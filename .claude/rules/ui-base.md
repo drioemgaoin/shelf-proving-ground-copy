@@ -60,19 +60,19 @@ These apply to every project. Project values and names are in `ui-project.md`. S
     strip: comments
     skip-lines: "flex(-grow|-shrink|-basis)?\\s*:|order\\s*:|column-count\\s*:|orphans\\s*:|widows\\s*:|tab-size\\s*:|counter-|animation-iteration-count\\s*:|will-change"
     fix: "Replace bare numeric value with the appropriate --shelf-* token from src/styles/tokens.css"
-  - pattern: "(?:background-color|background)\s*:.*var\(--shelf-(?!bgColor-)\w*Color-"
+  - pattern: "(?:background-color|background)\s*:.*var\(--shelf-[\w-]*(?:fgColor|borderColor)-"
     assert: absent
     scope: "src/**/*.css"
     exclude: "src/styles/tokens.css"
     strip: comments
     fix: "background properties must use --shelf-bgColor-* tokens, not tokens from another role"
-  - pattern: "(?:(?<![\w-])color|(?:caret|text-decoration)-color|fill)\s*:.*var\(--shelf-(?!fgColor-)\w*Color-"
+  - pattern: "(?:(?<![\w-])color|(?:caret|text-decoration)-color|fill)\s*:.*var\(--shelf-[\w-]*(?:bgColor|borderColor)-"
     assert: absent
     scope: "src/**/*.css"
     exclude: "src/styles/tokens.css"
     strip: comments
     fix: "text/foreground properties must use --shelf-fgColor-* tokens, not tokens from another role"
-  - pattern: "(?:border(?:-\w+)?-color|outline-color|column-rule-color|stroke)\s*:.*var\(--shelf-(?!borderColor-)\w*Color-"
+  - pattern: "(?:border(?:-\w+)?-color|outline-color|column-rule-color|stroke)\s*:.*var\(--shelf-[\w-]*(?:bgColor|fgColor)-"
     assert: absent
     scope: "src/**/*.css"
     exclude: "src/styles/tokens.css"
@@ -86,6 +86,23 @@ These apply to every project. Project values and names are in `ui-project.md`. S
   group: tokens
   triage_hint: "Flag when: token variable referenced, color/spacing/size property changed"
   instruction: "Check that each design token is used for its intended semantic role. A violation is using a token outside its role — e.g., a spacing token for font-size, a danger color for non-error content, or a shadow token for a non-elevated element. Also check elevation hierarchy: elements inside cards, dialogs, or drawers sit on a raised surface (--*-bgColor-raised), not on the page surface (--*-bgColor-default). A badge or inner element on a card must NOT use bgColor-default — that is page-level only. Correct: each token maps to the role described in ui-project.md's token tables, and elevation tier matches the visual context."
+  ```
+
+- Background tokens follow the elevation hierarchy. Page surface is `bgColor-default`. Cards, dialogs, and drawers are `bgColor-raised`. Elements inset within a raised surface (badges, inner panels) are `bgColor-inset`. When defining component-tier tokens in tokens.css, alias from the correct elevation tier.
+
+  CORRECT: `--shelf-card-bgColor: var(--shelf-bgColor-raised);` — card sits above the page
+  CORRECT: `--shelf-card-badge-bgColor: var(--shelf-bgColor-inset);` — badge is inset within a raised card
+  WRONG: `--shelf-card-badge-bgColor: var(--shelf-bgColor-default);` — page-level token on a raised surface
+  WRONG: `background-color: var(--shelf-bgColor-default);` in component CSS — components inherit the page background or use a higher elevation tier
+
+  ```enforcement
+  id: "elevation-hierarchy"
+  tier: T3
+  agent: reviewer
+  scope: "src/**/*.css"
+  group: tokens
+  triage_hint: "Flag when: bgColor token alias defined, background-color property set, new component token in tokens.css"
+  instruction: "Check the elevation hierarchy of every bgColor usage. Three tiers exist: bgColor-default (page surface), bgColor-raised (cards, dialogs, drawers), bgColor-inset (elements inside raised surfaces like badges, inner panels). A violation is: (1) a component-tier token aliasing bgColor-default when the component sits on a raised surface, (2) a component CSS file using bgColor-default directly instead of inheriting or using bgColor-raised/bgColor-inset. Correct: every bgColor alias and usage matches the element's position in the visual elevation stack."
   ```
 
 - Media queries use `@custom-media` viewport tokens, not raw breakpoint values. When tokens.css defines `@custom-media --viewport-md (width >= 768px)`, component CSS must use `@media (--viewport-md)`.

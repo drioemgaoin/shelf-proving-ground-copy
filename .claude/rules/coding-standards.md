@@ -144,6 +144,26 @@ paths: src/**/*
     fix: "Use getByRole or getByLabelText instead of data-testid"
   ```
 
+- `getByRole` and `getByLabelText` throw on miss — `.toBeTruthy()` on their result is a tautology. Use `.toBeInTheDocument()` for DOM presence assertions.
+
+  CORRECT: `expect(screen.getByRole('main')).toBeInTheDocument();`
+  WRONG: `expect(screen.getByRole('main')).toBeTruthy();` — always passes, never catches a real regression
+
+  ```enforcement
+  id: "testing-no-tautology-assertions"
+  tier: T1
+  - pattern: "getBy(Role|LabelText|Text|AltText|Title|DisplayValue|PlaceholderText|TestId).*toBeTruthy"
+    assert: absent
+    scope: "src/**/*.test.{ts,tsx}"
+    strip: comments
+    fix: "getByRole (and all getBy* queries) throw if no match — .toBeTruthy() is always true. Use .toBeInTheDocument() instead."
+  - pattern: "getBy(Role|LabelText|Text|AltText|Title|DisplayValue|PlaceholderText|TestId).*toBeDefined"
+    assert: absent
+    scope: "src/**/*.test.{ts,tsx}"
+    strip: comments
+    fix: "getByRole (and all getBy* queries) throw if no match — .toBeDefined() is always true. Use .toBeInTheDocument() instead."
+  ```
+
 ## Components
 
 - Placeholders (skeletons, spinners) use the same element and role as real content. No `aria-hidden` inside role-queryable containers (list, grid, table).

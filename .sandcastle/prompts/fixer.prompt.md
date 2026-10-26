@@ -28,6 +28,10 @@ Do NOT explore the repo. Read the findings file immediately.
    Do NOT use `git add -A`, `git add .`, or `git add --all` — these stage QA reports, test artifacts, and tracker state that must not be committed.
 7. Commit with prefix `RALPH: fix QA round`
 
+## Token invariants
+
+When a fix adds or changes a custom property in `:root` inside `tokens.css`, define it in EVERY dark-mode block (`[data-theme="dark"]` and `@media (prefers-color-scheme: dark)`). A light-only token causes axe contrast failures and costs a full re-run.
+
 ## Boundaries
 
 Fix only what the findings describe. No refactoring, no new features, no "while I'm here" improvements.

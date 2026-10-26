@@ -259,8 +259,7 @@ async function runImplementer(
     BRANCH: issue.branch,
     ISSUE_DETAILS: opts.issueDetails.get(issue.id)!,
     CODEMAP: opts.codemaps.get(issue.id) ?? "",
-    // VIOLATIONS_MEMORY: loadViolationsMemory(), // temporarily disabled for testing
-    VIOLATIONS_MEMORY: "",
+    VIOLATIONS_MEMORY: loadViolationsMemory(),
     CONSTRAINTS: constraints,
     COMMENT_TASK_COMMAND: opts.trackerCommands!.COMMENT_TASK_COMMAND.replace("<ID>", issue.id),
     LABEL_TASK_COMMAND: opts.trackerCommands!.LABEL_TASK_COMMAND.replace("<ID>", issue.id),

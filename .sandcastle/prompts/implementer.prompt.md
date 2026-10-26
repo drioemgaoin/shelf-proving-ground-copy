@@ -30,6 +30,8 @@ Pre-commit gate (run as one command): `npx stylelint --fix 'src/**/*.css' && npm
 Playwright runs headless Chromium. No special config needed.
 T1 hooks enforce constraints on every Edit/Write — trust them, don't inspect them.
 Token values live in `src/styles/tokens.css` (read this file to see available tokens).
+Every custom property defined in `:root` MUST also be defined in ALL dark-mode blocks in tokens.css (`[data-theme="dark"]` and `@media (prefers-color-scheme: dark)`). A light-only token causes axe contrast failures.
+Every custom-styled `<button>` needs `appearance: none` and an explicit `background-color` from a `--shelf-bgColor-*` token. UA defaults do not adapt to dark mode.
 
 # COLD START
 
