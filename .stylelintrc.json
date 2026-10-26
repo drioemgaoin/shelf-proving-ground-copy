@@ -15,6 +15,15 @@
     "shelf/keyframes-in-layer": true,
     "shelf/animation-properties": true,
     "shelf/transition-properties": true,
-    "shelf/motion-token-values": true
-  }
+    "shelf/motion-token-values": true,
+    "shelf/viewport-tokens": true
+  },
+  "overrides": [
+    {
+      "files": ["src/styles/tokens.css"],
+      "rules": {
+        "shelf/viewport-tokens": null
+      }
+    }
+  ]
 }

@@ -1,12 +1,13 @@
 /**
- * Custom stylelint plugin with four rules:
+ * Custom stylelint plugin with five rules:
  *
  * 1. shelf/keyframes-in-layer — @keyframes must be nested inside @layer.
  * 2. shelf/animation-properties — only transform and opacity allowed inside @keyframes.
  * 3. shelf/transition-properties — transition-property may only target transform/opacity.
  * 4. shelf/motion-token-values — duration and easing must use var() tokens, not raw values.
+ * 5. shelf/viewport-tokens — @media queries must use @custom-media tokens, not raw breakpoints.
  *
- * See CODING_STANDARDS.md > Components and ui-base.md > Motion.
+ * See CODING_STANDARDS.md > Components and ui-base.md > Motion / Layout.
  */
 import stylelint from 'stylelint';
 
@@ -215,6 +216,35 @@ const motionTokenRule = (primary) => {
 };
 motionTokenRule.meta = { url: '' };
 
+// ─── Rule 5: viewport-tokens ───────────────────────────────────────
+
+const viewportRuleName = 'shelf/viewport-tokens';
+const viewportMessages = utils.ruleMessages(viewportRuleName, {
+  rejected:
+    '@media queries must use @custom-media viewport tokens (e.g., @media (--viewport-md)), not raw breakpoint values. See @custom-media definitions in src/styles/tokens.css.',
+});
+
+// Matches raw numeric breakpoints: 768px, 48rem, 100vw, etc.
+const RAW_BREAKPOINT_RE = /\d+(px|rem|em|vw|vh)\b/;
+
+const viewportRule = (primary) => {
+  return (root, result) => {
+    if (!primary) return;
+
+    root.walkAtRules('media', (atRule) => {
+      if (RAW_BREAKPOINT_RE.test(atRule.params)) {
+        utils.report({
+          message: viewportMessages.rejected,
+          node: atRule,
+          result,
+          ruleName: viewportRuleName,
+        });
+      }
+    });
+  };
+};
+viewportRule.meta = { url: '' };
+
 // ─── Export ─────────────────────────────────────────────────────────
 
 export default [
@@ -222,4 +252,5 @@ export default [
   createPlugin(animPropsRuleName, animPropsRule),
   createPlugin(transPropsRuleName, transPropsRule),
   createPlugin(motionTokenRuleName, motionTokenRule),
+  createPlugin(viewportRuleName, viewportRule),
 ];
