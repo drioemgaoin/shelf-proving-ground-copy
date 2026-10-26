@@ -1,0 +1,42 @@
+@layer components {
+  .chip-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--shelf-space-sm);
+  }
+
+  .chip {
+    appearance: none;
+    display: inline-flex;
+    align-items: center;
+    padding-block: var(--shelf-space-xs);
+    padding-inline: var(--shelf-space-md);
+    border: var(--shelf-borderWidth-default) solid var(--shelf-chip-borderColor-rest);
+    border-radius: var(--shelf-radius-full);
+    background-color: var(--shelf-chip-bgColor-rest);
+    color: var(--shelf-chip-fgColor-rest);
+    font-size: var(--shelf-font-size-sm);
+    font-weight: var(--shelf-font-weight-medium);
+    cursor: pointer;
+  }
+
+  .chip[aria-pressed="false"]:hover {
+    border-color: var(--shelf-chip-borderColor-hover);
+  }
+
+  .chip[aria-pressed="true"] {
+    border-color: var(--shelf-chip-borderColor-selected);
+    background-color: var(--shelf-chip-bgColor-selected);
+    color: var(--shelf-chip-fgColor-selected);
+  }
+
+  .chip[aria-pressed="true"]:hover {
+    border-color: var(--shelf-chip-borderColor-selected-hover);
+    background-color: var(--shelf-chip-bgColor-selected-hover);
+  }
+
+  .chip:focus-visible {
+    outline: var(--shelf-chip-focusRing);
+    outline-offset: var(--shelf-chip-focusRing-offset);
+  }
+}
