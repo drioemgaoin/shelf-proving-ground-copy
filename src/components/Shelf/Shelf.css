@@ -23,5 +23,9 @@
   .shelf-live {
     position: absolute;
     overflow: hidden;
+    inline-size: var(--shelf-shelf-live-size);
+    block-size: var(--shelf-shelf-live-size);
+    clip-path: var(--shelf-shelf-live-clip);
+    white-space: nowrap;
   }
 }
