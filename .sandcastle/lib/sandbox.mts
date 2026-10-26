@@ -94,8 +94,12 @@ export function createBuilderHooks(overlay: boolean): SandboxHooks {
         // T1 hooks read from .t1-cache.json; T3 payloads injected into prompts.
         // Stash goes to .sandcastle/ (not .claude/) so agents exploring
         // .claude/ for config can't discover and read the raw rule files.
+        //
+        // Idempotent: if rules were already stashed (reused worktree from a
+        // previous run), restore them before building the cache.
+        { command: "test -d .sandcastle/.rules-stash && cp .sandcastle/.rules-stash/*.md .claude/rules/ 2>/dev/null; true" },
         { command: "node scripts/write-t1-cache.mjs" },
-        { command: "mv .claude/rules .sandcastle/.rules-stash" },
+        { command: "rm -rf .sandcastle/.rules-stash && mv .claude/rules .sandcastle/.rules-stash" },
         // Restore T1 cache to the path apply-t1.mjs expects (.claude/rules/.t1-cache.json)
         { command: "mkdir -p .claude/rules && cp .sandcastle/.rules-stash/.t1-cache.json .claude/rules/ 2>/dev/null; true" },
         // Remove skills and agents — Claude Code auto-loads these into context.
@@ -174,8 +178,10 @@ export function createReplayHooks(): SandboxHooks {
             "bd init --reinit-local --non-interactive -q 2>/dev/null; true",
         },
         // Write T1 cache then stash rules (same as builder hooks).
+        // Idempotent: restore from stash first if reused worktree.
+        { command: "test -d .sandcastle/.rules-stash && cp .sandcastle/.rules-stash/*.md .claude/rules/ 2>/dev/null; true" },
         { command: "node scripts/write-t1-cache.mjs" },
-        { command: "mv .claude/rules .sandcastle/.rules-stash" },
+        { command: "rm -rf .sandcastle/.rules-stash && mv .claude/rules .sandcastle/.rules-stash" },
         { command: "mkdir -p .claude/rules && cp .sandcastle/.rules-stash/.t1-cache.json .claude/rules/ 2>/dev/null; true" },
         { command: "rm -rf .claude/skills .claude/agents" },
         { command: "node .claude/hooks/backpressure.mjs --baseline" },

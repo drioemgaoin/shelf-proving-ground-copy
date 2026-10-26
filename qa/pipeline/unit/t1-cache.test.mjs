@@ -244,6 +244,117 @@ test('real project rules: cache contains expected T1 block ids', () => {
 });
 
 // ══════════════════════════════════════════════════════════════════════
+// Test 5: Stale worktree — rules already stashed, write-t1-cache fails
+// ══════════════════════════════════════════════════════════════════════
+
+test('write-t1-cache exits non-zero when rules are missing (stale worktree)', () => {
+  const root = createTempProject();
+  const rulesDir = join(root, '.claude', 'rules');
+  const stashDir = join(root, '.sandcastle', '.rules-stash');
+
+  // Simulate a previous run: move rules to stash
+  mkdirSync(stashDir, { recursive: true });
+  for (const f of readdirSync(rulesDir)) {
+    if (f.endsWith('.md')) {
+      cpSync(join(rulesDir, f), join(stashDir, f));
+    }
+  }
+  // Remove the markdown files from rules dir (keep dir itself)
+  for (const f of readdirSync(rulesDir)) {
+    if (f.endsWith('.md')) rmSync(join(rulesDir, f));
+  }
+
+  // Run write-t1-cache — should FAIL because no rules
+  const cacheScript = join(root, 'scripts', 'write-t1-cache.mjs');
+  mkdirSync(join(root, 'scripts'), { recursive: true });
+  cpSync(join(PROJECT_ROOT, 'scripts', 'write-t1-cache.mjs'), cacheScript);
+
+  const result = spawnSync('node', [cacheScript], {
+    cwd: root,
+    encoding: 'utf8',
+    timeout: 10000,
+  });
+
+  assert(result.status !== 0, `write-t1-cache should exit non-zero when rules are stashed, got ${result.status}`);
+  assert(
+    result.stderr.includes('ERROR'),
+    `Expected ERROR message, got: ${result.stderr}`,
+  );
+
+  rmSync(root, { recursive: true, force: true });
+});
+
+// ══════════════════════════════════════════════════════════════════════
+// Test 6: Sandbox hook sequence is idempotent (restores from stash)
+// ══════════════════════════════════════════════════════════════════════
+
+test('sandbox hooks restore rules from stash before building cache (idempotent)', () => {
+  // Verify createBuilderHooks includes the restore-before-cache step
+  const src = readFileSync(join(PROJECT_ROOT, '.sandcastle', 'lib', 'sandbox.mts'), 'utf8');
+  const builderStart = src.indexOf('export function createBuilderHooks');
+  const builderEnd = src.indexOf('\n}', builderStart);
+  const builderBody = src.slice(builderStart, builderEnd);
+
+  // The restore step must appear BEFORE write-t1-cache
+  const restoreIdx = builderBody.indexOf('.rules-stash');
+  const cacheIdx = builderBody.indexOf('write-t1-cache');
+  const stashIdx = builderBody.indexOf('mv .claude/rules .sandcastle/.rules-stash');
+
+  assert(restoreIdx !== -1, 'Builder hooks must reference .rules-stash for restore step');
+  assert(cacheIdx !== -1, 'Builder hooks must run write-t1-cache');
+  assert(restoreIdx < cacheIdx, 'Restore from stash must happen BEFORE write-t1-cache');
+  assert(cacheIdx < stashIdx, 'write-t1-cache must happen BEFORE re-stashing rules');
+});
+
+test('sandbox hooks produce non-empty cache in stale worktree (integration)', () => {
+  const root = createTempProject();
+  const rulesDir = join(root, '.claude', 'rules');
+  const stashDir = join(root, '.sandcastle', '.rules-stash');
+
+  // Simulate a previous run: stash the rules
+  mkdirSync(stashDir, { recursive: true });
+  for (const f of readdirSync(rulesDir)) {
+    if (f.endsWith('.md')) {
+      cpSync(join(rulesDir, f), join(stashDir, f));
+    }
+  }
+  for (const f of readdirSync(rulesDir)) {
+    if (f.endsWith('.md')) rmSync(join(rulesDir, f));
+  }
+
+  // Now simulate the fixed hook sequence:
+  // Step 1: Restore from stash
+  if (existsSync(stashDir)) {
+    for (const f of readdirSync(stashDir)) {
+      if (f.endsWith('.md')) {
+        cpSync(join(stashDir, f), join(rulesDir, f));
+      }
+    }
+  }
+
+  // Step 2: Write cache
+  const cacheScript = join(root, 'scripts', 'write-t1-cache.mjs');
+  mkdirSync(join(root, 'scripts'), { recursive: true });
+  cpSync(join(PROJECT_ROOT, 'scripts', 'write-t1-cache.mjs'), cacheScript);
+
+  const result = spawnSync('node', [cacheScript], {
+    cwd: root,
+    encoding: 'utf8',
+    timeout: 10000,
+  });
+
+  assert(result.status === 0, `write-t1-cache should succeed after restore, got: ${result.stderr}`);
+
+  const cachePath = join(rulesDir, '.t1-cache.json');
+  assert(existsSync(cachePath), 'Cache must exist after restore + write');
+
+  const cached = JSON.parse(readFileSync(cachePath, 'utf8'));
+  assert(cached.length > 0, `Cache must be non-empty after restore, got ${cached.length} blocks`);
+
+  rmSync(root, { recursive: true, force: true });
+});
+
+// ══════════════════════════════════════════════════════════════════════
 // Helpers
 // ══════════════════════════════════════════════════════════════════════
 

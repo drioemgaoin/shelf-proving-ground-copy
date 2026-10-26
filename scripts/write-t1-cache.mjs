@@ -40,5 +40,6 @@ writeFileSync(cachePath, JSON.stringify(t1Blocks));
 if (t1Blocks.length > 0) {
   process.stderr.write(`write-t1-cache: ${t1Blocks.length} T1 blocks cached\n`);
 } else {
-  process.stderr.write('write-t1-cache: warning: no T1 blocks found\n');
+  process.stderr.write('write-t1-cache: ERROR: no T1 blocks found — rules files missing or unparseable\n');
+  process.exit(1);
 }
