@@ -10,7 +10,7 @@ Do NOT run tests tagged `@visual`. They run in a separate orchestrator phase. If
 
 Co-located tests. When you modify a source file, check the codemap for a matching test file (e.g. `Foo.tsx` → `Foo.test.tsx`). If one exists, read it and update any assertions that your changes invalidate — before running tests.
 
-Before committing, run the pre-commit gate (see ENVIRONMENT). Commit prefix: `RALPH:`. One-line summary + file list. No design rationale.
+Before committing, run each verification command separately with full output. Do not pipe through `tail` or `head` — truncated output hides errors and wastes turns on misdiagnosis. Then run the pre-commit gate (see ENVIRONMENT). Commit prefix: `RALPH:`. One-line summary + file list. No design rationale.
 
 # BOUNDARIES
 
@@ -37,7 +37,7 @@ Every custom-styled `<button>` needs `appearance: none` and an explicit `backgro
 
 Your inputs are: the issue below, the codemap, CLAUDE.md (loads automatically), and the constraints below. That is everything you need. Do not explore or read anything outside of them.
 
-Use the codemap to find files. Read the acceptance spec for this ticket and any existing source files you will modify. Then write code. Nothing else first.
+Use the codemap to find files. Read the acceptance spec for this ticket and any existing source files you will modify. Then write a brief plan (3 lines max) and start coding the first component immediately — do not plan all components before starting.
 
 # COMPLETION
 

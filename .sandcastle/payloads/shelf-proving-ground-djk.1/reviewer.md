@@ -10,6 +10,16 @@ Check that each design token is used for its intended semantic role. A violation
 
 ---
 
+## elevation-hierarchy
+**Source:** Values
+**Rule:** Background tokens follow the elevation hierarchy. Page surface is `bgColor-default`. Cards, dialogs, and drawers are `bgColor-raised`. Elements inset within a raised surface (badges, inner panels) are `bgColor-inset`. When defining component-tier tokens in tokens.css, alias from the correct elevation tier.
+
+Check the elevation hierarchy of every bgColor usage. Three tiers exist: bgColor-default (page surface), bgColor-raised (cards, dialogs, drawers), bgColor-inset (elements inside raised surfaces like badges, inner panels). A violation is: (1) a component-tier token aliasing bgColor-default when the component sits on a raised surface, (2) a component CSS file using bgColor-default directly instead of inheriting or using bgColor-raised/bgColor-inset. Correct: every bgColor alias and usage matches the element's position in the visual elevation stack.
+
+**Triage hint:** Flag when: bgColor token alias defined, background-color property set, new component token in tokens.css
+
+---
+
 ## no-outer-margin
 **Source:** Values
 **Rule:** No margin in component CSS. Resets (margin: 0, padding: 0) go in @layer base. Parent owns centering — no margin-inline: auto. Exception: flex auto-margin for distribution.

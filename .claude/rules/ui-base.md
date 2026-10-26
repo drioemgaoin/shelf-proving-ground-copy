@@ -105,6 +105,23 @@ These apply to every project. Project values and names are in `ui-project.md`. S
   instruction: "Check the elevation hierarchy of every bgColor usage. Three tiers exist: bgColor-default (page surface), bgColor-raised (cards, dialogs, drawers), bgColor-inset (elements inside raised surfaces like badges, inner panels). A violation is: (1) a component-tier token aliasing bgColor-default when the component sits on a raised surface, (2) a component CSS file using bgColor-default directly instead of inheriting or using bgColor-raised/bgColor-inset. Correct: every bgColor alias and usage matches the element's position in the visual elevation stack."
   ```
 
+- Component CSS uses component-tier color tokens, not semantic-tier. Define `--shelf-{component}-*Color-*` aliases in tokens.css, then reference them. Semantic color tokens (`--shelf-bgColor-*`, `--shelf-fgColor-*`, `--shelf-borderColor-*`) belong in token definitions and `@layer base`, not in component stylesheets.
+
+  CORRECT: `background-color: var(--shelf-card-bgColor);` — component-tier alias
+  CORRECT: `color: var(--shelf-chip-fgColor-rest);` — component-tier alias
+  WRONG: `background-color: var(--shelf-bgColor-raised);` — semantic token used directly in component CSS
+  WRONG: `color: var(--shelf-fgColor-muted);` — semantic token used directly in component CSS
+
+  ```enforcement
+  id: "component-color-token-tier"
+  tier: T1
+  - pattern: "var\(--shelf-(?:bg|fg|border)Color-"
+    assert: absent
+    scope: "src/components/**/*.css"
+    strip: comments
+    fix: "Component CSS must use component-tier color tokens (--shelf-{component}-*Color-*), not semantic-tier ones. Add a component alias in tokens.css (e.g., --shelf-card-bgColor: var(--shelf-bgColor-raised)) and reference the alias here."
+  ```
+
 - Media queries use `@custom-media` viewport tokens, not raw breakpoint values. When tokens.css defines `@custom-media --viewport-md (width >= 768px)`, component CSS must use `@media (--viewport-md)`.
 
   CORRECT: `@media (--viewport-md) { .shelf { padding: var(--shelf-space-lg); } }`
