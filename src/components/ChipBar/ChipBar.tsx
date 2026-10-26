@@ -15,7 +15,7 @@ const FILTERS: Filter[] = [
   { key: 'finished', label: 'Finished' },
 ];
 
-// Chip selection lives here for now; djk.2 lifts it to drive grid filtering.
+// State is local; a parent component will lift it to drive grid filtering.
 export function ChipBar(): React.JSX.Element {
   const [selected, setSelected] = useState<Set<FilterKey>>(new Set(['all']));
 
