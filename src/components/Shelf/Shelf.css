@@ -1,0 +1,27 @@
+@layer components {
+  .shelf {
+    display: flex;
+    flex-direction: column;
+    gap: var(--shelf-space-lg);
+    inline-size: var(--shelf-shelf-inlineSize);
+    max-inline-size: var(--shelf-shelf-maxWidth);
+    padding: var(--shelf-space-md);
+  }
+
+  @media (--viewport-md) {
+    .shelf {
+      padding: var(--shelf-space-lg);
+    }
+  }
+
+  .shelf-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(var(--shelf-shelf-grid-minWidth), 1fr));
+    gap: var(--shelf-space-lg);
+  }
+
+  .shelf-live {
+    position: absolute;
+    overflow: hidden;
+  }
+}
