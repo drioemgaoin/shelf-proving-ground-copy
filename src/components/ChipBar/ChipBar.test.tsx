@@ -6,11 +6,11 @@ import { ChipBar } from './ChipBar';
 describe('ChipBar', () => {
   it('renders all four chips inside an accessible group', () => {
     render(<ChipBar />);
-    expect(screen.getByRole('group', { name: 'Filter by status' })).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'All' })).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'To Read' })).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'Reading' })).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'Finished' })).toBeTruthy();
+    expect(screen.getByRole('group', { name: 'Filter by status' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'All' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'To Read' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Reading' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Finished' })).toBeInTheDocument();
   });
 
   it('"All" is pressed on initial render; status chips are unpressed', () => {
