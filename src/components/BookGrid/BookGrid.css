@@ -1,0 +1,99 @@
+@layer components {
+  .shelf-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(var(--shelf-shelf-grid-minWidth), 1fr));
+    gap: var(--shelf-space-lg);
+  }
+
+  .book-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--shelf-space-sm);
+    block-size: var(--shelf-card-blockSize);
+    padding: var(--shelf-space-md);
+    border: var(--shelf-borderWidth-default) solid var(--shelf-card-borderColor);
+    border-radius: var(--shelf-radius-lg);
+    background-color: var(--shelf-card-bgColor);
+    overflow: hidden;
+  }
+
+  .book-card-title {
+    color: var(--shelf-card-title-fgColor);
+    font-size: var(--shelf-font-size-lg);
+    font-weight: var(--shelf-font-weight-semibold);
+  }
+
+  .book-card-author {
+    color: var(--shelf-card-author-fgColor);
+    font-size: var(--shelf-font-size-sm);
+  }
+
+  .book-card-badge {
+    align-self: flex-start;
+    padding-block: var(--shelf-space-xs);
+    padding-inline: var(--shelf-space-sm);
+    border: var(--shelf-borderWidth-default) solid var(--shelf-card-badge-borderColor);
+    border-radius: var(--shelf-radius-full);
+    background-color: var(--shelf-card-badge-bgColor);
+    color: var(--shelf-card-badge-fgColor);
+    font-size: var(--shelf-font-size-xs);
+  }
+
+  .skeleton-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--shelf-space-sm);
+    block-size: var(--shelf-skeleton-blockSize);
+    padding: var(--shelf-space-md);
+    border: var(--shelf-borderWidth-default) solid var(--shelf-skeleton-borderColor);
+    border-radius: var(--shelf-radius-lg);
+    background-color: var(--shelf-skeleton-bgColor);
+  }
+
+  .skeleton-bar {
+    block-size: var(--shelf-skeleton-bar-blockSize);
+    border-radius: var(--shelf-radius-sm);
+    background-color: var(--shelf-skeleton-barColor);
+    opacity: var(--shelf-skeleton-opacity-min);
+    animation-name: skeleton-pulse;
+    animation-duration: var(--shelf-motion-duration-slow);
+    animation-timing-function: var(--shelf-motion-easing-enter);
+    animation-iteration-count: infinite;
+    animation-direction: alternate;
+  }
+
+  .skeleton-bar-short {
+    inline-size: var(--shelf-skeleton-bar-short-inlineSize);
+  }
+
+  .skeleton-pill {
+    inline-size: var(--shelf-skeleton-pill-inlineSize);
+    block-size: var(--shelf-skeleton-pill-blockSize);
+    border-radius: var(--shelf-radius-full);
+    background-color: var(--shelf-skeleton-barColor);
+    opacity: var(--shelf-skeleton-opacity-min);
+    animation-name: skeleton-pulse;
+    animation-duration: var(--shelf-motion-duration-slow);
+    animation-timing-function: var(--shelf-motion-easing-enter);
+    animation-iteration-count: infinite;
+    animation-direction: alternate;
+  }
+
+  @keyframes skeleton-pulse {
+    from {
+      opacity: var(--shelf-skeleton-opacity-min);
+    }
+
+    to {
+      opacity: var(--shelf-skeleton-opacity-max);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .skeleton-bar,
+    .skeleton-pill {
+      animation: none;
+      opacity: var(--shelf-skeleton-opacity-min);
+    }
+  }
+}

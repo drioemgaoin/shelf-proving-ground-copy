@@ -1,0 +1,25 @@
+@layer components {
+  .shelf {
+    display: flex;
+    flex-direction: column;
+    gap: var(--shelf-space-lg);
+    inline-size: var(--shelf-shelf-inlineSize);
+    max-inline-size: var(--shelf-shelf-maxWidth);
+    padding: var(--shelf-space-md);
+  }
+
+  @media (--viewport-md) {
+    .shelf {
+      padding: var(--shelf-space-lg);
+    }
+  }
+
+  .shelf-live {
+    position: absolute;
+    inline-size: var(--shelf-shelf-live-size);
+    block-size: var(--shelf-shelf-live-size);
+    overflow: hidden;
+    clip-path: var(--shelf-shelf-live-clip);
+    white-space: nowrap;
+  }
+}
