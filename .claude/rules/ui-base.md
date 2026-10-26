@@ -207,6 +207,21 @@ These apply to every project. Project values and names are in `ui-project.md`. S
     fix: "Component class selectors (.card, .drawer, etc.) must live colocated with their component in src/components/<Component>/<Component>.css. src/styles/ is reserved for token definitions, layer order, and base resets only."
   ```
 
+- Each component lives in its own directory: `src/components/<Name>/<Name>.tsx`. No flat files directly in `src/components/`. The directory groups the component with its CSS, tests, and any sub-components.
+
+  CORRECT: `src/components/BookCard/BookCard.tsx` — component in own directory
+  WRONG: `src/components/BookCard.tsx` — flat file directly in components/
+
+  ```enforcement
+  id: "component-in-own-directory"
+  tier: T1
+  - pattern: "."
+    assert: absent
+    scope: "src/components/*.{ts,tsx,css}"
+    fix: "Each component must live in its own directory: src/components/<Name>/<Name>.tsx, not src/components/<Name>.tsx. Create a directory for the component and place all related files (tsx, css, test) inside it."
+  ```
+
+
 - No margin in component CSS. Resets (margin: 0, padding: 0) go in @layer base. Parent owns centering — no margin-inline: auto. Exception: flex auto-margin for distribution.
 
   CORRECT: Container owns centering — all children align:
