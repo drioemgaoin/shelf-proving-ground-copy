@@ -30,6 +30,16 @@ Scan all selectors in the diff for margin properties. A violation is any element
 
 ---
 
+## anchored-overlay-positioning
+**Source:** Anchored overlays
+**Rule:** An anchored overlay is any element visually pinned to a specific position on its parent surface (badge in a card corner, close button on a dialog, notification dot on an icon). The spec description determines the positioning method.
+
+When a component has an overlay element (badge, indicator, dot, close button, tag pinned to a surface), check that the positioning method matches the spec's intent. If the spec names a corner (top-right, top-left, bottom-right, bottom-left), the surface must be position: relative and the overlay must be position: absolute with inset-block-start/end and inset-inline-start/end. A violation is: (1) spec says a corner but the overlay uses flex alignment, (2) overlay is position: absolute but the surface lacks position: relative, (3) spec describes a content-relative position but the overlay is absolute.
+
+**Triage hint:** Flag when: position: absolute, position: relative on container, badge/indicator/dot/tag/overlay element, inset properties, align-self on a non-flow element
+
+---
+
 ## motion-tokens
 **Source:** Motion
 **Rule:** Durations and easing come from motion tokens.

@@ -32,6 +32,22 @@ For each grid or list layout, verify that gaps between items are visually percep
 
 ---
 
+## overlay-position-matches-spec
+**Source:** Anchored overlays
+**Rule:** An anchored overlay is any element visually pinned to a specific position on its parent surface (badge in a card corner, close button on a dialog, notification dot on an icon). The spec description determines the positioning method.
+
+For each overlay element (badge, indicator, dot, tag, close button) visible on a surface, check that its rendered position matches the spec description. If the spec says 'top-right', the element must be visually in the top-right corner of its surface, not the bottom-right or inline-end of a flow. A violation is any overlay whose rendered position does not match the position described in the spec or CLAUDE.md.
+
+---
+
+## design-intent-verification
+**Source:** Spec fidelity
+**Rule:** Visual QA must verify that rendered output matches the spec's design-intent descriptions in CLAUDE.md, not just the rules. A rendered component that satisfies all rules but contradicts the spec is a failure.
+
+Read the product spec in CLAUDE.md. For each component described with visual intent (color, position, shape, layout, animation direction), verify the rendered output matches the description. Check: (1) color intent — if the spec names a color treatment (colored, accent, danger), the rendered element must not be neutral/gray, (2) position intent — if the spec names a position (top-right, bottom-center, right on desktop), the rendered element must be at that position, (3) shape intent — if the spec names a shape (pill, circle, rounded), the rendered element must have that shape, (4) behavior intent — if the spec names a behavior (auto-dismiss, slide from right), the behavior must match. A violation is any rendered component whose appearance contradicts a visual description in the spec, even if it passes all other rules.
+
+---
+
 ## focus-management
 **Source:** Accessibility floor (WCAG 2.2 AA)
 **Rule:** Focus is always visible, never hidden under sticky elements. It moves into dialogs, is trapped while open, and returns to the trigger on close.

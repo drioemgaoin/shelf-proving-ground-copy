@@ -10,6 +10,8 @@
 {"id":"placement-import-direction","scope":"**/*.{ts,tsx,js,jsx}","reason":"no matching files in diff"}
 {"id":"layer-order-in-layers-css","scope":"src/main.tsx","reason":"no matching files in diff"}
 {"id":"state-needs-acceptance-test","scope":"src/components/**/*.{ts,tsx}","reason":"no matching files in diff"}
+{"id":"data-enum-variant-pattern","scope":"src/components/**/*.{tsx,css}","reason":"no matching files in diff"}
 {"id":"data-dynamic-on-changing-content","scope":"src/components/**/*.{ts,tsx}","reason":"no matching files in diff"}
 {"id":"comment-style","scope":"src/**/*.{ts,tsx,css}","reason":"no matching files in diff"}
+{"id":"intent-color-for-data-meanings","scope":"src/styles/tokens.css","reason":"no matching files in diff"}
 {"id":"destructive-confirmation-pattern","scope":"src/components/**/*.{ts,tsx}","reason":"no matching files in diff"}
