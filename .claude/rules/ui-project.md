@@ -54,6 +54,36 @@ All tokens use `--shelf-`.
 
 Color modes shipped: **light and dark**. Theme is set via `[data-theme]` attribute on `:root` (values: `light`, `dark`). System preference honored when no explicit theme is set.
 
+## Intent colors
+
+Intent colors represent what data means (status, severity, category), not where it sits on the page. They sit at the semantic tier between surface-role tokens and component tokens. Any component can consume them through component-tier aliases.
+
+| Intent | Token prefix | Use for |
+| ------ | ------------ | ------- |
+| to-read | `--shelf-intent-to-read-*` | Items queued but not started (warm neutral) |
+| reading | `--shelf-intent-reading-*` | Items actively in progress (warm amber) |
+| finished | `--shelf-intent-finished-*` | Items completed (muted sage) |
+
+**Token flow:** Primitive → intent (semantic) → component alias.
+
+```
+Primitive:  --shelf-base-status-{name}-light / -dark / -light-inv / -dark-inv
+Semantic:   --shelf-intent-{name}-bgColor / -fgColor
+Component:  --shelf-{comp}-{role}-{name}: var(--shelf-intent-{name}-{role})
+```
+
+Component CSS uses only the component-tier alias. Intent tokens are consumed in tokens.css component-tier definitions, never in component CSS directly.
+
+  ```enforcement
+  id: "intent-color-for-data-meanings"
+  tier: T3
+  agent: reviewer
+  scope: "src/styles/tokens.css"
+  group: tokens
+  triage_hint: "Flag when: new component-tier color token added, badge/status/severity/category color defined, data-driven color introduced"
+  instruction: "When a component-tier color token represents a data meaning (status, severity, category, priority — anything from a domain enum), check that it aliases an intent-tier token (--shelf-intent-{name}-{role}), not a surface-role token (bgColor-inset, fgColor-muted, bgColor-default). A violation is a component badge/status/indicator color aliased from a surface-role token. Correct: data meanings flow through intent tokens; surface roles describe elevation and placement."
+  ```
+
 ## Typography
 
 Font: `--shelf-font-family-base` (system humanist sans-serif stack). Size scale: `--shelf-font-size-xs` through `--shelf-font-size-2xl`. Headings use `--shelf-font-weight-semibold` (600). Body uses `--shelf-font-weight-regular` (400). Labels and emphasis use `--shelf-font-weight-medium` (500).

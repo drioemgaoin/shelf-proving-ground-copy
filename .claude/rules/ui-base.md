@@ -259,6 +259,8 @@ These apply to every project. Project values and names are in `ui-project.md`. S
   } /* pushes to bottom of flex column — this is layout within the parent */
   ```
 
+  Note: auto-margin distributes space within a flow — it does not pin to a corner. For corner-anchored overlays (spec says "top-right", "bottom-left", etc.), use position: absolute instead.
+
   WRONG: List/element reset in component CSS (all resets belong in @layer base, not here):
 
   ```css
@@ -378,6 +380,136 @@ These apply to every project. Project values and names are in `ui-project.md`. S
     exclude: "src/styles/tokens.css"
     fix: "Use a --shelf-z-* token (e.g., var(--shelf-z-sticky), var(--shelf-z-drawer)) instead of a raw z-index value"
   ```
+
+## Anchored overlays
+
+- An anchored overlay is any element visually pinned to a specific position on its parent surface (badge in a card corner, close button on a dialog, notification dot on an icon). The spec description determines the positioning method.
+
+  **Decision test:** Does the spec name a **corner** (top-right, top-left, bottom-right, bottom-left)? Use `position: absolute` on the overlay with `position: relative` on the surface. Does the overlay flow with **content** (fills remaining space)? Use flex/grid alignment.
+
+  When the spec says a corner name, absolute anchoring is always correct. Flex alignment at a corner is always wrong — it produces content-dependent positioning that shifts with sibling content.
+
+  CORRECT (spec says "top-right"):
+
+  ```css
+  .card { position: relative; }
+  .card-badge { position: absolute; inset-block-start: var(--shelf-space-sm); inset-inline-end: var(--shelf-space-sm); }
+  ```
+
+  WRONG (spec says "top-right" but uses flex):
+
+  ```css
+  .card { display: flex; flex-direction: column; }
+  .card-badge { align-self: flex-end; }
+  ```
+
+  — `align-self: flex-end` places inline-end but block position depends on source order, not the spec's "top"
+
+  CORRECT (overlay fills remaining space in content flow):
+
+  ```css
+  .card { display: flex; flex-direction: column; }
+  .card-footer { margin-block-start: auto; }
+  ```
+
+  — auto-margin for content-relative positioning within flow, not corner-pinning
+
+  ```enforcement
+  id: "anchored-overlay-positioning"
+  tier: T3
+  agent: reviewer
+  scope: "src/components/**/*.css"
+  group: layout
+  triage_hint: "Flag when: position: absolute, position: relative on container, badge/indicator/dot/tag/overlay element, inset properties, align-self on a non-flow element"
+  instruction: "When a component has an overlay element (badge, indicator, dot, close button, tag pinned to a surface), check that the positioning method matches the spec's intent. If the spec names a corner (top-right, top-left, bottom-right, bottom-left), the surface must be position: relative and the overlay must be position: absolute with inset-block-start/end and inset-inline-start/end. A violation is: (1) spec says a corner but the overlay uses flex alignment, (2) overlay is position: absolute but the surface lacks position: relative, (3) spec describes a content-relative position but the overlay is absolute."
+  ```
+
+  ```enforcement
+  id: "overlay-position-matches-spec"
+  tier: T3
+  agent: visual-qa
+  scope: "*"
+  group: layout
+  instruction: "For each overlay element (badge, indicator, dot, tag, close button) visible on a surface, check that its rendered position matches the spec description. If the spec says 'top-right', the element must be visually in the top-right corner of its surface, not the bottom-right or inline-end of a flow. A violation is any overlay whose rendered position does not match the position described in the spec or CLAUDE.md."
+  ```
+
+## Data-driven variants
+
+- When a component's visual appearance varies by a data enum (status, severity, category, priority — any domain value with N > 2 possible values), the component expresses the variant via a `data-{property}` attribute on the element whose appearance changes. CSS selects on the attribute value to apply variant-specific component tokens.
+
+  Binary widget states with ARIA semantics (pressed, expanded, checked, selected) continue to use their ARIA attributes. `data-*` is for domain enums that have no ARIA equivalent.
+
+  **Token flow:** For each enum value, define a component-tier token aliasing an intent token:
+  `--shelf-{component}-{role}-{enumValue}: var(--shelf-intent-{enumValue}-{role});`
+
+  **Selector pattern:** `.{component}-{element}[data-{property}="{value}"]`
+
+  CORRECT:
+
+  ```tsx
+  <span className="book-card-badge" data-status={book.status}>{book.status}</span>
+  ```
+
+  ```css
+  .book-card-badge[data-status="reading"] {
+    background-color: var(--shelf-card-badge-bgColor-reading);
+    color: var(--shelf-card-badge-fgColor-reading);
+  }
+  ```
+
+  WRONG (class encodes data state):
+
+  ```tsx
+  <span className={`book-card-badge status-${book.status}`}>{book.status}</span>
+  ```
+
+  — mixes structural identity with data state in the class attribute
+
+  WRONG (ARIA misused for domain data):
+
+  ```tsx
+  <span className="book-card-badge" aria-label={book.status}>{book.status}</span>
+  ```
+
+  — aria-label is for accessible names, not data variants
+
+  WRONG (all variants share one token):
+
+  ```css
+  .book-card-badge { background-color: var(--shelf-card-badge-bgColor); }
+  ```
+
+  — loses the per-variant color when the spec says each value should be visually distinct
+
+  ```enforcement
+  id: "data-enum-variant-pattern"
+  tier: T3
+  agent: reviewer
+  scope: "src/components/**/*.{tsx,css}"
+  group: patterns
+  triage_hint: "Flag when: data-driven styling, status/severity/category/priority coloring, conditional className based on enum, switch on data value for styles"
+  instruction: "When a component renders visual variants based on a domain enum (status, severity, category — any value set with more than two members), check: (1) the varying element has a data-{property} attribute carrying the enum value, not a conditional class name, (2) CSS selects on [data-{property}='value'] to apply variant-specific component tokens, (3) each variant has its own component-tier token set aliased from intent tokens, (4) ARIA attributes are used only for standard widget states (pressed, expanded, checked), never for domain enums. A violation is: a className that encodes a data enum value, an ARIA attribute used for a domain enum, or a component that renders all enum values with identical styling when the spec describes distinct visual treatments."
+  ```
+
+## Spec fidelity
+
+- Visual QA must verify that rendered output matches the spec's design-intent descriptions in CLAUDE.md, not just the rules. A rendered component that satisfies all rules but contradicts the spec is a failure.
+
+  Check four categories:
+  1. **Color intent** — spec says "colored" → element must not be neutral/gray
+  2. **Position intent** — spec says "top-right" → element must be in that quadrant
+  3. **Shape intent** — spec says "pill" → element must have pill shape
+  4. **Behavior intent** — spec says "slides from right" → animation direction must match
+
+  ```enforcement
+  id: "design-intent-verification"
+  tier: T3
+  agent: visual-qa
+  scope: "*"
+  group: spec-fidelity
+  instruction: "Read the product spec in CLAUDE.md. For each component described with visual intent (color, position, shape, layout, animation direction), verify the rendered output matches the description. Check: (1) color intent — if the spec names a color treatment (colored, accent, danger), the rendered element must not be neutral/gray, (2) position intent — if the spec names a position (top-right, bottom-center, right on desktop), the rendered element must be at that position, (3) shape intent — if the spec names a shape (pill, circle, rounded), the rendered element must have that shape, (4) behavior intent — if the spec names a behavior (auto-dismiss, slide from right), the behavior must match. A violation is any rendered component whose appearance contradicts a visual description in the spec, even if it passes all other rules."
+  ```
+
 
 ## Motion
 

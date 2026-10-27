@@ -45,6 +45,20 @@
     --shelf-base-accent-6: hsl(18 55% 35%);
     --shelf-base-accent-7: hsl(18 55% 28%);
 
+    /* --- Status intent (reading-list states) --- */
+    --shelf-base-status-to-read-light: hsl(30 20% 90%);
+    --shelf-base-status-to-read-dark: hsl(30 20% 35%);
+    --shelf-base-status-to-read-light-inv: hsl(30 15% 22%);
+    --shelf-base-status-to-read-dark-inv: hsl(30 20% 72%);
+    --shelf-base-status-reading-light: hsl(38 55% 88%);
+    --shelf-base-status-reading-dark: hsl(38 55% 30%);
+    --shelf-base-status-reading-light-inv: hsl(38 35% 22%);
+    --shelf-base-status-reading-dark-inv: hsl(38 50% 72%);
+    --shelf-base-status-finished-light: hsl(155 25% 88%);
+    --shelf-base-status-finished-dark: hsl(155 30% 28%);
+    --shelf-base-status-finished-light-inv: hsl(155 15% 20%);
+    --shelf-base-status-finished-dark-inv: hsl(155 25% 68%);
+
     /* --- Danger --- */
     --shelf-base-danger-4: hsl(0 65% 62%);
     --shelf-base-danger-5: hsl(0 65% 45%);
@@ -189,6 +203,14 @@
     --shelf-motion-duration-slow: var(--shelf-base-duration-400);
     --shelf-motion-easing-enter: cubic-bezier(0, 0, 0.2, 1);
     --shelf-motion-easing-exit: cubic-bezier(0.4, 0, 1, 1);
+
+    /* --- Intent colors (data-driven meanings: status, severity, category) --- */
+    --shelf-intent-to-read-bgColor: var(--shelf-base-status-to-read-light);
+    --shelf-intent-to-read-fgColor: var(--shelf-base-status-to-read-dark);
+    --shelf-intent-reading-bgColor: var(--shelf-base-status-reading-light);
+    --shelf-intent-reading-fgColor: var(--shelf-base-status-reading-dark);
+    --shelf-intent-finished-bgColor: var(--shelf-base-status-finished-light);
+    --shelf-intent-finished-fgColor: var(--shelf-base-status-finished-dark);
   }
 
   /* ================================================================
@@ -216,6 +238,13 @@
 
     --shelf-skeleton-opacity-min: 0.15;
     --shelf-skeleton-opacity-max: 0.4;
+
+    --shelf-intent-to-read-bgColor: var(--shelf-base-status-to-read-light-inv);
+    --shelf-intent-to-read-fgColor: var(--shelf-base-status-to-read-dark-inv);
+    --shelf-intent-reading-bgColor: var(--shelf-base-status-reading-light-inv);
+    --shelf-intent-reading-fgColor: var(--shelf-base-status-reading-dark-inv);
+    --shelf-intent-finished-bgColor: var(--shelf-base-status-finished-light-inv);
+    --shelf-intent-finished-fgColor: var(--shelf-base-status-finished-dark-inv);
   }
 
   @media (prefers-color-scheme: dark) {
@@ -241,6 +270,13 @@
 
       --shelf-skeleton-opacity-min: 0.15;
       --shelf-skeleton-opacity-max: 0.4;
+
+      --shelf-intent-to-read-bgColor: var(--shelf-base-status-to-read-light-inv);
+      --shelf-intent-to-read-fgColor: var(--shelf-base-status-to-read-dark-inv);
+      --shelf-intent-reading-bgColor: var(--shelf-base-status-reading-light-inv);
+      --shelf-intent-reading-fgColor: var(--shelf-base-status-reading-dark-inv);
+      --shelf-intent-finished-bgColor: var(--shelf-base-status-finished-light-inv);
+      --shelf-intent-finished-fgColor: var(--shelf-base-status-finished-dark-inv);
     }
   }
 
@@ -281,6 +317,12 @@
     --shelf-card-badge-bgColor: var(--shelf-bgColor-inset);
     --shelf-card-badge-fgColor: var(--shelf-fgColor-muted);
     --shelf-card-badge-borderColor: var(--shelf-borderColor-subtle);
+    --shelf-card-badge-bgColor-to-read: var(--shelf-intent-to-read-bgColor);
+    --shelf-card-badge-fgColor-to-read: var(--shelf-intent-to-read-fgColor);
+    --shelf-card-badge-bgColor-reading: var(--shelf-intent-reading-bgColor);
+    --shelf-card-badge-fgColor-reading: var(--shelf-intent-reading-fgColor);
+    --shelf-card-badge-bgColor-finished: var(--shelf-intent-finished-bgColor);
+    --shelf-card-badge-fgColor-finished: var(--shelf-intent-finished-fgColor);
 
     /* --- Filter chip --- */
     --shelf-chip-fgColor-rest: var(--shelf-fgColor-default);
