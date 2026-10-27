@@ -55,14 +55,16 @@ Build software like shopping in a supermarket: each module is one item off the s
 - Components perform no I/O. All external calls (HTTP, storage, browser APIs) live in adapter modules. Components call adapters, never raw I/O APIs.
 
   CORRECT:
+
   ```tsx
-  import { fetchBooks } from '../../api/books';
+  import { fetchBooks } from "../../api/books";
   const books = await fetchBooks();
   ```
 
   WRONG:
+
   ```tsx
-  const res = await fetch('/api/books');
+  const res = await fetch("/api/books");
   const books = await res.json();
   ```
 
@@ -103,19 +105,22 @@ Build software like shopping in a supermarket: each module is one item off the s
 - Environment variables are read in one place. Modules receive config via injection (props, hooks, args), not `process.env` or `import.meta.env`.
 
   CORRECT:
+
   ```ts
   // src/config.ts — the ONE place that reads env
-  export const config = { apiUrl: import.meta.env.VITE_API_URL ?? '/api' };
+  export const config = { apiUrl: import.meta.env.VITE_API_URL ?? "/api" };
 
   // src/api/books.ts — receives config via import
-  import { config } from '../config';
+  import { config } from "../config";
   export const fetchBooks = () => fetch(`${config.apiUrl}/books`);
   ```
 
   WRONG:
+
   ```ts
   // src/api/books.ts — reads env directly
-  export const fetchBooks = () => fetch(`${import.meta.env.VITE_API_URL}/books`);
+  export const fetchBooks = () =>
+    fetch(`${import.meta.env.VITE_API_URL}/books`);
   ```
 
   ```enforcement
@@ -158,10 +163,69 @@ Build software like shopping in a supermarket: each module is one item off the s
   scope: "src/**/*.{ts,tsx}"
   group: architecture
   triage_hint: "Flag when: new module/file/component added, function > 50 lines, file > 300 lines, component with multiple useEffect, mixed data fetching and rendering"
-  instruction: "Check that each module owns exactly one capability. Signs of violation: (1) a component that fetches data AND renders complex UI AND manages form state — split into container + presentational, (2) a function over 50 lines doing multiple unrelated things — extract sub-functions, (3) a file exporting multiple unrelated classes or components — split into separate files, (4) a module mixing I/O with business logic — separate into adapter + domain. Correct: each file has one clear purpose nameable in 4 words or fewer."
+  instruction: "Check that each module owns exactly one capability. Signs of violation: (1) a component that fetches data AND renders complex UI AND manages form state — split into container + presentational, (2) a function over 50 lines doing multiple unrelated things — extract sub-functions, (3) a file exporting multiple unrelated classes or components — split into separate files, (4) a module mixing I/O with business logic — separate into adapter + domain, (5) a component file that defines helper components as local functions instead of extracting them to their own directory — each visual element with its own name is a separate component. Correct: each file has one clear purpose nameable in 4 words or fewer."
   ```
 
   **Evidence:** Hatton (1997) — components that fit human working memory have lowest defect density (U-shaped curve: both very small and very large have higher fault rates). Cyclomatic complexity studies show fault-proneness rising from 0.28 at complexity 11 to 0.98 at complexity 74. "Faster Code, Deeper Debt?" (2026) — LLMs amplify code and design debt by generating fast but monolithic modules.
+
+## No inline components
+
+- Each React component lives in its own file inside its own directory. A component file must not define other components as local functions — extract them to `src/components/<Name>/<Name>.tsx`.
+
+  CORRECT: `BookGrid.tsx` imports `BookCard` from `../BookCard/BookCard`:
+
+  ```tsx
+  import { BookCard } from "../BookCard/BookCard";
+  export function BookGrid({ books }: BookGridProps) {
+    return (
+      <ul>
+        {books.map((b) => (
+          <BookCard key={b.id} book={b} />
+        ))}
+      </ul>
+    );
+  }
+  ```
+
+  WRONG: `BookGrid.tsx` defines `BookCard` as a local function:
+
+  ```tsx
+  function BookCard({ book }: { book: Book }) {
+    return <li>{book.title}</li>;
+  }
+  export function BookGrid({ books }: BookGridProps) {
+    return (
+      <ul>
+        {books.map((b) => (
+          <BookCard key={b.id} book={b} />
+        ))}
+      </ul>
+    );
+  }
+  ```
+
+  ```enforcement
+  id: "no-inline-components"
+  tier: T1
+  - pattern: "^\s*function\s+[A-Z]"
+    assert: absent
+    scope: "src/components/**/*.tsx"
+    strip: comments
+    fix: "Each React component must live in its own directory (src/components/<Name>/<Name>.tsx). Extract this local component function to its own file and import it."
+  - pattern: "^\s*const\s+[A-Z][a-zA-Z]+\s*=\s*\("
+    assert: absent
+    scope: "src/components/**/*.tsx"
+    strip: comments
+    skip-lines: "export\s+(default\s+)?const"
+    fix: "Each React component must live in its own directory. Extract this arrow-function component to src/components/<Name>/<Name>.tsx and import it."
+  - pattern: "export\\s+(default\\s+)?function\\s+[A-Z].*\\n(.*\\n)*.*export\\s+(default\\s+)?function\\s+[A-Z]"
+    assert: absent
+    scope: "src/components/**/*.tsx"
+    strip: comments
+    fix: "Only one component per file. Each exported component must live in its own directory (src/components/<Name>/<Name>.tsx). Split this file so each component has its own directory."
+  ```
+
+  > **Agent:** T1 catches three patterns: (1) non-exported uppercase functions, (2) non-exported uppercase arrow consts, (3) multiple exported components in one file via multi-line \n matching. Pattern 1 naturally excludes `export function` lines because `^\s*function` doesn't match lines starting with `export`.
 
 ## Swappability
 
